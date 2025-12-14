@@ -297,6 +297,32 @@ export default function App() {
     );
   }
 
+  if (currentRole === "doctor_assistant") {
+    if (currentProfile?.approval_status !== "approved") {
+      return (
+        <>
+          <AwaitingApprovalScreen onLogout={handleLogout} />
+          <Toaster position="top-right" />
+        </>
+      );
+    }
+
+    return (
+      <>
+        {/* Use Layout so header/sidebar stay consistent */}
+        <Layout
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        >
+          {currentPage === "dashboard" && <AssistantDashboard />}
+          {/* other pages for assistants can be added later */}
+        </Layout>
+        <Toaster position="top-right" />
+      </>
+    );
+  }
+
   // Other roles (patient, doctor_assistant, etc.) → existing generic layout
   return (
     <>

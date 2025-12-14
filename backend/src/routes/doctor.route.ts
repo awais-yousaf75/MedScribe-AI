@@ -188,7 +188,9 @@ router.post("/assistants", async (req, res) => {
       console.error("Create assistant user error:", userError);
       return res
         .status(400)
-        .json({ error: userError?.message || "Failed to create assistant user" });
+        .json({
+          error: userError?.message || "Failed to create assistant user",
+        });
     }
 
     const assistantId = userData.user.id;
@@ -220,10 +222,7 @@ router.post("/assistants", async (req, res) => {
       });
 
     if (daError) {
-      console.error(
-        "Insert doctor_assistant_profiles error:",
-        daError
-      );
+      console.error("Insert doctor_assistant_profiles error:", daError);
       return res.status(500).json({
         error:
           "Assistant user created but failed to link to doctor. Contact support.",
@@ -241,6 +240,68 @@ router.post("/assistants", async (req, res) => {
     });
   } catch (err) {
     console.error("POST /api/doctor/assistants error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/doctor/patients
+ * Returns all patients registered in the doctor's hospital
+ */
+router.get("/patients", async (req, res) => {
+  try {
+    const profile = (req as any).profile;
+    const userId = profile.id;
+
+    // 1. Get doctor's hospital_id
+    const { data: doctorProfile } = await supabase
+      .from("doctor_profiles")
+      .select("hospital_id")
+      .eq("profile_id", userId)
+      .single();
+
+    if (!doctorProfile?.hospital_id) {
+      return res.status(400).json({ error: "Doctor not linked to a hospital" });
+    }
+
+    // 2. Fetch patients for this hospital
+    const { data: patientProfiles, error: ppError } = await supabase
+      .from("patient_profiles")
+      .select("profile_id, cnic, created_at")
+      .eq("hospital_id", doctorProfile.hospital_id)
+      .order("created_at", { ascending: false });
+
+    if (ppError) {
+      console.error("Fetch patients error:", ppError);
+      return res.status(500).json({ error: "Failed to fetch patients" });
+    }
+
+    if (!patientProfiles.length) return res.json({ patients: [] });
+
+    // 3. Fetch profile details (name, phone, etc.)
+    const patientIds = patientProfiles.map((p) => p.profile_id);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, phone, dob, gender")
+      .in("id", patientIds);
+
+    // 4. Merge data
+    const patients = patientProfiles.map((pp) => {
+      const p = profiles?.find((prof) => prof.id === pp.profile_id);
+      return {
+        id: pp.profile_id,
+        full_name: p?.full_name || "Unknown",
+        phone: p?.phone,
+        gender: p?.gender,
+        dob: p?.dob,
+        cnic: pp.cnic,
+        created_at: pp.created_at,
+      };
+    });
+
+    return res.json({ patients });
+  } catch (err) {
+    console.error("GET /doctor/patients error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
