@@ -414,13 +414,13 @@ export function SuperAdminDashboard({ onLogout }: SuperAdminDashboardProps) {
             Approve hospital admins & hospitals, and manage all users.
           </p>
         </div>
-        <Button
+        {/* <Button
           variant="outline"
           className="border-red-500 text-red-600 hover:bg-red-50"
           onClick={onLogout}
         >
           Logout
-        </Button>
+        </Button> */}
       </header>
 
       {/* Section navigation */}
