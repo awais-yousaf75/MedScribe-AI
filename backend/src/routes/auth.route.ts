@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
     phone,
     gender,
     dob,
-    role: rawRole, // 'doctor' | 'admin' from frontend
+    role: rawRole, 
     specialization,
     hospitalId,
     licenseNumber,
