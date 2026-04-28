@@ -13,6 +13,8 @@ import transcribe from "./routes/transcribe.route";
 
 dotenv.config();
 
+console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 

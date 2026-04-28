@@ -109,7 +109,9 @@ router.post("/register", async (req, res) => {
 
     if (existsErr) {
       console.error("Hospital existence check error:", existsErr);
-      return res.status(500).json({ error: "Failed to validate hospital name" });
+      return res
+        .status(500)
+        .json({ error: "Failed to validate hospital name" });
     }
 
     if (existingHospital) {
@@ -150,10 +152,9 @@ router.post("/register", async (req, res) => {
       // keep same response style but add code for UI
       return res.status(400).json({
         error: userError?.message || "Failed to create user",
-        code:
-          userError?.message?.toLowerCase().includes("already registered")
-            ? "EMAIL_ALREADY_EXISTS"
-            : "AUTH_CREATE_FAILED",
+        code: userError?.message?.toLowerCase().includes("already registered")
+          ? "EMAIL_ALREADY_EXISTS"
+          : "AUTH_CREATE_FAILED",
       });
     }
 
@@ -290,7 +291,7 @@ router.post("/register", async (req, res) => {
       if (adminProfileError) {
         console.error(
           "Insert hospital_admin_profiles error:",
-          adminProfileError
+          adminProfileError,
         );
 
         // rollback: delete hospital + profile + auth user

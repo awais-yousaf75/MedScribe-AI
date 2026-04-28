@@ -10,11 +10,15 @@ import {
   Trash2,
   AlertTriangle,
   RefreshCw,
+  Eye,
+  Plus,
 } from "lucide-react";
+
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import Sidebar from "./layout/Sidebar";
+import { HospitalRegistrationPage } from "./HospitalRegistrationPage";
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -23,10 +27,12 @@ import Sidebar from "./layout/Sidebar";
 type PendingHospitalAdmin = {
   id: string;
   full_name: string;
+  email?: string;
   phone?: string;
   gender?: string;
   dob?: string;
   approval_status: "pending" | "approved" | "rejected";
+  created_at?: string;
   hospital: {
     id: string;
     name: string;
@@ -34,6 +40,7 @@ type PendingHospitalAdmin = {
     hospital_type: string | null;
     status: "pending" | "approved" | "rejected";
     admin_profile_id: string;
+    registration_number?: string;
   } | null;
 };
 
@@ -42,15 +49,24 @@ type PendingHospital = {
   name: string;
   address: string | null;
   hospital_type: string | null;
+  registration_number: string;
+  license_number?: string | null;
+  contact_email?: string;
+  contact_phone?: string;
   status: "pending" | "approved" | "rejected";
   admin_profile_id: string;
+  created_at?: string;
   admin: {
     id: string;
     full_name: string;
+    email?: string;
     phone?: string;
     approval_status: "pending" | "approved" | "rejected";
     role: string;
   } | null;
+  isDuplicate?: boolean;
+  duplicateType?: string | null;
+  duplicateInfo?: any;
 };
 
 type AppUser = {
@@ -62,6 +78,7 @@ type AppUser = {
   approval_status: string | null;
   created_at: string | null;
   last_sign_in_at: string | null;
+  hospital_name?: string | null;
 };
 
 type SystemHospital = {
@@ -69,15 +86,29 @@ type SystemHospital = {
   name: string;
   address: string | null;
   hospital_type: string | null;
+  registration_number: string;
+  license_number?: string | null;
+  contact_email?: string;
+  contact_phone?: string;
   status: "pending" | "approved" | "rejected";
   admin_profile_id: string;
   admin: {
     id: string;
     full_name: string;
+    email?: string;
     phone?: string;
     approval_status: "pending" | "approved" | "rejected";
     role: string;
   } | null;
+  doctors_count?: number;
+  assistants_count?: number;
+};
+
+type SystemStats = {
+  totalAdmins: number;
+  totalHospitals: number;
+  totalUsers: number;
+  pendingApprovals: number;
 };
 
 interface SuperAdminDashboardProps {
@@ -87,17 +118,15 @@ interface SuperAdminDashboardProps {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Normalize for duplicate checks (case-insensitive + trim + collapse spaces)
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
-
-// ─────────────────────────────────────────────────────────────
-// COMPONENT
-// ─────────────────────────────────────────────────────────────
 
 export function SuperAdminDashboard({
   onNavigate,
   onLogout,
 }: SuperAdminDashboardProps) {
+  // Show registration page state
+  const [showRegistrationPage, setShowRegistrationPage] = useState(false);
+
   // Search states
   const [searchUsers, setSearchUsers] = useState("");
   const [searchHospitals, setSearchHospitals] = useState("");
@@ -108,17 +137,45 @@ export function SuperAdminDashboard({
   const [hospitals, setHospitals] = useState<PendingHospital[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [allHospitals, setAllHospitals] = useState<SystemHospital[]>([]);
+  const [stats, setStats] = useState<SystemStats>({
+    totalAdmins: 0,
+    totalHospitals: 0,
+    totalUsers: 0,
+    pendingApprovals: 0,
+  });
 
   // Loading states
   const [loadingAdmins, setLoadingAdmins] = useState(false);
   const [loadingHospitals, setLoadingHospitals] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingAllHospitals, setLoadingAllHospitals] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  // Action loading states
+  const [approvingAdmin, setApprovingAdmin] = useState<string | null>(null);
+  const [rejectingAdmin, setRejectingAdmin] = useState<string | null>(null);
+  const [approvingHospital, setApprovingHospital] = useState<string | null>(null);
+  const [rejectingHospital, setRejectingHospital] = useState<string | null>(null);
 
   const getToken = () => localStorage.getItem("accessToken");
 
   // ─────────────────────────────────────────────────────────────
-  // DUPLICATE / RULE VIOLATION MAPS (computed client-side)
+  // HELPERS
+  // ─────────────────────────────────────────────────────────────
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return "-";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "-";
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // DUPLICATE / RULE VIOLATION MAPS
   // ─────────────────────────────────────────────────────────────
 
   const approvedHospitals = useMemo(
@@ -128,6 +185,10 @@ export function SuperAdminDashboard({
 
   const approvedNameSet = useMemo(() => {
     return new Set(approvedHospitals.map((h) => norm(h.name)));
+  }, [approvedHospitals]);
+
+  const approvedRegistrationSet = useMemo(() => {
+    return new Set(approvedHospitals.map((h) => h.registration_number));
   }, [approvedHospitals]);
 
   const approvedHospitalByAdmin = useMemo(() => {
@@ -150,6 +211,29 @@ export function SuperAdminDashboard({
   // ─────────────────────────────────────────────────────────────
   // FETCH FUNCTIONS
   // ─────────────────────────────────────────────────────────────
+
+  const fetchStats = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      setLoadingStats(true);
+      const res = await fetch(`${API_URL}/api/superadmin/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load stats");
+      setStats({
+        totalAdmins: data.totalAdmins || 0,
+        totalHospitals: data.totalHospitals || 0,
+        totalUsers: data.totalUsers || 0,
+        pendingApprovals: data.pendingApprovals || 0,
+      });
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const fetchPendingAdmins = async () => {
     const token = getToken();
@@ -209,12 +293,7 @@ export function SuperAdminDashboard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load users");
-      const raw = data.users as AppUser[];
-      setUsers(
-        raw.filter(
-          (u) => u.role !== "super_admin" && u.approval_status === "approved"
-        )
-      );
+      setUsers(data.users as AppUser[]);
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to load users");
@@ -245,11 +324,16 @@ export function SuperAdminDashboard({
     }
   };
 
-  useEffect(() => {
+  const refreshAll = () => {
+    fetchStats();
     fetchPendingAdmins();
     fetchPendingHospitals();
     fetchAllUsers();
     fetchAllHospitals();
+  };
+
+  useEffect(() => {
+    refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -261,7 +345,6 @@ export function SuperAdminDashboard({
     const token = getToken();
     if (!token) return;
 
-    // client-side protection (admin already manages an approved hospital)
     const existing = approvedHospitalByAdmin.get(profileId);
     if (existing) {
       toast.error(
@@ -270,6 +353,7 @@ export function SuperAdminDashboard({
       return;
     }
 
+    setApprovingAdmin(profileId);
     try {
       const res = await fetch(
         `${API_URL}/api/superadmin/hospital-admins/${profileId}/approve`,
@@ -287,15 +371,20 @@ export function SuperAdminDashboard({
       fetchPendingHospitals();
       fetchAllUsers();
       fetchAllHospitals();
+      fetchStats();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to approve admin");
+    } finally {
+      setApprovingAdmin(null);
     }
   };
 
   const handleRejectAdmin = async (profileId: string) => {
     const token = getToken();
     if (!token) return;
+
+    setRejectingAdmin(profileId);
     try {
       const res = await fetch(
         `${API_URL}/api/superadmin/hospital-admins/${profileId}/reject`,
@@ -310,9 +399,12 @@ export function SuperAdminDashboard({
       );
       fetchAllUsers();
       fetchAllHospitals();
+      fetchStats();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to reject admin");
+    } finally {
+      setRejectingAdmin(null);
     }
   };
 
@@ -327,14 +419,23 @@ export function SuperAdminDashboard({
     const target = hospitals.find((h) => h.id === hospitalId);
     if (target) {
       const key = norm(target.name);
-      const duplicateApproved = approvedNameSet.has(key);
+      const duplicateApprovedName = approvedNameSet.has(key);
+      const duplicateApprovedReg = approvedRegistrationSet.has(
+        target.registration_number
+      );
       const adminApproved = approvedHospitalByAdmin.get(target.admin_profile_id);
       const adminAlreadyHasApproved =
         !!adminApproved && adminApproved.id !== target.id;
 
-      if (duplicateApproved) {
+      if (duplicateApprovedReg) {
         toast.error(
-          `Cannot approve: "${target.name}" is already approved in the system (duplicate hospital).`
+          `Cannot approve: Registration number "${target.registration_number}" is already used by another approved hospital.`
+        );
+        return;
+      }
+      if (duplicateApprovedName) {
+        toast.error(
+          `Cannot approve: "${target.name}" is already approved in the system (duplicate hospital name).`
         );
         return;
       }
@@ -346,6 +447,7 @@ export function SuperAdminDashboard({
       }
     }
 
+    setApprovingHospital(hospitalId);
     try {
       const res = await fetch(
         `${API_URL}/api/superadmin/hospitals/${hospitalId}/approve`,
@@ -361,15 +463,20 @@ export function SuperAdminDashboard({
       toast.success("Hospital approved");
       setHospitals((prev) => prev.filter((h) => h.id !== hospitalId));
       fetchAllHospitals();
+      fetchStats();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to approve hospital");
+    } finally {
+      setApprovingHospital(null);
     }
   };
 
   const handleRejectHospital = async (hospitalId: string) => {
     const token = getToken();
     if (!token) return;
+
+    setRejectingHospital(hospitalId);
     try {
       const res = await fetch(
         `${API_URL}/api/superadmin/hospitals/${hospitalId}/reject`,
@@ -380,9 +487,12 @@ export function SuperAdminDashboard({
       toast.info("Hospital rejected");
       setHospitals((prev) => prev.filter((h) => h.id !== hospitalId));
       fetchAllHospitals();
+      fetchStats();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to reject hospital");
+    } finally {
+      setRejectingHospital(null);
     }
   };
 
@@ -413,31 +523,10 @@ export function SuperAdminDashboard({
       setAllHospitals((prev) =>
         prev.filter((h) => h.admin_profile_id !== userId)
       );
+      fetchStats();
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to delete user");
-    }
-  };
-
-  const handleUpdateUserApproval = async (userId: string, status: "rejected") => {
-    const token = getToken();
-    if (!token) return;
-    try {
-      const res = await fetch(`${API_URL}/api/superadmin/users/${userId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ approval_status: status }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update status");
-      toast.success(`User marked as ${status}`);
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Failed to update user status");
     }
   };
 
@@ -448,29 +537,28 @@ export function SuperAdminDashboard({
   const getStatusBadge = (status?: string | null) => {
     if (!status) return <span className="text-xs text-gray-400">-</span>;
 
-    const config: Record<string, { gradient: string; icon: typeof CheckCircle }> =
-      {
-        approved: {
-          gradient: "from-green-50 to-emerald-50 text-green-700 border-green-200",
-          icon: CheckCircle,
-        },
-        pending: {
-          gradient: "from-yellow-50 to-orange-50 text-yellow-700 border-yellow-200",
-          icon: Clock,
-        },
-        rejected: {
-          gradient: "from-red-50 to-pink-50 text-red-700 border-red-200",
-          icon: XCircle,
-        },
-      };
+    const styles: Record<string, string> = {
+      approved:
+        "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
+      pending:
+        "bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 border-yellow-200",
+      rejected: "bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-200",
+    };
 
-    const { gradient, icon: Icon } = config[status] || config.pending;
+    const icons: Record<string, typeof CheckCircle> = {
+      approved: CheckCircle,
+      pending: Clock,
+      rejected: XCircle,
+    };
+
+    const Icon = icons[status] || Clock;
+    const style = styles[status] || styles.pending;
 
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border shadow-sm bg-gradient-to-r ${gradient}`}
+        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border shadow-sm ${style}`}
       >
-        <Icon className="w-3.5 h-3.5" />
+        <Icon className="w-3 h-3" />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -479,20 +567,23 @@ export function SuperAdminDashboard({
   const getRoleBadge = (role?: string | null) => {
     if (!role) return <span className="text-xs text-gray-400">-</span>;
 
-    const config: Record<string, string> = {
-      super_admin: "from-purple-100 to-purple-200 text-purple-700 border-purple-300",
-      hospital_admin: "from-blue-100 to-blue-200 text-blue-700 border-blue-300",
-      doctor: "from-teal-100 to-teal-200 text-teal-700 border-teal-300",
-      doctor_assistant: "from-orange-100 to-orange-200 text-orange-700 border-orange-300",
-      patient: "from-gray-100 to-gray-200 text-gray-700 border-gray-300",
+    const styles: Record<string, string> = {
+      super_admin:
+        "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border border-purple-300",
+      hospital_admin:
+        "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border border-blue-300",
+      doctor:
+        "bg-gradient-to-r from-teal-100 to-teal-200 text-teal-700 border border-teal-300",
+      doctor_assistant:
+        "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-300",
+      patient:
+        "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 border border-gray-300",
     };
 
-    const gradient = config[role] || config.patient;
+    const style = styles[role] || styles.patient;
 
     return (
-      <span
-        className={`px-3 py-1 rounded-lg text-xs font-medium shadow-sm bg-gradient-to-r border capitalize ${gradient}`}
-      >
+      <span className={`px-3 py-1 rounded-lg text-xs shadow-sm ${style}`}>
         {role.replace(/_/g, " ")}
       </span>
     );
@@ -506,15 +597,42 @@ export function SuperAdminDashboard({
   );
 
   const filteredHospitals = allHospitals.filter((h) => {
-    const matchesSearch = h.name.toLowerCase().includes(searchHospitals.toLowerCase());
-    const matchesStatus = hospitalStatusFilter === "all" || h.status === hospitalStatusFilter;
+    const matchesSearch = h.name
+      .toLowerCase()
+      .includes(searchHospitals.toLowerCase());
+    const matchesStatus =
+      hospitalStatusFilter === "all" || h.status === hospitalStatusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const totalPendingApprovals = admins.length + hospitals.length;
+  // Computed stats from data
+  const computedStats = {
+    totalAdmins: users.filter(
+      (u) =>
+        u.role === "hospital_admin" && u.approval_status === "approved"
+    ).length,
+    totalHospitals: allHospitals.length,
+    totalUsers: users.length,
+    pendingApprovals: admins.length + hospitals.length,
+  };
 
   // ─────────────────────────────────────────────────────────────
-  // RENDER
+  // CONDITIONAL RENDER: Show registration page if needed
+  // ─────────────────────────────────────────────────────────────
+
+  if (showRegistrationPage) {
+    return (
+      <HospitalRegistrationPage
+        onBack={() => {
+          setShowRegistrationPage(false);
+          refreshAll();
+        }}
+      />
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // RENDER: DASHBOARD
   // ─────────────────────────────────────────────────────────────
 
   return (
@@ -529,82 +647,72 @@ export function SuperAdminDashboard({
       />
 
       <div className="flex-1 ml-64">
-        {/* Header */}
-        <div
-          className="p-8 shadow-lg"
-          style={{
-            background:
-              "linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #4f46e5 100%)",
-          }}
-        >
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 p-8 shadow-lg">
           <div className="max-w-[1600px] mx-auto">
-            <div className="flex items-center gap-3 mb-2">
-              <Shield className="w-8 h-8 text-white" />
-              <h1 className="text-3xl font-semibold text-white">
-                Super Admin Dashboard
-              </h1>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <Shield className="w-8 h-8 text-white" />
+                  <h1 className="text-3xl text-white font-semibold">
+                    Super Admin Dashboard
+                  </h1>
+                </div>
+                <p className="text-white/90">
+                  Manage all users, hospitals, and system-wide approvals
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowRegistrationPage(true)}
+                className="rounded-xl bg-white hover:bg-gray-50 text-purple-600 font-semibold shadow-lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Register Hospital & Admin
+              </Button>
             </div>
-            <p className="text-white/90">
-              Manage all users, hospitals, and system-wide approvals
-            </p>
           </div>
         </div>
 
         <div className="p-8 max-w-[1600px] mx-auto space-y-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-              className="rounded-2xl p-5 shadow-lg text-white relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)",
-              }}
-            >
+          {/* System Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
               <div className="relative">
                 <Shield className="w-8 h-8 mb-3 opacity-80" />
-                <p className="text-3xl mb-1 font-bold">{admins.length}</p>
-                <p className="text-xs opacity-90">Pending Admins</p>
+                <p className="text-3xl mb-1 font-bold">
+                  {computedStats.totalAdmins}
+                </p>
+                <p className="text-xs opacity-90">Hospital Admins</p>
               </div>
             </div>
-
-            <div
-              className="rounded-2xl p-5 shadow-lg text-white relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-              }}
-            >
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
               <div className="relative">
                 <Building2 className="w-8 h-8 mb-3 opacity-80" />
-                <p className="text-3xl mb-1 font-bold">{allHospitals.length}</p>
-                <p className="text-xs opacity-90">Total Hospitals</p>
+                <p className="text-3xl mb-1 font-bold">
+                  {computedStats.totalHospitals}
+                </p>
+                <p className="text-xs opacity-90">Hospitals</p>
               </div>
             </div>
-
-            <div
-              className="rounded-2xl p-5 shadow-lg text-white relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%)",
-              }}
-            >
+            <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
               <div className="relative">
                 <Users className="w-8 h-8 mb-3 opacity-80" />
-                <p className="text-3xl mb-1 font-bold">{users.length}</p>
-                <p className="text-xs opacity-90">Approved Users</p>
+                <p className="text-3xl mb-1 font-bold">
+                  {computedStats.totalUsers}
+                </p>
+                <p className="text-xs opacity-90">Total Users</p>
               </div>
             </div>
-
-            <div
-              className="rounded-2xl p-5 shadow-lg text-white relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #f97316 0%, #fb923c 100%)",
-              }}
-            >
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-5 shadow-lg text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
               <div className="relative">
                 <Clock className="w-8 h-8 mb-3 opacity-80" />
-                <p className="text-3xl mb-1 font-bold">{totalPendingApprovals}</p>
+                <p className="text-3xl mb-1 font-bold">
+                  {computedStats.pendingApprovals}
+                </p>
                 <p className="text-xs opacity-90">Pending Approvals</p>
               </div>
             </div>
@@ -616,31 +724,18 @@ export function SuperAdminDashboard({
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-                    style={{
-                      background: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-                    }}
-                  >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                     <Users className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl font-semibold"
-                      style={{
-                        background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
+                    <h2 className="text-2xl bg-clip-text text-transparent font-semibold">
                       Pending Hospital Admins
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Review and approve hospital administrator requests
                     </p>
                   </div>
                 </div>
-
                 <Button
                   variant="outline"
                   size="sm"
@@ -648,13 +743,19 @@ export function SuperAdminDashboard({
                   disabled={loadingAdmins}
                   className="rounded-xl"
                 >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${loadingAdmins ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${
+                      loadingAdmins ? "animate-spin" : ""
+                    }`}
+                  />
                   Refresh
                 </Button>
               </div>
 
               {loadingAdmins ? (
-                <div className="text-center py-8 text-gray-500">Loading admins...</div>
+                <div className="text-center py-8 text-gray-500">
+                  Loading admins...
+                </div>
               ) : admins.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   No pending hospital admins at the moment.
@@ -664,28 +765,54 @@ export function SuperAdminDashboard({
                   <table className="w-full">
                     <thead className="border-b-2 border-gray-200">
                       <tr className="text-left">
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Admin Name</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Contact</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Hospital</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Type</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Admin Status</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Hospital Status</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500 text-right">Actions</th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Admin Name
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Contact
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Requested Hospital
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Hospital Type
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Reg #
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground text-right">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {admins.map((admin) => {
-                        const adminAlreadyHasApproved = approvedHospitalByAdmin.get(admin.id);
+                        const adminAlreadyHasApproved =
+                          approvedHospitalByAdmin.get(admin.id);
                         const hospitalName = admin.hospital?.name ?? "";
-                        const nameKey = hospitalName ? norm(hospitalName) : "";
-                        const duplicateApprovedName =
-                          hospitalName ? approvedNameSet.has(nameKey) : false;
+                        const hospitalReg = admin.hospital?.registration_number ?? "";
+                        const nameKey = hospitalName
+                          ? norm(hospitalName)
+                          : "";
+                        const duplicateApprovedName = hospitalName
+                          ? approvedNameSet.has(nameKey)
+                          : false;
+                        const duplicateApprovedReg = hospitalReg
+                          ? approvedRegistrationSet.has(hospitalReg)
+                          : false;
 
-                        const blockApprove = !!adminAlreadyHasApproved;
+                        const blockApprove =
+                          !!adminAlreadyHasApproved ||
+                          duplicateApprovedName ||
+                          duplicateApprovedReg;
 
-                        const warnReason =
-                          adminAlreadyHasApproved
-                            ? `Admin already manages "${adminAlreadyHasApproved.name}".`
+                        const warnReason = adminAlreadyHasApproved
+                          ? `Admin already manages "${adminAlreadyHasApproved.name}".`
+                          : duplicateApprovedReg
+                            ? `Registration number duplicates an already approved hospital.`
                             : duplicateApprovedName
                               ? `Hospital name duplicates an already approved hospital.`
                               : null;
@@ -701,74 +828,79 @@ export function SuperAdminDashboard({
                           >
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-800">{admin.full_name}</p>
+                                <p className="font-semibold text-gray-800">
+                                  {admin.full_name}
+                                </p>
                                 {warnReason && (
-                                  <span
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border"
-                                    style={{
-                                      background: "linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%)",
-                                      borderColor: "#fca5a5",
-                                      color: "#dc2626",
-                                    }}
-                                    title={warnReason}
-                                  >
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-lg text-xs border border-orange-300">
                                     <AlertTriangle className="w-3 h-3" />
                                     Check
                                   </span>
                                 )}
                               </div>
-                              {warnReason && <p className="text-xs mt-1 text-red-600">{warnReason}</p>}
-                            </td>
-
-                            <td className="py-4 px-4">
-                              <p className="text-sm text-gray-600">{admin.phone || "No phone"}</p>
-                            </td>
-
-                            <td className="py-4 px-4">
-                              <p className="text-sm font-medium text-gray-800">
-                                {admin.hospital?.name || "Pending hospital"}
-                              </p>
-                              {admin.hospital?.address && (
-                                <p className="text-xs text-gray-500">{admin.hospital.address}</p>
+                              {warnReason && (
+                                <p className="text-xs mt-1 text-red-600">
+                                  {warnReason}
+                                </p>
                               )}
                             </td>
-
                             <td className="py-4 px-4">
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm">{admin.email || "-"}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {admin.phone || "-"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm font-medium">
+                                {admin.hospital?.name || "Pending hospital"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm text-muted-foreground">
                                 {admin.hospital?.hospital_type || "-"}
                               </p>
                             </td>
-
-                            <td className="py-4 px-4">{getStatusBadge(admin.approval_status)}</td>
-                            <td className="py-4 px-4">{getStatusBadge(admin.hospital?.status)}</td>
-
+                            <td className="py-4 px-4">
+                              <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block">
+                                {admin.hospital?.registration_number || "-"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              {getStatusBadge(admin.approval_status)}
+                            </td>
                             <td className="py-4 px-4">
                               <div className="flex items-center justify-end gap-2">
                                 <Button
                                   size="sm"
                                   onClick={() => handleApproveAdmin(admin.id)}
-                                  disabled={blockApprove}
-                                  className="rounded-xl text-white border-0 disabled:opacity-50"
-                                  style={{
-                                    background: blockApprove
-                                      ? "#9ca3af"
-                                      : "linear-gradient(135deg, #10b981 0%, #34d399 100%)",
-                                  }}
-                                  title={blockApprove ? warnReason || "Blocked" : "Approve admin"}
+                                  disabled={
+                                    blockApprove ||
+                                    approvingAdmin === admin.id ||
+                                    rejectingAdmin === admin.id
+                                  }
+                                  className="rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white border-0 disabled:opacity-50"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                                  {approvingAdmin === admin.id ? (
+                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                  )}
                                   Approve
                                 </Button>
-
                                 <Button
                                   size="sm"
                                   onClick={() => handleRejectAdmin(admin.id)}
-                                  className="rounded-xl text-white border-0"
-                                  style={{
-                                    background: "linear-gradient(135deg, #ef4444 0%, #f87171 100%)",
-                                  }}
+                                  disabled={
+                                    approvingAdmin === admin.id ||
+                                    rejectingAdmin === admin.id
+                                  }
+                                  className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white border-0"
                                 >
-                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  {rejectingAdmin === admin.id ? (
+                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-3 h-3 mr-1" />
+                                  )}
                                   Reject
                                 </Button>
                               </div>
@@ -789,31 +921,18 @@ export function SuperAdminDashboard({
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-                    style={{
-                      background: "linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%)",
-                    }}
-                  >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg">
                     <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl font-semibold"
-                      style={{
-                        background: "linear-gradient(135deg, #14b8a6 0%, #10b981 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
+                    <h2 className="text-2xl bg-clip-text text-transparent font-semibold">
                       Pending Hospitals
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Approve or reject hospital registrations
                     </p>
                   </div>
                 </div>
-
                 <Button
                   variant="outline"
                   size="sm"
@@ -821,13 +940,19 @@ export function SuperAdminDashboard({
                   disabled={loadingHospitals}
                   className="rounded-xl"
                 >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${loadingHospitals ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${
+                      loadingHospitals ? "animate-spin" : ""
+                    }`}
+                  />
                   Refresh
                 </Button>
               </div>
 
               {loadingHospitals ? (
-                <div className="text-center py-8 text-gray-500">Loading hospitals...</div>
+                <div className="text-center py-8 text-gray-500">
+                  Loading hospitals...
+                </div>
               ) : hospitals.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   No pending hospitals at the moment.
@@ -837,34 +962,54 @@ export function SuperAdminDashboard({
                   <table className="w-full">
                     <thead className="border-b-2 border-gray-200">
                       <tr className="text-left">
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Hospital Name</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Type</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Address</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Admin</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Status</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500 text-right">Actions</th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Hospital Name
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Reg #
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Type
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Contact
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Admin
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground text-right">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {hospitals.map((h) => {
                         const key = norm(h.name);
-                        const duplicateApproved = approvedNameSet.has(key);
-                        const duplicatePending = (pendingNameCounts.get(key) || 0) > 1;
+                        const duplicateApprovedName = approvedNameSet.has(key);
+                        const duplicateApprovedReg = approvedRegistrationSet.has(
+                          h.registration_number
+                        );
+                        const duplicatePending =
+                          (pendingNameCounts.get(key) || 0) > 1;
 
-                        const adminApproved = approvedHospitalByAdmin.get(h.admin_profile_id);
+                        const adminApproved = approvedHospitalByAdmin.get(
+                          h.admin_profile_id
+                        );
                         const adminAlreadyHasApproved =
                           !!adminApproved && adminApproved.id !== h.id;
 
-                        const blockApprove = duplicateApproved || adminAlreadyHasApproved;
+                        const blockApprove =
+                          duplicateApprovedName ||
+                          duplicateApprovedReg ||
+                          adminAlreadyHasApproved;
 
-                        const reason =
-                          duplicateApproved
-                            ? `Blocked: "${h.name}" already exists as an approved hospital.`
-                            : adminAlreadyHasApproved
-                              ? `Blocked: admin already manages "${adminApproved?.name}".`
-                              : duplicatePending
-                                ? `Warning: multiple pending requests with the same name.`
-                                : null;
+                        const isDuplicate =
+                          duplicateApprovedName ||
+                          duplicateApprovedReg ||
+                          duplicatePending;
 
                         return (
                           <tr
@@ -877,73 +1022,81 @@ export function SuperAdminDashboard({
                           >
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-800">{h.name}</p>
-                                {(blockApprove || duplicatePending) && (
-                                  <span
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs border"
-                                    style={{
-                                      background: blockApprove
-                                        ? "linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%)"
-                                        : "linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%)",
-                                      borderColor: blockApprove ? "#fca5a5" : "#fcd34d",
-                                      color: blockApprove ? "#dc2626" : "#d97706",
-                                    }}
-                                    title={reason || undefined}
-                                  >
+                                <p className="font-semibold text-gray-800">
+                                  {h.name}
+                                </p>
+                                {isDuplicate && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 rounded-lg text-xs border border-orange-300">
                                     <AlertTriangle className="w-3 h-3" />
-                                    {blockApprove ? "Blocked" : "Duplicate"}
+                                    Duplicate
                                   </span>
                                 )}
                               </div>
-                              {reason && <p className="text-xs mt-1 text-red-600">{reason}</p>}
                             </td>
-
                             <td className="py-4 px-4">
-                              <p className="text-sm text-gray-500">{h.hospital_type || "-"}</p>
-                            </td>
-
-                            <td className="py-4 px-4">
-                              <p className="text-sm text-gray-500">{h.address || "-"}</p>
-                            </td>
-
-                            <td className="py-4 px-4">
-                              <p className="text-sm font-medium text-gray-800">
-                                {h.admin?.full_name || "Unknown admin"}
+                              <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block">
+                                {h.registration_number}
                               </p>
-                              {h.admin?.phone && (
-                                <p className="text-xs text-gray-500">{h.admin.phone}</p>
-                              )}
                             </td>
-
-                            <td className="py-4 px-4">{getStatusBadge(h.status)}</td>
-
+                            <td className="py-4 px-4">
+                              <p className="text-sm text-muted-foreground">
+                                {h.hospital_type || "-"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-xs text-muted-foreground">
+                                {h.contact_email
+                                  ? h.contact_email.substring(0, 20) + "..."
+                                  : "-"}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {h.contact_phone || "-"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm font-medium">
+                                {h.admin?.full_name || "Unknown"}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {h.admin?.email || "-"}
+                              </p>
+                            </td>
+                            <td className="py-4 px-4">
+                              {getStatusBadge(h.status)}
+                            </td>
                             <td className="py-4 px-4">
                               <div className="flex items-center justify-end gap-2">
                                 <Button
                                   size="sm"
                                   onClick={() => handleApproveHospital(h.id)}
-                                  disabled={blockApprove}
-                                  className="rounded-xl text-white border-0 disabled:opacity-50"
-                                  style={{
-                                    background: blockApprove
-                                      ? "#9ca3af"
-                                      : "linear-gradient(135deg, #10b981 0%, #34d399 100%)",
-                                  }}
-                                  title={blockApprove ? reason || "Blocked" : "Approve hospital"}
+                                  disabled={
+                                    blockApprove ||
+                                    approvingHospital === h.id ||
+                                    rejectingHospital === h.id
+                                  }
+                                  className="rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white border-0 disabled:opacity-50"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                                  {approvingHospital === h.id ? (
+                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                  )}
                                   Approve
                                 </Button>
-
                                 <Button
                                   size="sm"
                                   onClick={() => handleRejectHospital(h.id)}
-                                  className="rounded-xl text-white border-0"
-                                  style={{
-                                    background: "linear-gradient(135deg, #ef4444 0%, #f87171 100%)",
-                                  }}
+                                  disabled={
+                                    approvingHospital === h.id ||
+                                    rejectingHospital === h.id
+                                  }
+                                  className="rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white border-0"
                                 >
-                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  {rejectingHospital === h.id ? (
+                                    <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-3 h-3 mr-1" />
+                                  )}
                                   Reject
                                 </Button>
                               </div>
@@ -953,14 +1106,6 @@ export function SuperAdminDashboard({
                       })}
                     </tbody>
                   </table>
-
-                  <div className="mt-4 text-xs text-gray-500">
-                    <p className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      “Blocked” means approval would violate system rules:
-                      duplicate hospital name or admin already manages another hospital.
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
@@ -972,36 +1117,26 @@ export function SuperAdminDashboard({
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-                    style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)" }}
-                  >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
                     <Users className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl font-semibold"
-                      style={{
-                        background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
+                    <h2 className="text-2xl bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] bg-clip-text text-transparent font-semibold">
                       All Users
                     </h2>
-                    <p className="text-sm text-gray-500">Manage all approved system users</p>
+                    <p className="text-sm text-muted-foreground">
+                      Manage all system users
+                    </p>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3">
                   <div className="relative w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       placeholder="Search users..."
                       value={searchUsers}
                       onChange={(e) => setSearchUsers(e.target.value)}
-                      className="pl-10 h-11 border-2 focus:border-purple-400"
-                      style={{ background: "linear-gradient(90deg, #fafafa 0%, #faf5ff 100%)" }}
+                      className="pl-10 h-11 bg-gradient-to-r from-gray-50 to-purple-50 border-2 focus:border-purple-400"
                     />
                   </div>
                   <Button
@@ -1011,26 +1146,49 @@ export function SuperAdminDashboard({
                     disabled={loadingUsers}
                     className="rounded-xl"
                   >
-                    <RefreshCw className={`w-4 h-4 ${loadingUsers ? "animate-spin" : ""}`} />
+                    <RefreshCw
+                      className={`w-4 h-4 ${
+                        loadingUsers ? "animate-spin" : ""
+                      }`}
+                    />
                   </Button>
                 </div>
               </div>
 
               {loadingUsers ? (
-                <div className="text-center py-8 text-gray-500">Loading users...</div>
+                <div className="text-center py-8 text-gray-500">
+                  Loading users...
+                </div>
               ) : filteredUsers.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">No users found.</div>
+                <div className="text-center py-8 text-gray-400">
+                  No users found.
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="border-b-2 border-gray-200">
                       <tr className="text-left">
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Full Name</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Email</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Role</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Status</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Last Sign In</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500 text-right">Actions</th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Full Name
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Email
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Role
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Hospital
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground">
+                          Created
+                        </th>
+                        <th className="py-3 px-4 text-sm font-semibold text-muted-foreground text-right">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1043,30 +1201,37 @@ export function SuperAdminDashboard({
                             <p className="font-semibold text-gray-800">
                               {user.full_name || "(no name)"}
                             </p>
-                            {user.phone && (
-                              <p className="text-xs text-gray-500">{user.phone}</p>
-                            )}
                           </td>
                           <td className="py-4 px-4">
-                            <p className="text-sm text-gray-500">{user.email || "-"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {user.email || "-"}
+                            </p>
                           </td>
-                          <td className="py-4 px-4">{getRoleBadge(user.role)}</td>
-                          <td className="py-4 px-4">{getStatusBadge(user.approval_status)}</td>
                           <td className="py-4 px-4">
-                            <p className="text-sm text-gray-500">
-                              {user.last_sign_in_at || "-"}
+                            {getRoleBadge(user.role)}
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm text-muted-foreground">
+                              {user.hospital_name || "N/A"}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            {getStatusBadge(user.approval_status)}
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(user.created_at)}
                             </p>
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center justify-end gap-2">
                               <Button
+                                onClick={() => {}}
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => handleUpdateUserApproval(user.id, "rejected")}
-                                className="rounded-xl text-amber-600 hover:bg-amber-50"
+                                className="rounded-xl hover:bg-blue-50"
                               >
-                                <XCircle className="w-3.5 h-3.5 mr-1" />
-                                Reject
+                                <Eye className="w-3 h-3" />
                               </Button>
                               <Button
                                 size="sm"
@@ -1074,7 +1239,7 @@ export function SuperAdminDashboard({
                                 onClick={() => handleDeleteUser(user.id)}
                                 className="rounded-xl text-red-600 hover:bg-red-50"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
                           </td>
@@ -1093,50 +1258,42 @@ export function SuperAdminDashboard({
             <div className="relative">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
-                    style={{ background: "linear-gradient(135deg, #10b981 0%, #34d399 100%)" }}
-                  >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
                     <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2
-                      className="text-2xl font-semibold"
-                      style={{
-                        background: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
+                    <h2 className="text-2xl bg-clip-text text-transparent font-semibold">
                       All Hospitals
                     </h2>
-                    <p className="text-sm text-gray-500">View and manage all hospitals</p>
+                    <p className="text-sm text-muted-foreground">
+                      View and manage hospitals
+                    </p>
                   </div>
                 </div>
-
                 <div className="flex gap-3">
                   <select
                     value={hospitalStatusFilter}
-                    onChange={(e) => setHospitalStatusFilter(e.target.value)}
-                    className="h-11 px-4 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium focus:border-green-400 focus:outline-none"
+                    onChange={(e) =>
+                      setHospitalStatusFilter(e.target.value)
+                    }
+                    className="h-11 px-4 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium"
                   >
                     <option value="all">All Status</option>
                     <option value="approved">Approved</option>
                     <option value="pending">Pending</option>
                     <option value="rejected">Rejected</option>
                   </select>
-
                   <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       placeholder="Search hospitals..."
                       value={searchHospitals}
-                      onChange={(e) => setSearchHospitals(e.target.value)}
-                      className="pl-10 h-11 border-2 focus:border-green-400"
-                      style={{ background: "linear-gradient(90deg, #fafafa 0%, #f0fdf4 100%)" }}
+                      onChange={(e) =>
+                        setSearchHospitals(e.target.value)
+                      }
+                      className="pl-10 h-11 bg-gradient-to-r from-gray-50 to-green-50 border-2 focus:border-green-400"
                     />
                   </div>
-
                   <Button
                     variant="outline"
                     size="sm"
@@ -1144,25 +1301,55 @@ export function SuperAdminDashboard({
                     disabled={loadingAllHospitals}
                     className="rounded-xl"
                   >
-                    <RefreshCw className={`w-4 h-4 ${loadingAllHospitals ? "animate-spin" : ""}`} />
+                    <RefreshCw
+                      className={`w-4 h-4 ${
+                        loadingAllHospitals ? "animate-spin" : ""
+                      }`}
+                    />
                   </Button>
                 </div>
               </div>
 
               {loadingAllHospitals ? (
-                <div className="text-center py-8 text-gray-500">Loading hospitals...</div>
+                <div className="text-center py-8 text-gray-500">
+                  Loading hospitals...
+                </div>
               ) : filteredHospitals.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">No hospitals found.</div>
+                <div className="text-center py-8 text-gray-400">
+                  No hospitals found.
+                </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full text-sm">
                     <thead className="border-b-2 border-gray-200">
                       <tr className="text-left">
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Hospital Name</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Type</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Address</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Admin</th>
-                        <th className="py-3 px-4 text-sm font-semibold text-gray-500">Status</th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Hospital Name
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Reg #
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Type
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Contact Email
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Contact Phone
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Admin
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Doctors
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Assistants
+                        </th>
+                        <th className="py-3 px-4 font-semibold text-muted-foreground">
+                          Status
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1172,26 +1359,48 @@ export function SuperAdminDashboard({
                           className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-green-50/50 hover:to-teal-50/50 transition-colors"
                         >
                           <td className="py-4 px-4">
-                            <p className="font-semibold text-gray-800">{hospital.name}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="text-sm text-gray-500">{hospital.hospital_type || "-"}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="text-sm text-gray-500">{hospital.address || "-"}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="text-sm font-medium text-gray-800">
-                              {hospital.admin?.full_name || "Unknown admin"}
-                            </p>
-                            {hospital.admin?.phone && (
-                              <p className="text-xs text-gray-500">{hospital.admin.phone}</p>
-                            )}
-                            <p className="text-xs text-gray-400">
-                              Admin: {hospital.admin?.approval_status || "-"}
+                            <p className="font-semibold text-gray-800">
+                              {hospital.name}
                             </p>
                           </td>
-                          <td className="py-4 px-4">{getStatusBadge(hospital.status)}</td>
+                          <td className="py-4 px-4">
+                            <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block">
+                              {hospital.registration_number}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-muted-foreground">
+                              {hospital.hospital_type || "-"}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-xs text-muted-foreground break-all">
+                              {hospital.contact_email || "-"}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-xs text-muted-foreground">
+                              {hospital.contact_phone || "-"}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="text-sm font-medium">
+                              {hospital.admin?.full_name || "Unknown"}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="font-semibold text-blue-600">
+                              {hospital.doctors_count ?? 0}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            <p className="font-semibold text-purple-600">
+                              {hospital.assistants_count ?? 0}
+                            </p>
+                          </td>
+                          <td className="py-4 px-4">
+                            {getStatusBadge(hospital.status)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1200,9 +1409,10 @@ export function SuperAdminDashboard({
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
+
+export default SuperAdminDashboard;
