@@ -7,22 +7,65 @@ import {
   LogOut,
   ChevronRight,
   Activity,
+  Settings,
 } from "lucide-react";
 import { Button } from "../ui/button";
+
+type Accent = "teal" | "blue" | "purple" | "indigo" | "gray";
 
 type Item = {
   id: string;
   label: string;
   description: string;
   icon: React.ElementType;
+  accent: Accent;
 };
 
 const items: Item[] = [
-  { id: "overview", label: "Overview", description: "Hospital summary", icon: LayoutDashboard },
-  { id: "pending-doctors", label: "Pending Doctors", description: "Approve/reject doctors", icon: Stethoscope },
-  { id: "pending-assistants", label: "Pending Assistants", description: "Approve/reject assistants", icon: UserCog },
-  { id: "hospital-profile", label: "Hospital Profile", description: "View hospital details", icon: Building2 },
+  {
+    id: "overview",
+    label: "Overview",
+    description: "Hospital summary",
+    icon: LayoutDashboard,
+    accent: "teal",
+  },
+  {
+    id: "doctors",
+    label: "Doctors",
+    description: "Create & manage doctors",
+    icon: Stethoscope,
+    accent: "blue",
+  },
+  {
+    id: "assistants",
+    label: "Assistants",
+    description: "Create, link & manage assistants",
+    icon: UserCog,
+    accent: "purple",
+  },
+  {
+    id: "hospital-profile",
+    label: "Hospital Profile",
+    description: "Hospital identity & contact",
+    icon: Building2,
+    accent: "indigo",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    description: "Profile & account security",
+    icon: Settings,
+    accent: "gray",
+  },
 ];
+
+const accentStyles: Record<Accent, { ring: string; grad: string }> = {
+  teal: { ring: "ring-teal-200", grad: "from-teal-600 to-cyan-600" },
+  blue: { ring: "ring-blue-200", grad: "from-blue-600 to-cyan-600" },
+  purple: { ring: "ring-purple-200", grad: "from-purple-600 to-pink-600" },
+  indigo: { ring: "ring-indigo-200", grad: "from-indigo-600 to-purple-600" },
+  gray: { ring: "ring-gray-200", grad: "from-gray-700 to-gray-900" },
+};
 
 export function HospitalAdminSidebar({
   currentPage,
@@ -46,7 +89,9 @@ export function HospitalAdminSidebar({
             <Activity className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-gray-900 font-extrabold text-base leading-tight">MedScribe</p>
+            <p className="text-gray-900 font-extrabold text-base leading-tight">
+              MedScribe
+            </p>
             <p className="text-gray-500 text-xs font-medium">Hospital Admin</p>
           </div>
         </div>
@@ -62,39 +107,57 @@ export function HospitalAdminSidebar({
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {items.map((it) => {
           const Icon = it.icon;
           const active = currentPage === it.id;
+          const accent = accentStyles[it.accent];
 
           return (
             <button
               key={it.id}
               onClick={() => onNavigate(it.id)}
-              className={`w-full rounded-2xl px-4 py-3.5 border transition-all flex items-center gap-3 text-left ${
-                active
-                  ? "bg-gradient-to-r from-teal-600 to-cyan-600 text-white border-teal-200 shadow-md shadow-teal-200"
-                  : "bg-white text-gray-700 border-transparent hover:bg-gray-100"
-              }`}
+              className={`w-full rounded-2xl px-4 py-3.5 border transition-all
+                flex items-center gap-3 text-left group ${
+                  active
+                    ? `bg-gradient-to-r ${accent.grad} text-white border-transparent shadow-md ring-4 ${accent.ring}`
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                }`}
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  active ? "bg-white/15" : "bg-gray-100"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                  active
+                    ? "bg-white/15"
+                    : "bg-gray-100 group-hover:bg-gray-200"
                 }`}
               >
-                <Icon className={`w-5 h-5 ${active ? "text-white" : "text-gray-600"}`} />
+                <Icon
+                  className={`w-5 h-5 ${
+                    active ? "text-white" : "text-gray-700"
+                  }`}
+                />
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${active ? "text-white" : "text-gray-900"}`}>
+                <p
+                  className={`text-sm font-semibold truncate ${
+                    active ? "text-white" : "text-gray-900"
+                  }`}
+                >
                   {it.label}
                 </p>
-                <p className={`text-xs truncate mt-0.5 ${active ? "text-white/80" : "text-gray-500"}`}>
+                <p
+                  className={`text-xs truncate mt-0.5 ${
+                    active ? "text-white/80" : "text-gray-500"
+                  }`}
+                >
                   {it.description}
                 </p>
               </div>
 
-              {active && <ChevronRight className="w-4 h-4 text-white/80" />}
+              {active && (
+                <ChevronRight className="w-4 h-4 text-white/80 flex-shrink-0" />
+              )}
             </button>
           );
         })}

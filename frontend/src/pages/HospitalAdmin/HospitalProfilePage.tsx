@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Building2, Mail, MapPin, Phone, Fingerprint, FileText, Users, Stethoscope, LoaderCircle } from "lucide-react";
+import {
+  Building2,
+  Mail,
+  MapPin,
+  Phone,
+  Fingerprint,
+  FileText,
+  Users,
+  Stethoscope,
+  LoaderCircle,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 
@@ -56,12 +67,15 @@ export default function HospitalProfilePage() {
               <Building2 className="w-8 h-8 text-white" />
               <h1 className="text-3xl font-extrabold text-white">Hospital Profile</h1>
             </div>
-            <p className="text-white/90">Your hospital details and statistics</p>
+            <p className="text-white/90">Hospital identity & privacy-safe statistics</p>
           </div>
+
           <Button
             onClick={fetchHospital}
+            disabled={loading}
             className="rounded-2xl bg-white/15 hover:bg-white/20 text-white border border-white/20"
           >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -73,97 +87,95 @@ export default function HospitalProfilePage() {
             No hospital assigned to this admin.
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{hospital.name}</h2>
-                    <p className="text-gray-600 mt-1">{hospital.hospital_type || "—"}</p>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-gray-50 text-gray-700 border-gray-200">
-                    {hospital.status?.toUpperCase()}
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{hospital.name}</h2>
+                  <p className="text-gray-600 mt-1">{hospital.hospital_type || "—"}</p>
                 </div>
-
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
-                    <Fingerprint className="w-5 h-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Registration</p>
-                      <p className="font-mono font-semibold text-gray-900">{hospital.registration_number}</p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
-                    <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">License</p>
-                      <p className="font-mono font-semibold text-gray-900">{hospital.license_number || "—"}</p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3 md:col-span-2">
-                    <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Address</p>
-                      <p className="text-gray-900 font-medium">{hospital.address || "—"}</p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
-                    <Mail className="w-5 h-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</p>
-                      <p className="text-gray-900 font-medium">{hospital.contact_email || "—"}</p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
-                    <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Phone</p>
-                      <p className="text-gray-900 font-medium">{hospital.contact_phone || "—"}</p>
-                    </div>
-                  </div>
-                </div>
+                <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-gray-50 text-gray-700 border-gray-200">
+                  {hospital.status?.toUpperCase()}
+                </span>
               </div>
 
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl border border-indigo-100 shadow-sm p-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-5">Hospital stats</h3>
-
-                <div className="space-y-3">
-                  <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Stethoscope className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm font-medium">Approved Doctors</span>
-                    </div>
-                    <span className="text-xl font-black text-gray-900">{stats?.doctorsCount ?? 0}</span>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
+                  <Fingerprint className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Registration</p>
+                    <p className="font-mono font-semibold text-gray-900">{hospital.registration_number}</p>
                   </div>
+                </div>
 
-                  <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Users className="w-5 h-5 text-purple-600" />
-                      <span className="text-sm font-medium">Approved Assistants</span>
-                    </div>
-                    <span className="text-xl font-black text-gray-900">{stats?.assistantsCount ?? 0}</span>
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
+                  <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">License</p>
+                    <p className="font-mono font-semibold text-gray-900">{hospital.license_number || "—"}</p>
                   </div>
+                </div>
 
-                  <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Users className="w-5 h-5 text-emerald-600" />
-                      <span className="text-sm font-medium">Patients (count)</span>
-                    </div>
-                    <span className="text-xl font-black text-gray-900">{stats?.patientsCount ?? 0}</span>
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3 md:col-span-2">
+                  <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Address</p>
+                    <p className="text-gray-900 font-medium">{hospital.address || "—"}</p>
                   </div>
+                </div>
 
-                  <div className="mt-4 text-xs text-gray-600">
-                    Patient data is private. Only total count is displayed.
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
+                  <Mail className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</p>
+                    <p className="text-gray-900 font-medium">{hospital.contact_email || "—"}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 flex gap-3">
+                  <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Phone</p>
+                    <p className="text-gray-900 font-medium">{hospital.contact_phone || "—"}</p>
                   </div>
                 </div>
               </div>
             </div>
-          </>
+
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl border border-indigo-100 shadow-sm p-8">
+              <h3 className="text-lg font-bold text-gray-900 mb-5">Hospital stats</h3>
+
+              <div className="space-y-3">
+                <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <Stethoscope className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium">Approved Doctors</span>
+                  </div>
+                  <span className="text-xl font-black text-gray-900">{stats?.doctorsCount ?? 0}</span>
+                </div>
+
+                <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <Users className="w-5 h-5 text-purple-600" />
+                    <span className="text-sm font-medium">Approved Assistants</span>
+                  </div>
+                  <span className="text-xl font-black text-gray-900">{stats?.assistantsCount ?? 0}</span>
+                </div>
+
+                <div className="bg-white/70 border border-white rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                    <Users className="w-5 h-5 text-emerald-600" />
+                    <span className="text-sm font-medium">Patients (count)</span>
+                  </div>
+                  <span className="text-xl font-black text-gray-900">{stats?.patientsCount ?? 0}</span>
+                </div>
+
+                <div className="mt-4 text-xs text-gray-600">
+                  Patient data is private. Only total count is displayed.
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

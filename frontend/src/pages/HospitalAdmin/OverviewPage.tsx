@@ -1,8 +1,17 @@
 import React from "react";
-import { Building2, RefreshCw, Stethoscope, UserCog, Users, ArrowRight } from "lucide-react";
+import {
+  Building2,
+  RefreshCw,
+  Stethoscope,
+  UserCog,
+  Users,
+  ArrowRight,
+  AlertTriangle,
+  Link2,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 
-export default function HospitalAdminOverviewPage({
+export default function OverviewPage({
   dashboard,
   loading,
   onRefresh,
@@ -11,15 +20,15 @@ export default function HospitalAdminOverviewPage({
   dashboard: any;
   loading: boolean;
   onRefresh: () => void;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: "overview" | "doctors" | "assistants" | "hospital-profile") => void;
 }) {
   const stats = dashboard?.stats || {
-    pendingDoctors: 0,
-    pendingAssistants: 0,
-    approvedDoctors: 0,
-    approvedAssistants: 0,
+    doctorsActive: 0,
+    doctorsInactive: 0,
+    assistantsActive: 0,
+    assistantsInactive: 0,
     patientsCount: 0,
-    totalPending: 0,
+    assistantsUnlinked: 0,
   };
 
   const hospital = dashboard?.hospital;
@@ -32,7 +41,7 @@ export default function HospitalAdminOverviewPage({
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Building2 className="w-8 h-8 text-white" />
-              <h1 className="text-3xl font-extrabold text-white">Hospital Admin Overview</h1>
+              <h1 className="text-3xl font-extrabold text-white">Overview</h1>
             </div>
             <p className="text-white/90">
               {hospital ? `Managing: ${hospital.name}` : "No hospital assigned"}
@@ -59,15 +68,16 @@ export default function HospitalAdminOverviewPage({
                 <Stethoscope className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-3xl font-black text-gray-900">{stats.pendingDoctors}</p>
-                <p className="text-sm text-gray-600">Pending Doctors</p>
+                <p className="text-3xl font-black text-gray-900">{stats.doctorsActive}</p>
+                <p className="text-sm text-gray-600">Active Doctors</p>
+                <p className="text-xs text-gray-500">{stats.doctorsInactive} inactive</p>
               </div>
             </div>
             <Button
-              onClick={() => onNavigate("pending-doctors")}
+              onClick={() => onNavigate("doctors")}
               className="mt-4 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0"
             >
-              Review Doctors <ArrowRight className="w-4 h-4 ml-2" />
+              Manage Doctors <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
 
@@ -77,15 +87,16 @@ export default function HospitalAdminOverviewPage({
                 <UserCog className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-3xl font-black text-gray-900">{stats.pendingAssistants}</p>
-                <p className="text-sm text-gray-600">Pending Assistants</p>
+                <p className="text-3xl font-black text-gray-900">{stats.assistantsActive}</p>
+                <p className="text-sm text-gray-600">Active Assistants</p>
+                <p className="text-xs text-gray-500">{stats.assistantsInactive} inactive</p>
               </div>
             </div>
             <Button
-              onClick={() => onNavigate("pending-assistants")}
+              onClick={() => onNavigate("assistants")}
               className="mt-4 w-full rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
             >
-              Review Assistants <ArrowRight className="w-4 h-4 ml-2" />
+              Manage Assistants <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
 
@@ -100,28 +111,80 @@ export default function HospitalAdminOverviewPage({
               </div>
             </div>
             <div className="mt-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm text-emerald-800">
-              Privacy mode enabled: only total patient count is shown.
+              Patient data is private. Only total count is displayed.
             </div>
           </div>
         </div>
 
-        {/* Secondary summary */}
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">At a glance</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-              <p className="text-gray-500 font-semibold">Approved Doctors</p>
-              <p className="text-2xl font-black text-gray-900 mt-2">{stats.approvedDoctors}</p>
+        {/* ✅ Alerts panel */}
+        <div className="bg-white rounded-3xl border border-amber-200 shadow-sm p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xl font-extrabold text-gray-900">Alerts & Tasks</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Operational items that need your attention.
+                </p>
+              </div>
             </div>
-            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-              <p className="text-gray-500 font-semibold">Approved Assistants</p>
-              <p className="text-2xl font-black text-gray-900 mt-2">{stats.approvedAssistants}</p>
+
+            <Button
+              onClick={() => onNavigate("assistants")}
+              className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0"
+            >
+              <Link2 className="w-4 h-4 mr-2" />
+              Open Assistants
+            </Button>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                Assistants not linked to a doctor
+              </p>
+              <p className="mt-2 text-3xl font-black text-gray-900">{stats.assistantsUnlinked}</p>
+              <p className="text-sm text-amber-800/80 mt-1">
+                These assistants can’t be routed to consultations properly until linked.
+              </p>
             </div>
+
             <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-              <p className="text-gray-500 font-semibold">Total Pending Approvals</p>
-              <p className="text-2xl font-black text-gray-900 mt-2">{stats.totalPending}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                Action
+              </p>
+              <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                Go to <b>Assistants</b> → click <b>Link</b> and assign each assistant to a doctor.
+              </p>
+              <Button
+                onClick={() => onNavigate("assistants")}
+                className="mt-4 rounded-2xl bg-gray-900 text-white hover:bg-black"
+              >
+                Link assistants now <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
+        </div>
+
+        {/* Hospital shortcut */}
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Hospital Profile</p>
+            <p className="text-xl font-extrabold text-gray-900">
+              {hospital?.name || "Not assigned"}
+            </p>
+            <p className="text-sm text-gray-600">
+              {hospital?.status ? `Status: ${hospital.status}` : ""}
+            </p>
+          </div>
+          <Button
+            onClick={() => onNavigate("hospital-profile")}
+            className="rounded-2xl bg-gradient-to-r from-teal-600 to-cyan-600 text-white border-0"
+          >
+            View Hospital Profile <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </div>
     </div>

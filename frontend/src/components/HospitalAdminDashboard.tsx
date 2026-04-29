@@ -1,32 +1,48 @@
 import React, { useEffect, useState } from "react";
-import HospitalAdminSidebar from "../components/layout/HospitalAdminSidebar";
-import HospitalAdminOverviewPage from "../pages/HospitalAdmin/OverviewPage";
-import PendingDoctorsPage from "../pages/HospitalAdmin/PendingDoctorsPage";
-import PendingAssistantsPage from "../pages/HospitalAdmin/PendingAssistantsPage";
+import HospitalAdminSidebar from "./layout/HospitalAdminSidebar";
+import OverviewPage from "../pages/HospitalAdmin/OverviewPage";
 import HospitalProfilePage from "../pages/HospitalAdmin/HospitalProfilePage";
+import SettingsPage from "../pages/HospitalAdmin/SettingsPage";
+import AssistantsPage from "../pages/HospitalAdmin/AssistantsPage";
+import DoctorsPage from "../pages/HospitalAdmin/DoctorsPage";
 import { toast } from "sonner";
+
+interface HospitalAdminDashboardProps {
+  onNavigate: (page: string) => void;
+  onLogout: () => void;
+}
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 type DashboardData = {
-  admin: { id: string; full_name: string; phone: string | null; email: string | null };
+  admin: {
+    id: string;
+    full_name: string;
+    phone: string | null;
+    email: string | null;
+  };
   hospital: { id: string; name: string; status: string } | null;
   stats: {
-    pendingDoctors: number;
-    pendingAssistants: number;
-    approvedDoctors: number;
-    approvedAssistants: number;
+    doctorsActive: number;
+    doctorsInactive: number;
+    assistantsActive: number;
+    assistantsInactive: number;
     patientsCount: number;
-    totalPending: number;
+    assistantsUnlinked: number;
   };
 };
 
+type AdminPage =
+  | "overview"
+  | "doctors"
+  | "assistants"
+  | "hospital-profile"
+  | "settings";
+
 export function HospitalAdminDashboard({
   onLogout,
-}: {
-  onLogout: () => void;
-}) {
-  const [page, setPage] = useState("overview");
+}: HospitalAdminDashboardProps) {
+  const [page, setPage] = useState<AdminPage>("overview");
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loadingDash, setLoadingDash] = useState(false);
 
@@ -61,7 +77,7 @@ export function HospitalAdminDashboard({
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30">
       <HospitalAdminSidebar
         currentPage={page}
-        onNavigate={setPage}
+        onNavigate={(id) => setPage(id as AdminPage)}
         onLogout={onLogout}
         userName={userName}
         subtitle={subtitle}
@@ -69,20 +85,21 @@ export function HospitalAdminDashboard({
 
       <main className="ml-72">
         {page === "overview" && (
-          <HospitalAdminOverviewPage dashboard={dashboard} loading={loadingDash} onRefresh={fetchDashboard} onNavigate={setPage} />
+          <OverviewPage
+            dashboard={dashboard}
+            loading={loadingDash}
+            onRefresh={fetchDashboard}
+            onNavigate={(p) => setPage(p as AdminPage)}
+          />
         )}
-
-        {page === "pending-doctors" && (
-          <PendingDoctorsPage onRefreshGlobal={fetchDashboard} />
+        {page === "doctors" && (
+          <DoctorsPage onRefreshGlobal={fetchDashboard} />
         )}
-
-        {page === "pending-assistants" && (
-          <PendingAssistantsPage onRefreshGlobal={fetchDashboard} />
+        {page === "assistants" && (
+          <AssistantsPage onRefreshGlobal={fetchDashboard} />
         )}
-
-        {page === "hospital-profile" && (
-          <HospitalProfilePage />
-        )}
+        {page === "hospital-profile" && <HospitalProfilePage />}
+        {page === "settings" && <SettingsPage />}
       </main>
     </div>
   );

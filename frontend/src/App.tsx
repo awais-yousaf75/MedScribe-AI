@@ -434,7 +434,9 @@ export default function App() {
 
     return (
       <>
-        <HospitalAdminDashboard onLogout={handleLogout} />
+        <HospitalAdminDashboard onLogout={handleLogout} onNavigate={function (page: string): void {
+          throw new Error("Function not implemented.");
+        } } />
         <Toaster position="top-right" />
       </>
     );
