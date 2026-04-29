@@ -1,4 +1,4 @@
-// pages/AdminsManagementPage.tsx
+// src/pages/SuperAdmin/AdminsManagementPage.tsx
 import React, { useState, useEffect } from "react";
 import {
   Shield,
@@ -9,6 +9,8 @@ import {
   Clock,
   Mail,
   Phone,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -21,24 +23,22 @@ interface AdminsManagementPageProps {
 type HospitalAdmin = {
   id: string;
   full_name: string;
-  email?: string;
-  phone?: string;
+  email?: string | null;
+  phone?: string | null;
   approval_status: "pending" | "approved" | "rejected";
-  created_at?: string;
-  hospital?: {
-    id: string;
-    name: string;
-    hospital_type?: string;
-  } | null;
+  created_at?: string | null;
+  hospital_name?: string | null; // from /api/superadmin/users
 };
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export function AdminsManagementPage({
-  onNavigate,
+  onNavigate: _onNavigate, // avoid unused prop warning
 }: AdminsManagementPageProps) {
   const [admins, setAdmins] = useState<HospitalAdmin[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const [searchAdmins, setSearchAdmins] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -46,6 +46,7 @@ export function AdminsManagementPage({
 
   useEffect(() => {
     fetchAdmins();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAdmins = async () => {
@@ -58,18 +59,83 @@ export function AdminsManagementPage({
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || "Failed to load users");
 
-      // Filter only hospital admins
       const hospitalAdmins = (data.users || []).filter(
         (u: any) => u.role === "hospital_admin",
       );
+
       setAdmins(hospitalAdmins);
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to load admins");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditAdminEmail = async (admin: HospitalAdmin) => {
+    const token = getToken();
+    if (!token) return;
+
+    const current = admin.email || "";
+    const next = window.prompt("Enter new email for this admin:", current);
+    if (!next) return;
+
+    try {
+      const res = await fetch(
+        `${API_URL}/api/superadmin/hospital-admins/${admin.id}/email`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: next }),
+        },
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error);
+
+      toast.success("Admin email updated");
+
+      setAdmins((prev) =>
+        prev.map((a) => (a.id === admin.id ? { ...a, email: next } : a)),
+      );
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to update email");
+    }
+  };
+
+  const handleDeleteAdmin = async (admin: HospitalAdmin) => {
+    const token = getToken();
+    if (!token) return;
+
+    const ok = window.confirm(
+      `Delete hospital admin "${admin.full_name}"?\n\nThis will permanently delete the user and related data.`,
+    );
+    if (!ok) return;
+
+    try {
+      setDeletingId(admin.id);
+
+      const res = await fetch(`${API_URL}/api/superadmin/users/${admin.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error);
+
+      toast.success("Hospital admin deleted");
+      setAdmins((prev) => prev.filter((a) => a.id !== admin.id));
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to delete admin");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -85,7 +151,7 @@ export function AdminsManagementPage({
         "bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-200",
     };
 
-    const icons: Record<string, typeof CheckCircle> = {
+    const icons: Record<string, any> = {
       approved: CheckCircle,
       pending: Clock,
       rejected: XCircle,
@@ -106,10 +172,12 @@ export function AdminsManagementPage({
 
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =
-      admin.full_name?.toLowerCase().includes(searchAdmins.toLowerCase()) ||
-      admin.email?.toLowerCase().includes(searchAdmins.toLowerCase());
+      (admin.full_name || "").toLowerCase().includes(searchAdmins.toLowerCase()) ||
+      (admin.email || "").toLowerCase().includes(searchAdmins.toLowerCase());
+
     const matchesStatus =
       statusFilter === "all" || admin.approval_status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -156,6 +224,7 @@ export function AdminsManagementPage({
                 <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
               </select>
+
               <div className="relative w-80">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -166,6 +235,7 @@ export function AdminsManagementPage({
                 />
               </div>
             </div>
+
             <Button
               variant="outline"
               size="sm"
@@ -202,8 +272,8 @@ export function AdminsManagementPage({
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-md">
                     <Shield className="w-7 h-7" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-800 truncate">
                       {admin.full_name}
                     </h3>
                     {getStatusBadge(admin.approval_status)}
@@ -212,12 +282,45 @@ export function AdminsManagementPage({
 
                 {/* Contact Info */}
                 <div className="space-y-2 text-sm text-gray-600 mb-4">
-                  {admin.email && (
-                    <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-purple-600" />
-                      {admin.email}
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="flex items-center gap-2 min-w-0">
+                      <Mail className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span className="truncate">
+                        {admin.email || "No email"}
+                      </span>
                     </p>
-                  )}
+
+                    <div className="flex items-center gap-1">
+                      {/* Edit Email */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-xl hover:bg-purple-50"
+                        onClick={() => handleEditAdminEmail(admin)}
+                        title="Edit email"
+                        disabled={deletingId === admin.id}
+                      >
+                        <Pencil className="w-4 h-4 text-purple-700" />
+                      </Button>
+
+                      {/* Delete Admin */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-xl hover:bg-red-50"
+                        onClick={() => handleDeleteAdmin(admin)}
+                        title="Delete admin"
+                        disabled={deletingId === admin.id}
+                      >
+                        {deletingId === admin.id ? (
+                          <RefreshCw className="w-4 h-4 text-red-600 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
                   {admin.phone && (
                     <p className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-purple-600" />
@@ -227,16 +330,13 @@ export function AdminsManagementPage({
                 </div>
 
                 {/* Hospital Info */}
-                {admin.hospital && (
+                {admin.hospital_name && (
                   <div className="pt-4 border-t border-gray-200">
                     <p className="text-xs text-gray-500 mb-1">
                       Assigned Hospital
                     </p>
                     <p className="font-semibold text-gray-800">
-                      {admin.hospital.name}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {admin.hospital.hospital_type || "N/A"}
+                      {admin.hospital_name}
                     </p>
                   </div>
                 )}

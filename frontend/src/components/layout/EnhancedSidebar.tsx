@@ -29,12 +29,6 @@ const menuItems = [
     description: "System statistics",
   },
   {
-    id: "pending-approvals",
-    label: "Pending Approvals",
-    icon: Clock,
-    description: "Review requests",
-  },
-  {
     id: "hospitals-management",
     label: "Hospitals Management",
     icon: Building2,

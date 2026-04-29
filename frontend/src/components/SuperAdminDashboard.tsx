@@ -5,7 +5,6 @@ import { EnhancedSidebar } from "./layout/EnhancedSidebar";
 import { DashboardOverviewPage } from "../pages/SuperAdmin/DashboardOverviewPage";
 import { HospitalRegistrationPage } from "./HospitalRegistrationPage";
 import { HospitalDetailPage } from "../pages/SuperAdmin/HospitalDetailPage";
-import { PendingApprovalsPage } from "../pages/SuperAdmin/PendingApprovalsPage";
 import { HospitalsManagementPage } from "../pages/SuperAdmin/HospitalsManagementPage";
 import { AdminsManagementPage } from "../pages/SuperAdmin/AdminsManagementPage";
 import { UsersManagementPage } from "../pages/SuperAdmin/UsersManagementPage";
@@ -42,9 +41,6 @@ export function SuperAdminDashboard({
     switch (currentPage) {
       case "dashboard":
         return <DashboardOverviewPage onNavigate={handleNavigate} />;
-
-      case "pending-approvals":
-        return <PendingApprovalsPage onNavigate={handleNavigate} />;
 
       case "hospitals-management":
         return (

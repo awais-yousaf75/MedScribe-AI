@@ -1,4 +1,4 @@
-// pages/HospitalDetailPage.tsx
+// src/pages/SuperAdmin/HospitalDetailPage.tsx
 import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -8,7 +8,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Award,
   TrendingUp,
   Stethoscope,
   AlertCircle,
@@ -16,8 +15,13 @@ import {
   Fingerprint,
   ShieldCheck,
   Globe,
+  Plus,
+  X,
+  RefreshCw,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
 
 interface Hospital {
@@ -30,7 +34,7 @@ interface Hospital {
   contact_email?: string;
   contact_phone?: string;
   status: "pending" | "approved" | "rejected";
-  admin_profile_id: string;
+  admin_profile_id: string | null;
   admin: {
     id: string;
     full_name: string;
@@ -50,19 +54,36 @@ interface HospitalDetailPageProps {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function HospitalDetailPage({
-  hospitalId,
-  onBack,
-}: HospitalDetailPageProps) {
+export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPageProps) {
   const [hospital, setHospital] = useState<Hospital | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [patients, setPatients] = useState(0);
 
+  // NEW: assign admin modal state
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [savingAdmin, setSavingAdmin] = useState(false);
+  const [newCreds, setNewCreds] = useState<{
+    email: string;
+    password: string | null;
+    generated: boolean;
+  } | null>(null);
+
+  const [adminForm, setAdminForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    gender: "",
+    dob: "",
+    password: "",
+    generate_password: true,
+  });
+
   const getToken = () => localStorage.getItem("accessToken");
 
   useEffect(() => {
     fetchHospitalDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hospitalId]);
 
   const fetchHospitalDetails = async () => {
@@ -75,18 +96,13 @@ export function HospitalDetailPage({
 
     try {
       setLoading(true);
-      const res = await fetch(
-        `${API_URL}/api/superadmin/hospitals/${hospitalId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const res = await fetch(`${API_URL}/api/superadmin/hospitals/${hospitalId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(
-          "Server returned an invalid response (HTML). Check if the API route exists.",
-        );
+        throw new Error("Server returned an invalid response. Check API route.");
       }
 
       const data = await res.json();
@@ -94,11 +110,90 @@ export function HospitalDetailPage({
 
       setHospital(data.hospital);
       setPatients(data.patients_count || 0);
+      setError(null);
     } catch (err: any) {
       console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openAdminModal = () => {
+    setNewCreds(null);
+    setAdminForm({
+      full_name: "",
+      email: "",
+      phone: "",
+      gender: "",
+      dob: "",
+      password: "",
+      generate_password: true,
+    });
+    setShowAdminModal(true);
+  };
+
+  const assignNewAdmin = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    if (!hospital) return;
+
+    if (!adminForm.full_name || !adminForm.email) {
+      toast.error("Full name and email are required");
+      return;
+    }
+
+    const replacing = !!hospital.admin_profile_id; // if hospital already has admin, we replace
+
+    const ok = replacing
+      ? window.confirm(
+          "This hospital already has an admin. Do you want to replace the admin?",
+        )
+      : true;
+
+    if (!ok) return;
+
+    try {
+      setSavingAdmin(true);
+
+      const endpoint = `${API_URL}/api/superadmin/hospitals/${hospital.id}/admin${
+        replacing ? "?replace=true" : ""
+      }`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          full_name: adminForm.full_name,
+          email: adminForm.email,
+          phone: adminForm.phone || null,
+          gender: adminForm.gender || null,
+          dob: adminForm.dob || null,
+          password: adminForm.generate_password ? null : adminForm.password,
+          generate_password: adminForm.generate_password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || "Failed to assign admin");
+
+      toast.success("Hospital admin assigned successfully");
+
+      if (data.credentials) {
+        setNewCreds(data.credentials);
+      }
+
+      // refresh hospital details to show new admin
+      await fetchHospitalDetails();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to assign admin");
+    } finally {
+      setSavingAdmin(false);
     }
   };
 
@@ -109,9 +204,7 @@ export function HospitalDetailPage({
       rejected: "bg-rose-50 text-rose-700 border-rose-200",
     };
     return (
-      <span
-        className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status || "pending"]}`}
-      >
+      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status || "pending"]}`}>
         {status?.toUpperCase()}
       </span>
     );
@@ -131,11 +224,7 @@ export function HospitalDetailPage({
   if (error || !hospital) {
     return (
       <div className="p-8 bg-white h-screen">
-        <Button
-          onClick={onBack}
-          variant="ghost"
-          className="mb-6 hover:bg-gray-100 rounded-xl"
-        >
+        <Button onClick={onBack} variant="ghost" className="mb-6 hover:bg-gray-100 rounded-xl">
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <div className="max-w-md mx-auto text-center border-2 border-dashed border-gray-200 rounded-3xl p-12">
@@ -144,10 +233,7 @@ export function HospitalDetailPage({
             Something went wrong
           </h3>
           <p className="text-gray-500 mb-6">{error}</p>
-          <Button
-            onClick={fetchHospitalDetails}
-            className="bg-indigo-600 text-white rounded-xl"
-          >
+          <Button onClick={fetchHospitalDetails} className="bg-indigo-600 text-white rounded-xl">
             Try Again
           </Button>
         </div>
@@ -157,14 +243,199 @@ export function HospitalDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-12">
+      {/* Assign Admin Modal */}
+      {showAdminModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+          onClick={() => !savingAdmin && setShowAdminModal(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-start justify-between">
+              <div>
+                <h3 className="text-xl font-bold">Assign Hospital Admin</h3>
+                <p className="text-white/90 text-sm">
+                  Create a new admin and assign to this hospital
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-white hover:bg-white/15 rounded-xl"
+                onClick={() => !savingAdmin && setShowAdminModal(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600">
+                    Full Name *
+                  </label>
+                  <Input
+                    value={adminForm.full_name}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({ ...p, full_name: e.target.value }))
+                    }
+                    className="mt-1"
+                    disabled={savingAdmin}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600">
+                    Email *
+                  </label>
+                  <Input
+                    value={adminForm.email}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({ ...p, email: e.target.value }))
+                    }
+                    className="mt-1"
+                    disabled={savingAdmin}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600">
+                    Phone
+                  </label>
+                  <Input
+                    value={adminForm.phone}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({ ...p, phone: e.target.value }))
+                    }
+                    className="mt-1"
+                    disabled={savingAdmin}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600">
+                    Gender
+                  </label>
+                  <Input
+                    value={adminForm.gender}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({ ...p, gender: e.target.value }))
+                    }
+                    className="mt-1"
+                    disabled={savingAdmin}
+                    placeholder="male/female/other"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-600">
+                    DOB
+                  </label>
+                  <Input
+                    type="date"
+                    value={adminForm.dob}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({ ...p, dob: e.target.value }))
+                    }
+                    className="mt-1"
+                    disabled={savingAdmin}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 mt-6">
+                  <input
+                    type="checkbox"
+                    checked={adminForm.generate_password}
+                    onChange={(e) =>
+                      setAdminForm((p) => ({
+                        ...p,
+                        generate_password: e.target.checked,
+                      }))
+                    }
+                    disabled={savingAdmin}
+                  />
+                  <span className="text-sm text-gray-700">
+                    Generate password automatically
+                  </span>
+                </div>
+
+                {!adminForm.generate_password && (
+                  <div className="md:col-span-2">
+                    <label className="text-xs font-semibold text-gray-600">
+                      Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={adminForm.password}
+                      onChange={(e) =>
+                        setAdminForm((p) => ({
+                          ...p,
+                          password: e.target.value,
+                        }))
+                      }
+                      className="mt-1"
+                      disabled={savingAdmin}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {newCreds && (
+                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50">
+                  <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+                    <KeyRound className="w-4 h-4" />
+                    Credentials (copy now)
+                  </div>
+                  <div className="mt-2 text-sm text-gray-700">
+                    <div>
+                      <span className="font-semibold">Email:</span>{" "}
+                      {newCreds.email}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Password:</span>{" "}
+                      {newCreds.password ? newCreds.password : "(not shown)"}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={() => !savingAdmin && setShowAdminModal(false)}
+                  disabled={savingAdmin}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="rounded-xl bg-indigo-600 text-white"
+                  onClick={assignNewAdmin}
+                  disabled={savingAdmin}
+                >
+                  {savingAdmin ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Assign Admin
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30 px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Button
-            onClick={onBack}
-            variant="ghost"
-            className="hover:bg-gray-100 rounded-xl text-gray-600"
-          >
+          <Button onClick={onBack} variant="ghost" className="hover:bg-gray-100 rounded-xl text-gray-600">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to List
           </Button>
           <div className="flex items-center gap-3">
@@ -227,25 +498,36 @@ export function HospitalDetailPage({
             </div>
           </div>
 
-          {/* Admin Light Card (Sidebar Style) */}
+          {/* Admin Light Card */}
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-8 border border-indigo-100 shadow-sm">
-            <h3 className="text-gray-900 font-bold text-lg mb-6 flex items-center gap-2">
-              <ShieldCheck className="text-indigo-600" size={20} />{" "}
-              Administrator
-            </h3>
+            <div className="flex items-center justify-between gap-3 mb-6">
+              <h3 className="text-gray-900 font-bold text-lg flex items-center gap-2">
+                <ShieldCheck className="text-indigo-600" size={20} /> Administrator
+              </h3>
+
+              <Button
+                onClick={openAdminModal}
+                className="rounded-xl bg-indigo-600 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {hospital.admin ? "Replace" : "Assign"}
+              </Button>
+            </div>
+
             <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 rounded-full bg-white border-2 border-white shadow-md flex items-center justify-center text-indigo-600">
                 <User size={28} />
               </div>
               <div className="min-w-0">
                 <p className="text-gray-900 font-bold truncate">
-                  {hospital.admin?.full_name}
+                  {hospital.admin?.full_name || "No admin assigned"}
                 </p>
                 <p className="text-indigo-600 text-xs font-bold uppercase tracking-wider">
                   Hospital Admin
                 </p>
               </div>
             </div>
+
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-gray-600 bg-white/50 p-3 rounded-xl border border-white">
                 <Mail size={16} className="text-indigo-400" />
@@ -306,7 +588,7 @@ export function HospitalDetailPage({
           </div>
         </div>
 
-        {/* BOTTOM SECTION: Contact & Details */}
+        {/* Contact & Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-6">
@@ -362,8 +644,7 @@ export function HospitalDetailPage({
                 </span>
               </div>
               <p className="text-sm font-medium">
-                Last updated:{" "}
-                {new Date(hospital.id ? Date.now() : 0).toLocaleDateString()}
+                Last updated: {new Date().toLocaleDateString()}
               </p>
             </div>
           </div>
