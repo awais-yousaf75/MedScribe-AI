@@ -897,6 +897,92 @@ router.get("/hospitals", async (req, res) => {
   }
 });
 
+
+/**
+ * GET /api/superadmin/hospitals/:hospitalId
+ * Returns full details for a specific hospital including admin info and stats
+ */
+router.get("/hospitals/:hospitalId", async (req, res) => {
+  const { hospitalId } = req.params;
+
+  try {
+    // 1. Fetch Hospital details and join the Admin Profile info
+    const { data: hospital, error: hospError } = await supabase
+      .from("hospitals")
+      .select(`
+        *,
+        admin:profiles!hospitals_admin_profile_id_fkey (
+          id,
+          full_name,
+          phone,
+          approval_status,
+          role
+        )
+      `)
+      .eq("id", hospitalId)
+      .single();
+
+    if (hospError || !hospital) {
+      console.error("Fetch hospital detail error:", hospError);
+      return res.status(404).json({ error: "Hospital not found" });
+    }
+
+    // 2. Fetch the Admin's Email from Supabase Auth (since it's not in the profiles table)
+    let adminEmail = null;
+    if (hospital.admin_profile_id) {
+      const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(
+        hospital.admin_profile_id
+      );
+      if (!authError && authUser) {
+        adminEmail = authUser.user.email;
+      }
+    }
+
+    // 3. Get Aggregated Stats for this specific hospital
+    
+    // Count Approved Doctors
+    const { count: doctorsCount } = await supabase
+      .from("doctor_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("hospital_id", hospitalId)
+      .eq("approval_status", "approved");
+
+    // Count Approved Assistants
+    const { count: assistantsCount } = await supabase
+      .from("doctor_assistant_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("hospital_id", hospitalId)
+      .eq("approval_status", "approved");
+
+    // Count Total Patients
+    const { count: patientsCount } = await supabase
+      .from("patient_profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("hospital_id", hospitalId);
+
+    // 4. Construct the final response matching your frontend interface
+    const response = {
+      hospital: {
+        ...hospital,
+        admin: hospital.admin ? {
+          ...hospital.admin,
+          email: adminEmail
+        } : null,
+        doctors_count: doctorsCount || 0,
+        assistants_count: assistantsCount || 0
+      },
+      patients_count: patientsCount || 0
+    };
+
+    return res.json(response);
+
+  } catch (err) {
+    console.error("Hospital detail route error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 /**
  * GET /api/superadmin/stats
  */

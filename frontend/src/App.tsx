@@ -434,7 +434,7 @@ export default function App() {
 
     return (
       <>
-        <HospitalAdminDashboard onNavigate={handleNavigate} onLogout={handleLogout} />
+        <HospitalAdminDashboard onLogout={handleLogout} />
         <Toaster position="top-right" />
       </>
     );
