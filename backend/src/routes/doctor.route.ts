@@ -306,4 +306,134 @@ router.get("/patients", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/doctor/availability
+ * Doctor gets their own availability schedule
+ */
+router.get("/availability", async (req, res) => {
+  try {
+    const profile = (req as any).profile;
+    if (!profile) return res.status(401).json({ error: "Unauthorized" });
+
+    const { data, error } = await supabase
+      .from("doctor_availability")
+      .select("*")
+      .eq("doctor_profile_id", profile.id)
+      .order("day_of_week", { ascending: true });
+
+    if (error) {
+      console.error("Fetch availability error:", error);
+      return res.status(500).json({ error: "Failed to fetch availability" });
+    }
+
+    return res.json({ availability: data || [] });
+  } catch (err) {
+    console.error("GET /api/doctor/availability error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * POST /api/doctor/availability
+ * Doctor sets availability for specific days
+ * Body: { availability: [{ day_of_week, start_time, end_time, slot_duration_minutes }] }
+ * Uses upsert — replaces existing schedule
+ */
+router.post("/availability", async (req, res) => {
+  try {
+    const profile = (req as any).profile;
+    if (!profile) return res.status(401).json({ error: "Unauthorized" });
+
+    const { availability } = req.body as {
+      availability: {
+        day_of_week: number;
+        start_time: string;
+        end_time: string;
+        slot_duration_minutes: number;
+      }[];
+    };
+
+    if (!availability || !Array.isArray(availability)) {
+      return res.status(400).json({ error: "availability array is required" });
+    }
+
+    // Validate each entry
+    for (const slot of availability) {
+      if (
+        slot.day_of_week === undefined ||
+        slot.day_of_week < 0 ||
+        slot.day_of_week > 6
+      ) {
+        return res.status(400).json({
+          error: "day_of_week must be between 0 (Mon) and 6 (Sun)",
+        });
+      }
+      if (!slot.start_time || !slot.end_time) {
+        return res.status(400).json({
+          error: "start_time and end_time are required",
+        });
+      }
+      if (slot.start_time >= slot.end_time) {
+        return res.status(400).json({
+          error: "start_time must be before end_time",
+        });
+      }
+      if (!slot.slot_duration_minutes || slot.slot_duration_minutes < 5) {
+        return res.status(400).json({
+          error: "slot_duration_minutes must be at least 5",
+        });
+      }
+    }
+
+    // First delete existing availability for this doctor
+    const { error: deleteError } = await supabase
+      .from("doctor_availability")
+      .delete()
+      .eq("doctor_profile_id", profile.id);
+
+    if (deleteError) {
+      console.error("Delete old availability error:", deleteError);
+      return res.status(500).json({ error: "Failed to update availability" });
+    }
+
+    // If no days selected, just clearing is fine
+    if (availability.length === 0) {
+      return res.json({
+        success: true,
+        message: "Availability cleared successfully",
+        availability: [],
+      });
+    }
+
+    // Insert new availability
+    const rows = availability.map((a) => ({
+      doctor_profile_id: profile.id,
+      day_of_week:           a.day_of_week,
+      start_time:            a.start_time,
+      end_time:              a.end_time,
+      slot_duration_minutes: a.slot_duration_minutes,
+    }));
+
+    const { data, error: insertError } = await supabase
+      .from("doctor_availability")
+      .insert(rows)
+      .select();
+
+    if (insertError) {
+      console.error("Insert availability error:", insertError);
+      return res.status(500).json({ error: "Failed to save availability" });
+    }
+
+    return res.json({
+      success:      true,
+      message:      "Availability saved successfully",
+      availability: data,
+    });
+  } catch (err) {
+    console.error("POST /api/doctor/availability error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 export default router;

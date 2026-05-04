@@ -71,7 +71,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               <h1
                 className="text-2xl font-semibold"
                 style={{
-                  background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)",
+                  background:
+                    "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -79,13 +80,17 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               >
                 MedScribe AI
               </h1>
-              <p className="text-sm text-gray-500">Clinical Intelligence Platform</p>
+              <p className="text-sm text-gray-500">
+                Clinical Intelligence Platform
+              </p>
             </div>
           </div>
 
           {/* Form Header */}
           <div className="space-y-2">
-            <h2 className="text-4xl font-semibold text-gray-900">Sign in to MedScribe AI</h2>
+            <h2 className="text-4xl font-semibold text-gray-900">
+              Sign in to MedScribe AI
+            </h2>
             <p className="text-gray-500">
               Access your AI-powered clinical consultation assistant
             </p>
@@ -105,7 +110,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-14 border-2 shadow-sm"
                   style={{
-                    background: "linear-gradient(90deg, #ffffff 0%, #eff6ff 100%)",
+                    background:
+                      "linear-gradient(90deg, #ffffff 0%, #eff6ff 100%)",
                   }}
                   required
                   disabled={isLoading}
@@ -125,7 +131,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 h-14 border-2 shadow-sm"
                   style={{
-                    background: "linear-gradient(90deg, #ffffff 0%, #faf5ff 100%)",
+                    background:
+                      "linear-gradient(90deg, #ffffff 0%, #faf5ff 100%)",
                   }}
                   required
                   disabled={isLoading}
@@ -165,19 +172,6 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               <Sparkles className="w-5 h-5 mr-2" />
               {isLoading ? "Signing In..." : "Sign In"}
             </Button>
-
-            <div className="text-center text-sm text-gray-600">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={onNavigateToRegister}
-                disabled={isLoading}
-                className="font-medium hover:underline"
-                style={{ color: "#2563EB" }}
-              >
-                Create a MedScribe AI Account
-              </button>
-            </div>
           </form>
 
           {/* Trust Badges */}
@@ -189,7 +183,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               <div
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border"
                 style={{
-                  background: "linear-gradient(90deg, #f0fdf4 0%, #ecfdf5 100%)",
+                  background:
+                    "linear-gradient(90deg, #f0fdf4 0%, #ecfdf5 100%)",
                   borderColor: "#bbf7d0",
                 }}
               >
@@ -201,7 +196,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               <div
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border"
                 style={{
-                  background: "linear-gradient(90deg, #faf5ff 0%, #fdf2f8 100%)",
+                  background:
+                    "linear-gradient(90deg, #faf5ff 0%, #fdf2f8 100%)",
                   borderColor: "#e9d5ff",
                 }}
               >
@@ -219,7 +215,8 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
       <div
         className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #2563EB 0%, #6366F1 50%, #14B8A6 100%)",
+          background:
+            "linear-gradient(135deg, #2563EB 0%, #6366F1 50%, #14B8A6 100%)",
         }}
       >
         {/* Background decorations */}
@@ -246,9 +243,13 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
           </h3>
 
           {/* Description */}
-          <p className="text-xl leading-relaxed" style={{ color: "rgba(255, 255, 255, 0.9)" }}>
-            MedScribe AI captures, transcribes, and analyzes medical conversations in real-time,
-            helping doctors save time and improve patient care.
+          <p
+            className="text-xl leading-relaxed"
+            style={{ color: "rgba(255, 255, 255, 0.9)" }}
+          >
+            MedScribe AI captures, transcribes, and analyzes medical
+            conversations in real-time, helping doctors save time and improve
+            patient care.
           </p>
 
           {/* Stats Cards */}
@@ -262,7 +263,10 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               }}
             >
               <p className="text-4xl font-bold mb-2">10K+</p>
-              <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
+              <p
+                className="text-sm"
+                style={{ color: "rgba(255, 255, 255, 0.8)" }}
+              >
                 Consultations
               </p>
             </div>
@@ -275,7 +279,10 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               }}
             >
               <p className="text-4xl font-bold mb-2">95%</p>
-              <p className="text-sm" style={{ color: "rgba(255, 255, 255, 0.8)" }}>
+              <p
+                className="text-sm"
+                style={{ color: "rgba(255, 255, 255, 0.8)" }}
+              >
                 Accuracy
               </p>
             </div>

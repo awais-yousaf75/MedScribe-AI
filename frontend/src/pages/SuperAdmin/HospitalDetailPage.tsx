@@ -54,7 +54,10 @@ interface HospitalDetailPageProps {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPageProps) {
+export function HospitalDetailPage({
+  hospitalId,
+  onBack,
+}: HospitalDetailPageProps) {
   const [hospital, setHospital] = useState<Hospital | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,13 +99,18 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/superadmin/hospitals/${hospitalId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/superadmin/hospitals/${hospitalId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned an invalid response. Check API route.");
+        throw new Error(
+          "Server returned an invalid response. Check API route.",
+        );
       }
 
       const data = await res.json();
@@ -179,7 +187,8 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || data.error || "Failed to assign admin");
+      if (!res.ok)
+        throw new Error(data.message || data.error || "Failed to assign admin");
 
       toast.success("Hospital admin assigned successfully");
 
@@ -204,7 +213,9 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
       rejected: "bg-rose-50 text-rose-700 border-rose-200",
     };
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status || "pending"]}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-bold border ${styles[status || "pending"]}`}
+      >
         {status?.toUpperCase()}
       </span>
     );
@@ -224,7 +235,11 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
   if (error || !hospital) {
     return (
       <div className="p-8 bg-white h-screen">
-        <Button onClick={onBack} variant="ghost" className="mb-6 hover:bg-gray-100 rounded-xl">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          className="mb-6 hover:bg-gray-100 rounded-xl"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <div className="max-w-md mx-auto text-center border-2 border-dashed border-gray-200 rounded-3xl p-12">
@@ -233,7 +248,10 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
             Something went wrong
           </h3>
           <p className="text-gray-500 mb-6">{error}</p>
-          <Button onClick={fetchHospitalDetails} className="bg-indigo-600 text-white rounded-xl">
+          <Button
+            onClick={fetchHospitalDetails}
+            className="bg-indigo-600 text-white rounded-xl"
+          >
             Try Again
           </Button>
         </div>
@@ -317,15 +335,19 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
                   <label className="text-xs font-semibold text-gray-600">
                     Gender
                   </label>
-                  <Input
+                  <select
                     value={adminForm.gender}
                     onChange={(e) =>
                       setAdminForm((p) => ({ ...p, gender: e.target.value }))
                     }
-                    className="mt-1"
                     disabled={savingAdmin}
-                    placeholder="male/female/other"
-                  />
+                    className="mt-1 w-full h-11 px-3 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium focus:border-indigo-400 focus:outline-none disabled:opacity-60"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 <div>
@@ -435,7 +457,11 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
       {/* Top Navigation Bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30 px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Button onClick={onBack} variant="ghost" className="hover:bg-gray-100 rounded-xl text-gray-600">
+          <Button
+            onClick={onBack}
+            variant="ghost"
+            className="hover:bg-gray-100 rounded-xl text-gray-600"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to List
           </Button>
           <div className="flex items-center gap-3">
@@ -502,7 +528,8 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-8 border border-indigo-100 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-6">
               <h3 className="text-gray-900 font-bold text-lg flex items-center gap-2">
-                <ShieldCheck className="text-indigo-600" size={20} /> Administrator
+                <ShieldCheck className="text-indigo-600" size={20} />{" "}
+                Administrator
               </h3>
 
               <Button

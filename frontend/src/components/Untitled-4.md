@@ -1,0 +1,139 @@
+# File Tree: frontend
+
+**Generated:** 4/29/2026, 12:44:33 PM
+**Root Path:** `c:\Users\Awais Yousaf\Desktop\final_testing - Copy\frontend`
+
+```
+├── public
+│   └── vite.svg
+├── src
+│   ├── assets
+│   │   └── react.svg
+│   ├── components
+│   │   ├── consultation
+│   │   │   ├── AIExtraction.tsx
+│   │   │   ├── ConsultationHistory.tsx
+│   │   │   ├── ConsultationTopNav.tsx
+│   │   │   ├── LiveRecording.tsx
+│   │   │   └── TranscriptPage.tsx
+│   │   ├── dashboard
+│   │   │   └── DashboardHome.tsx
+│   │   ├── figma
+│   │   │   └── ImageWithFallback.tsx
+│   │   ├── layout
+│   │   │   ├── EnhancedSidebar.tsx
+│   │   │   ├── HospitalAdminSidebar.tsx
+│   │   │   └── Sidebar.tsx
+│   │   ├── notes
+│   │   │   └── MedicalNotesEditor.tsx
+│   │   ├── prescription
+│   │   │   └── PrescriptionPreview.tsx
+│   │   ├── settings
+│   │   │   └── SettingsPage.tsx
+│   │   ├── ui
+│   │   │   ├── accordion.tsx
+│   │   │   ├── alert-dialog.tsx
+│   │   │   ├── alert.tsx
+│   │   │   ├── animated-background.tsx
+│   │   │   ├── aspect-ratio.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── breadcrumb.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── calendar.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── carousel.tsx
+│   │   │   ├── chart.tsx
+│   │   │   ├── checkbox.tsx
+│   │   │   ├── collapsible.tsx
+│   │   │   ├── command.tsx
+│   │   │   ├── context-menu.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── divider.tsx
+│   │   │   ├── drawer.tsx
+│   │   │   ├── drop-style.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── duplicate-warning.tsx
+│   │   │   ├── feature-card.tsx
+│   │   │   ├── floating-input.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── glass-card.tsx
+│   │   │   ├── gradient-button.tsx
+│   │   │   ├── hover-card.tsx
+│   │   │   ├── input-otp.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── menubar.tsx
+│   │   │   ├── navigation-menu.tsx
+│   │   │   ├── pagination.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── resizable.tsx
+│   │   │   ├── scroll-area.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── sheet.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── slider.tsx
+│   │   │   ├── social-button.tsx
+│   │   │   ├── sonner.tsx
+│   │   │   ├── switch.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── toggle-group.tsx
+│   │   │   ├── toggle.tsx
+│   │   │   ├── tooltip.tsx
+│   │   │   ├── use-mobile.ts
+│   │   │   └── utils.ts
+│   │   ├── AssistantDashboard.tsx
+│   │   ├── DashboardHome.tsx
+│   │   ├── DoctorDashboard.tsx
+│   │   ├── HospitalAdminDashboard.tsx
+│   │   ├── HospitalRegistrationPage.tsx
+│   │   ├── Layout.tsx
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   └── SuperAdminDashboard.tsx
+│   ├── guidelines
+│   │   └── Guidelines.md
+│   ├── lib
+│   │   ├── api.ts
+│   │   ├── supabase.ts
+│   │   └── utils.ts
+│   ├── pages
+│   │   ├── HospitalAdmin
+│   │   │   ├── HospitalProfilePage.tsx
+│   │   │   ├── OverviewPage.tsx
+│   │   │   ├── PendingAssistantsPage.tsx
+│   │   │   └── PendingDoctorsPage.tsx
+│   │   └── SuperAdmin
+│   │       ├── AdminsManagementPage.tsx
+│   │       ├── DashboardOverviewPage.tsx
+│   │       ├── HospitalDetailPage.tsx
+│   │       ├── HospitalsManagementPage.tsx
+│   │       ├── PendingApprovalsPage.tsx
+│   │       └── UsersManagementPage.tsx
+│   ├── styles
+│   │   └── globals.css
+│   ├── App.css
+│   ├── App.tsx
+│   ├── Attributions.md
+│   ├── index.css
+│   └── main.tsx
+├── .gitignore
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+```
+
+---
+*Generated by FileTree Pro Extension*
