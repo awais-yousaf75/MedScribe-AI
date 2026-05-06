@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import HospitalAdminSidebar from "./layout/HospitalAdminSidebar";
-import OverviewPage from "../pages/HospitalAdmin/OverviewPage";
+import OverviewPage        from "../pages/HospitalAdmin/OverviewPage";
 import HospitalProfilePage from "../pages/HospitalAdmin/HospitalProfilePage";
-import SettingsPage from "../pages/HospitalAdmin/SettingsPage";
-import AssistantsPage from "../pages/HospitalAdmin/AssistantsPage";
-import DoctorsPage from "../pages/HospitalAdmin/DoctorsPage";
-import { toast } from "sonner";
+import SettingsPage        from "../pages/HospitalAdmin/SettingsPage";
+import AssistantsPage      from "../pages/HospitalAdmin/AssistantsPage";
+import DoctorsPage         from "../pages/HospitalAdmin/DoctorsPage";
+import { toast }           from "sonner";
 
 interface HospitalAdminDashboardProps {
   onNavigate: (page: string) => void;
@@ -39,10 +39,8 @@ type AdminPage =
   | "hospital-profile"
   | "settings";
 
-export function HospitalAdminDashboard({
-  onLogout,
-}: HospitalAdminDashboardProps) {
-  const [page, setPage] = useState<AdminPage>("overview");
+export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps) {
+  const [page,      setPage]      = useState<AdminPage>("overview");
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loadingDash, setLoadingDash] = useState(false);
 
@@ -52,7 +50,7 @@ export function HospitalAdminDashboard({
     if (!token) return;
     try {
       setLoadingDash(true);
-      const res = await fetch(`${API_URL}/api/hospital-admin/dashboard`, {
+      const res  = await fetch(`${API_URL}/api/hospital-admin/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -71,10 +69,10 @@ export function HospitalAdminDashboard({
   }, []);
 
   const userName = dashboard?.admin?.full_name || "Hospital Admin";
-  const subtitle = dashboard?.hospital?.name || "No hospital assigned";
+  const subtitle = dashboard?.hospital?.name   || "No hospital assigned";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30">
+    <div className="min-h-screen" style={{ background: "#f8fafc" }}>
       <HospitalAdminSidebar
         currentPage={page}
         onNavigate={(id) => setPage(id as AdminPage)}
@@ -83,7 +81,8 @@ export function HospitalAdminDashboard({
         subtitle={subtitle}
       />
 
-      <main className="ml-72">
+      {/* Main content — offset by sidebar width */}
+      <main className="ml-72 min-h-screen">
         {page === "overview" && (
           <OverviewPage
             dashboard={dashboard}
@@ -99,7 +98,7 @@ export function HospitalAdminDashboard({
           <AssistantsPage onRefreshGlobal={fetchDashboard} />
         )}
         {page === "hospital-profile" && <HospitalProfilePage />}
-        {page === "settings" && <SettingsPage />}
+        {page === "settings"         && <SettingsPage />}
       </main>
     </div>
   );

@@ -961,7 +961,7 @@ export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardP
             </div>
           )}
         </div>
-      </div>
+      </div>  
     </div>
   );
 }

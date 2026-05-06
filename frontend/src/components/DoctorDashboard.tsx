@@ -132,7 +132,7 @@ export function DoctorDashboard({
   onStartConsultation,
 }: DoctorDashboardProps) {
   // ── Tab state ─────────────────────────────────────────────
-  type Tab = "overview" | "patients" | "availability";
+  type Tab = "overview" | "patients" | "availability" | "appointments";
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
   // ── Data states ───────────────────────────────────────────
@@ -141,12 +141,12 @@ export function DoctorDashboard({
   const [patients,   setPatients]       = useState<Patient[]>([]);
 
   // ── Loading states ────────────────────────────────────────
-  const [loadingDoctor,    setLoadingDoctor]    = useState(false);
-  const [loadingAssistants,setLoadingAssistants]= useState(false);
-  const [loadingPatients,  setLoadingPatients]  = useState(false);
-  const [creatingAssistant,setCreatingAssistant]= useState(false);
-  const [savingAvailability,setSavingAvailability]=useState(false);
-  const [loadingAvailability,setLoadingAvailability]=useState(false);
+  const [loadingDoctor,       setLoadingDoctor]       = useState(false);
+  const [loadingAssistants,   setLoadingAssistants]   = useState(false);
+  const [loadingPatients,     setLoadingPatients]     = useState(false);
+  const [creatingAssistant,   setCreatingAssistant]   = useState(false);
+  const [savingAvailability,  setSavingAvailability]  = useState(false);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   // ── Search ────────────────────────────────────────────────
   const [patientSearch, setPatientSearch] = useState("");
@@ -161,10 +161,13 @@ export function DoctorDashboard({
   });
 
   // ── Availability state ────────────────────────────────────
-  // Index 0=Mon, 1=Tue, ..., 6=Sun
   const [availability, setAvailability] = useState<DayAvailability[]>(
     Array.from({ length: 7 }, () => ({ ...DEFAULT_DAY }))
   );
+
+  // ── Appointments state ────────────────────────────────────
+  const [approvedAppointments,  setApprovedAppointments]  = useState<any[]>([]);
+  const [loadingAppointments,   setLoadingAppointments]   = useState(false);
 
   const getToken = () => localStorage.getItem("accessToken");
 
@@ -187,6 +190,30 @@ export function DoctorDashboard({
     if (g === "m" || g === "male")   return "Male";
     if (g === "f" || g === "female") return "Female";
     return value;
+  };
+
+  const formatAppointmentDate = (v: string) => {
+    try {
+      return new Date(v).toLocaleDateString(undefined, {
+        weekday: "short",
+        year:    "numeric",
+        month:   "short",
+        day:     "numeric",
+      });
+    } catch {
+      return v;
+    }
+  };
+
+  const formatAppointmentTime = (t: string) => {
+    try {
+      const [h, m] = t.split(":").map(Number);
+      const period  = h >= 12 ? "PM" : "AM";
+      const hour    = h % 12 === 0 ? 12 : h % 12;
+      return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+    } catch {
+      return t;
+    }
   };
 
   const getStatusBadge = (status?: string | null) => {
@@ -274,7 +301,6 @@ export function DoctorDashboard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load availability");
 
-      // Map DB records back to local state
       const records = (data.availability || []) as AvailabilityRecord[];
       setAvailability((prev) =>
         prev.map((day, index) => {
@@ -297,11 +323,30 @@ export function DoctorDashboard({
     }
   };
 
+  const fetchApprovedAppointments = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      setLoadingAppointments(true);
+      const res = await fetch(`${API_URL}/api/appointments/doctor/approved`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load appointments");
+      setApprovedAppointments(data.data || []);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load appointments");
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
   useEffect(() => {
     fetchDoctorInfo();
     fetchAssistants();
     fetchPatients();
     fetchAvailability();
+    fetchApprovedAppointments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -352,7 +397,6 @@ export function DoctorDashboard({
     const token = getToken();
     if (!token) { toast.error("Not authenticated"); return; }
 
-    // Build payload — only enabled days
     const payload = availability
       .map((day, index) => ({
         day_of_week:           index,
@@ -363,12 +407,9 @@ export function DoctorDashboard({
       }))
       .filter((d) => d.enabled);
 
-    // Validate
     for (const day of payload) {
       if (day.start_time >= day.end_time) {
-        toast.error(
-          `${DAY_NAMES[day.day_of_week]}: Start time must be before end time`
-        );
+        toast.error(`${DAY_NAMES[day.day_of_week]}: Start time must be before end time`);
         return;
       }
     }
@@ -428,9 +469,10 @@ export function DoctorDashboard({
   // ─────────────────────────────────────────────────────────
 
   const tabs: { id: Tab; label: string; icon: typeof User }[] = [
-    { id: "overview",     label: "Overview",     icon: User        },
-    { id: "patients",     label: "Patients",     icon: Users       },
-    { id: "availability", label: "Availability", icon: CalendarDays},
+    { id: "overview",      label: "Overview",      icon: User         },
+    { id: "patients",      label: "Patients",      icon: Users        },
+    { id: "availability",  label: "Availability",  icon: CalendarDays },
+    { id: "appointments",  label: "Appointments",  icon: Calendar     },
   ];
 
   // ─────────────────────────────────────────────────────────
@@ -464,7 +506,7 @@ export function DoctorDashboard({
             </p>
 
             {/* Tab Bar */}
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-2 mt-6 flex-wrap">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -480,6 +522,15 @@ export function DoctorDashboard({
                   >
                     <Icon className="w-4 h-4" />
                     {tab.label}
+                    {tab.id === "appointments" && approvedAppointments.length > 0 && (
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        activeTab === tab.id
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-white/30 text-white"
+                      }`}>
+                        {approvedAppointments.length}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -530,8 +581,8 @@ export function DoctorDashboard({
                         key={item.label}
                         className="p-4 rounded-2xl border"
                         style={{
-                          background:   "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
-                          borderColor:  "#bfdbfe",
+                          background:  "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
+                          borderColor: "#bfdbfe",
                         }}
                       >
                         <p className="text-xs text-gray-500 mb-1">{item.label}</p>
@@ -570,18 +621,11 @@ export function DoctorDashboard({
                         </p>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={fetchAssistants}
-                      disabled={loadingAssistants}
-                      className="rounded-xl"
-                    >
+                    <Button variant="outline" size="sm" onClick={fetchAssistants} disabled={loadingAssistants} className="rounded-xl">
                       <RefreshCw className={`w-4 h-4 ${loadingAssistants ? "animate-spin" : ""}`} />
                     </Button>
                   </div>
 
-                  {/* Assistant list */}
                   {loadingAssistants ? (
                     <p className="text-center text-gray-400 py-4">Loading...</p>
                   ) : assistants.length === 0 ? (
@@ -604,74 +648,42 @@ export function DoctorDashboard({
                     </div>
                   )}
 
-                  {/* Create assistant form */}
                   <form onSubmit={handleCreateAssistant} className="space-y-4 border-t-2 border-purple-100 pt-6">
                     <h3 className="font-semibold text-gray-700">Add New Assistant</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Full Name *</Label>
-                        <Input
-                          placeholder="Full name"
-                          value={assistantForm.fullName}
+                        <Input placeholder="Full name" value={assistantForm.fullName}
                           onChange={(e) => setAssistantForm((p) => ({ ...p, fullName: e.target.value }))}
-                          required
-                          disabled={creatingAssistant}
-                          className="h-11 border-2"
-                        />
+                          required disabled={creatingAssistant} className="h-11 border-2" />
                       </div>
                       <div className="space-y-2">
                         <Label>Email *</Label>
-                        <Input
-                          type="email"
-                          placeholder="Email address"
-                          value={assistantForm.email}
+                        <Input type="email" placeholder="Email address" value={assistantForm.email}
                           onChange={(e) => setAssistantForm((p) => ({ ...p, email: e.target.value }))}
-                          required
-                          disabled={creatingAssistant}
-                          className="h-11 border-2"
-                        />
+                          required disabled={creatingAssistant} className="h-11 border-2" />
                       </div>
                       <div className="space-y-2">
                         <Label>Phone</Label>
-                        <Input
-                          placeholder="Phone number"
-                          value={assistantForm.phone}
+                        <Input placeholder="Phone number" value={assistantForm.phone}
                           onChange={(e) => setAssistantForm((p) => ({ ...p, phone: e.target.value }))}
-                          disabled={creatingAssistant}
-                          className="h-11 border-2"
-                        />
+                          disabled={creatingAssistant} className="h-11 border-2" />
                       </div>
                       <div className="space-y-2">
                         <Label>Password *</Label>
-                        <Input
-                          type="password"
-                          placeholder="Password"
-                          value={assistantForm.password}
+                        <Input type="password" placeholder="Password" value={assistantForm.password}
                           onChange={(e) => setAssistantForm((p) => ({ ...p, password: e.target.value }))}
-                          required
-                          disabled={creatingAssistant}
-                          className="h-11 border-2"
-                        />
+                          required disabled={creatingAssistant} className="h-11 border-2" />
                       </div>
                       <div className="space-y-2 col-span-2">
                         <Label>Confirm Password *</Label>
-                        <Input
-                          type="password"
-                          placeholder="Confirm password"
-                          value={assistantForm.confirmPassword}
+                        <Input type="password" placeholder="Confirm password" value={assistantForm.confirmPassword}
                           onChange={(e) => setAssistantForm((p) => ({ ...p, confirmPassword: e.target.value }))}
-                          required
-                          disabled={creatingAssistant}
-                          className="h-11 border-2"
-                        />
+                          required disabled={creatingAssistant} className="h-11 border-2" />
                       </div>
                     </div>
-                    <Button
-                      type="submit"
-                      disabled={creatingAssistant}
-                      className="h-11 px-8 text-white"
-                      style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}
-                    >
+                    <Button type="submit" disabled={creatingAssistant} className="h-11 px-8 text-white"
+                      style={{ background: "linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)" }}>
                       <UserPlus className="w-4 h-4 mr-2" />
                       {creatingAssistant ? "Creating..." : "Create Assistant"}
                     </Button>
@@ -680,10 +692,8 @@ export function DoctorDashboard({
               </div>
 
               {/* Consultation Workspace */}
-              <div
-                className="rounded-3xl p-8 shadow-2xl relative overflow-hidden"
-                style={{ background: "linear-gradient(135deg, #2563EB 0%, #8B5CF6 50%, #14B8A6 100%)" }}
-              >
+              <div className="rounded-3xl p-8 shadow-2xl relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #2563EB 0%, #8B5CF6 50%, #14B8A6 100%)" }}>
                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
                 <div className="relative">
@@ -694,23 +704,17 @@ export function DoctorDashboard({
                   <p className="text-white/80 mb-6">AI-powered clinical tools</p>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { page: "recording",   icon: Activity,  label: "Start Consultation", sub: "Begin recording",  grad: "#2563EB, #3B82F6" },
-                      { page: "extraction",  icon: FileText,  label: "Latest Extraction",  sub: "AI insights",     grad: "#14B8A6, #10B981" },
-                      { page: "notes",       icon: Edit,      label: "Edit Notes",         sub: "Documentation",   grad: "#6366F1, #8B5CF6" },
-                      { page: "history",     icon: History,   label: "History",            sub: "Past records",    grad: "#22C55E, #16A34A" },
+                      { page: "recording",  icon: Activity, label: "Start Consultation", sub: "Begin recording",  grad: "#2563EB, #3B82F6" },
+                      { page: "extraction", icon: FileText, label: "Latest Extraction",  sub: "AI insights",     grad: "#14B8A6, #10B981" },
+                      { page: "notes",      icon: Edit,     label: "Edit Notes",         sub: "Documentation",   grad: "#6366F1, #8B5CF6" },
+                      { page: "history",    icon: History,  label: "History",            sub: "Past records",    grad: "#22C55E, #16A34A" },
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
-                        <button
-                          key={item.page}
-                          type="button"
-                          onClick={() => onNavigate(item.page)}
-                          className="bg-white p-6 rounded-2xl hover:scale-105 transition-all shadow-lg"
-                        >
-                          <div
-                            className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md"
-                            style={{ background: `linear-gradient(135deg, ${item.grad})` }}
-                          >
+                        <button key={item.page} type="button" onClick={() => onNavigate(item.page)}
+                          className="bg-white p-6 rounded-2xl hover:scale-105 transition-all shadow-lg">
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md"
+                            style={{ background: `linear-gradient(135deg, ${item.grad})` }}>
                             <Icon className="w-6 h-6 text-white" />
                           </div>
                           <p className="font-semibold text-gray-800">{item.label}</p>
@@ -731,48 +735,32 @@ export function DoctorDashboard({
               <div className="relative">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-start gap-4">
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
-                      style={{ background: "linear-gradient(135deg, #22C55E 0%, #10B981 100%)" }}
-                    >
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                      style={{ background: "linear-gradient(135deg, #22C55E 0%, #10B981 100%)" }}>
                       <Users className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <h2
-                        className="text-xl font-semibold mb-1"
+                      <h2 className="text-xl font-semibold mb-1"
                         style={{
                           background: "linear-gradient(135deg, #22C55E 0%, #10B981 100%)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor:  "transparent",
-                        }}
-                      >
+                        }}>
                         Patients
                       </h2>
-                      <p className="text-sm text-gray-500">
-                        {patients.length} patients in your hospital
-                      </p>
+                      <p className="text-sm text-gray-500">{patients.length} patients in your hospital</p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchPatients}
-                    disabled={loadingPatients}
-                    className="rounded-xl"
-                  >
+                  <Button variant="outline" size="sm" onClick={fetchPatients} disabled={loadingPatients} className="rounded-xl">
                     <RefreshCw className={`w-4 h-4 ${loadingPatients ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
 
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    placeholder="Search by name, CNIC, or phone..."
-                    value={patientSearch}
-                    onChange={(e) => setPatientSearch(e.target.value)}
-                    className="pl-10 h-12 border-2"
-                    style={{ background: "linear-gradient(90deg, #fafafa 0%, #f0fdf4 100%)" }}
-                  />
+                  <Input placeholder="Search by name, CNIC, or phone..." value={patientSearch}
+                    onChange={(e) => setPatientSearch(e.target.value)} className="pl-10 h-12 border-2"
+                    style={{ background: "linear-gradient(90deg, #fafafa 0%, #f0fdf4 100%)" }} />
                 </div>
 
                 {loadingPatients ? (
@@ -784,44 +772,33 @@ export function DoctorDashboard({
                 ) : (
                   <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                     {visiblePatients.map((patient) => (
-                      <div
-                        key={patient.id}
-                        className="p-4 rounded-2xl border-2 border-gray-100 hover:border-green-200 transition-all"
-                        style={{ background: "linear-gradient(90deg, #fafafa 0%, #f0fdf4 100%)" }}
-                      >
+                      <div key={patient.id} className="p-4 rounded-2xl border-2 border-gray-100 hover:border-green-200 transition-all"
+                        style={{ background: "linear-gradient(90deg, #fafafa 0%, #f0fdf4 100%)" }}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <p className="font-semibold text-gray-800 mb-2">{patient.full_name}</p>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-500">CNIC:</span>
-                                <span className="font-medium">{patient.cnic}</span>
+                                <span className="font-medium text-gray-700">{patient.cnic}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-500">Phone:</span>
-                                <span className="font-medium">{patient.phone || "-"}</span>
+                                <span className="font-medium text-gray-700">{patient.phone || "-"}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-500">Gender:</span>
-                                <span className="font-medium">{formatGender(patient.gender)}</span>
+                                <span className="font-medium text-gray-700">{formatGender(patient.gender)}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-gray-500">DOB:</span>
-                                <span className="font-medium">{formatDate(patient.dob)}</span>
+                                <span className="font-medium text-gray-700">{formatDate(patient.dob)}</span>
                               </div>
                             </div>
                           </div>
-                          <Button
-                            type="button"
-                            className="h-9 px-4 rounded-xl text-white text-xs shrink-0"
+                          <Button type="button" className="h-9 px-4 rounded-xl text-white text-xs shrink-0"
                             style={{ background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)" }}
-                            onClick={() =>
-                              onStartConsultation({
-                                profile_id: patient.id,
-                                full_name:  patient.full_name,
-                              })
-                            }
-                          >
+                            onClick={() => onStartConsultation({ profile_id: patient.id, full_name: patient.full_name })}>
                             Start Consultation
                           </Button>
                         </div>
@@ -835,6 +812,110 @@ export function DoctorDashboard({
 
           {/* ── AVAILABILITY TAB ──────────────────────────── */}
           {activeTab === "availability" && (
+            <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full blur-3xl opacity-30 -mr-32 -mt-32" />
+              <div className="relative">
+                <div className="flex items-start justify-between gap-4 mb-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                      style={{ background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)" }}>
+                      <CalendarDays className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold mb-1"
+                        style={{
+                          background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor:  "transparent",
+                        }}>
+                        Weekly Availability
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        Set your working hours for each day. Patients will see available slots based on this.
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={fetchAvailability} disabled={loadingAvailability} className="rounded-xl shrink-0">
+                    <RefreshCw className={`w-4 h-4 ${loadingAvailability ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+
+                {loadingAvailability ? (
+                  <div className="text-center py-12 text-gray-400">Loading availability...</div>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      {DAY_NAMES.map((dayName, index) => {
+                        const day = availability[index];
+                        return (
+                          <div key={dayName} className={`p-5 rounded-2xl border-2 transition-all ${
+                            day.enabled ? "border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50" : "border-gray-100 bg-gray-50"
+                          }`}>
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <div className="flex items-center gap-3 w-36 shrink-0">
+                                <button type="button" onClick={() => updateDay(index, "enabled", !day.enabled)}
+                                  className={`relative w-12 h-6 rounded-full transition-colors ${day.enabled ? "bg-blue-600" : "bg-gray-300"}`}>
+                                  <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${day.enabled ? "translate-x-6" : "translate-x-0"}`} />
+                                </button>
+                                <span className={`font-semibold text-sm ${day.enabled ? "text-blue-700" : "text-gray-400"}`}>{dayName}</span>
+                              </div>
+
+                              {day.enabled && (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-500 whitespace-nowrap">From</label>
+                                    <input type="time" value={day.start_time}
+                                      onChange={(e) => updateDay(index, "start_time", e.target.value)}
+                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-500 whitespace-nowrap">To</label>
+                                    <input type="time" value={day.end_time}
+                                      onChange={(e) => updateDay(index, "end_time", e.target.value)}
+                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white" />
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <label className="text-xs text-gray-500 whitespace-nowrap">Slot</label>
+                                    <select value={day.slot_duration_minutes}
+                                      onChange={(e) => updateDay(index, "slot_duration_minutes", Number(e.target.value))}
+                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                                      {[10, 15, 20, 30, 45, 60].map((m) => (
+                                        <option key={m} value={m}>{m} min</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {day.start_time && day.end_time && day.start_time < day.end_time && (
+                                    <div className="ml-auto">
+                                      <span className="text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                                        {Math.floor((timeToMinutes(day.end_time) - timeToMinutes(day.start_time)) / day.slot_duration_minutes)} slots
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                              {!day.enabled && <span className="text-xs text-gray-400 ml-2">Not available</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-8 flex justify-end">
+                      <Button onClick={handleSaveAvailability} disabled={savingAvailability}
+                        className="h-12 px-10 text-white rounded-xl"
+                        style={{ background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)" }}>
+                        <Save className="w-4 h-4 mr-2" />
+                        {savingAvailability ? "Saving..." : "Save Availability"}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── APPOINTMENTS TAB ──────────────────────────── */}
+          {activeTab === "appointments" && (
             <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full blur-3xl opacity-30 -mr-32 -mt-32" />
               <div className="relative">
@@ -853,166 +934,119 @@ export function DoctorDashboard({
                         style={{
                           background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)",
                           WebkitBackgroundClip: "text",
-                          WebkitTextFillColor:  "transparent",
+                          WebkitTextFillColor: "transparent",
                         }}
                       >
-                        Weekly Availability
+                        Approved Appointments
                       </h2>
                       <p className="text-sm text-gray-500">
-                        Set your working hours for each day of the week.
-                        Patients will see available slots based on this schedule.
+                        {approvedAppointments.length} appointment{approvedAppointments.length !== 1 ? "s" : ""} approved and waiting
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchAvailability}
-                    disabled={loadingAvailability}
-                    className="rounded-xl shrink-0"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${loadingAvailability ? "animate-spin" : ""}`} />
+                  <Button variant="outline" size="sm" onClick={fetchApprovedAppointments}
+                    disabled={loadingAppointments} className="rounded-xl shrink-0">
+                    <RefreshCw className={`w-4 h-4 ${loadingAppointments ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
 
-                {loadingAvailability ? (
-                  <div className="text-center py-12 text-gray-400">Loading availability...</div>
+                {/* Content */}
+                {loadingAppointments ? (
+                  <div className="text-center py-12 text-gray-400">Loading appointments...</div>
+                ) : approvedAppointments.length === 0 ? (
+                  <div className="text-center py-16">
+                    <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                    <p className="text-gray-500 font-medium">No approved appointments</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Appointments will appear here after your assistant approves them.
+                    </p>
+                  </div>
                 ) : (
-                  <>
-                    {/* Day rows */}
-                    <div className="space-y-3">
-                      {DAY_NAMES.map((dayName, index) => {
-                        const day = availability[index];
-                        return (
-                          <div
-                            key={dayName}
-                            className={`p-5 rounded-2xl border-2 transition-all ${
-                              day.enabled
-                                ? "border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50"
-                                : "border-gray-100 bg-gray-50"
-                            }`}
-                          >
-                            <div className="flex items-center gap-4 flex-wrap">
-                              {/* Toggle */}
-                              <div className="flex items-center gap-3 w-36 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => updateDay(index, "enabled", !day.enabled)}
-                                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                                    day.enabled ? "bg-blue-600" : "bg-gray-300"
-                                  }`}
-                                >
-                                  <span
-                                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                                      day.enabled ? "translate-x-6" : "translate-x-0"
-                                    }`}
-                                  />
-                                </button>
-                                <span
-                                  className={`font-semibold text-sm ${
-                                    day.enabled ? "text-blue-700" : "text-gray-400"
-                                  }`}
-                                >
-                                  {dayName}
+                  <div className="space-y-4">
+                    {approvedAppointments.map((appt: any) => {
+                      const patientProfiles = appt.patient_profiles || {};
+                      const patientInfo     = patientProfiles.profiles || {};
+                      const hospitalInfo    = appt.hospitals || {};
+
+                      return (
+                        <div key={appt.id}
+                          className="p-5 rounded-2xl border-2 border-blue-100 hover:border-blue-200 transition-all"
+                          style={{ background: "linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%)" }}>
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                            {/* Patient info */}
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-white"
+                                style={{ background: "linear-gradient(135deg, #2563EB, #14B8A6)" }}>
+                                {patientInfo.full_name?.charAt(0)?.toUpperCase() || "P"}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-sm truncate">
+                                  {patientInfo.full_name || "Unknown Patient"}
+                                </p>
+                                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                  {patientInfo.phone && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">📞 {patientInfo.phone}</span>
+                                  )}
+                                  {patientInfo.gender && (
+                                    <span className="text-xs text-gray-500 capitalize">{patientInfo.gender}</span>
+                                  )}
+                                  {patientProfiles.cnic && (
+                                    <span className="text-xs text-gray-400 font-mono">CNIC: {patientProfiles.cnic}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Details */}
+                            <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
+                              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-blue-100">
+                                <CalendarDays className="w-4 h-4 text-blue-600" />
+                                <span className="text-xs font-semibold text-gray-700">
+                                  {formatAppointmentDate(appt.appointment_date)}
                                 </span>
                               </div>
-
-                              {day.enabled && (
-                                <>
-                                  {/* Start time */}
-                                  <div className="flex items-center gap-2">
-                                    <label className="text-xs text-gray-500 whitespace-nowrap">
-                                      From
-                                    </label>
-                                    <input
-                                      type="time"
-                                      value={day.start_time}
-                                      onChange={(e) =>
-                                        updateDay(index, "start_time", e.target.value)
-                                      }
-                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white"
-                                    />
-                                  </div>
-
-                                  {/* End time */}
-                                  <div className="flex items-center gap-2">
-                                    <label className="text-xs text-gray-500 whitespace-nowrap">
-                                      To
-                                    </label>
-                                    <input
-                                      type="time"
-                                      value={day.end_time}
-                                      onChange={(e) =>
-                                        updateDay(index, "end_time", e.target.value)
-                                      }
-                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white"
-                                    />
-                                  </div>
-
-                                  {/* Slot duration */}
-                                  <div className="flex items-center gap-2">
-                                    <label className="text-xs text-gray-500 whitespace-nowrap">
-                                      Slot
-                                    </label>
-                                    <select
-                                      value={day.slot_duration_minutes}
-                                      onChange={(e) =>
-                                        updateDay(
-                                          index,
-                                          "slot_duration_minutes",
-                                          Number(e.target.value)
-                                        )
-                                      }
-                                      className="h-9 px-3 rounded-xl border-2 border-blue-200 text-sm focus:outline-none focus:border-blue-400 bg-white"
-                                    >
-                                      {[10, 15, 20, 30, 45, 60].map((m) => (
-                                        <option key={m} value={m}>
-                                          {m} min
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-
-                                  {/* Preview slot count */}
-                                  {day.start_time && day.end_time && day.start_time < day.end_time && (
-                                    <div className="ml-auto">
-                                      <span className="text-xs font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
-                                        {Math.floor(
-                                          (timeToMinutes(day.end_time) -
-                                            timeToMinutes(day.start_time)) /
-                                            day.slot_duration_minutes
-                                        )}{" "}
-                                        slots
-                                      </span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-
-                              {!day.enabled && (
-                                <span className="text-xs text-gray-400 ml-2">
-                                  Not available
+                              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-blue-100">
+                                <Clock className="w-4 h-4 text-blue-600" />
+                                <span className="text-xs font-semibold text-gray-700">
+                                  {formatAppointmentTime(appt.appointment_time)}
                                 </span>
-                              )}
+                              </div>
+                              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-blue-100">
+                                <Building2 className="w-4 h-4 text-teal-600" />
+                                <span className="text-xs font-semibold text-gray-700 truncate max-w-[150px]">
+                                  {hospitalInfo.name || "—"}
+                                </span>
+                              </div>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Approved
+                              </span>
+                              <button type="button"
+                                className="px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm"
+                                style={{ background: "linear-gradient(135deg, #2563EB, #14B8A6)" }}
+                                onClick={() => onStartConsultation({
+                                  profile_id: patientProfiles.profile_id,
+                                  full_name:  patientInfo.full_name || "Unknown",
+                                })}>
+                                Start Consultation
+                              </button>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
 
-                    {/* Save Button */}
-                    <div className="mt-8 flex justify-end">
-                      <Button
-                        onClick={handleSaveAvailability}
-                        disabled={savingAvailability}
-                        className="h-12 px-10 text-white rounded-xl"
-                        style={{ background: "linear-gradient(135deg, #2563EB 0%, #14B8A6 100%)" }}
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        {savingAvailability ? "Saving..." : "Save Availability"}
-                      </Button>
-                    </div>
-                  </>
+                          {appt.notes && (
+                            <div className="mt-3 px-4 py-2 rounded-xl bg-white border border-gray-100 text-xs text-gray-500">
+                              <span className="font-medium text-gray-600">Notes: </span>{appt.notes}
+                            </div>
+                          )}
+                          {patientProfiles.medical_history && (
+                            <div className="mt-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-100 text-xs text-amber-700">
+                              <span className="font-medium">Medical History: </span>{patientProfiles.medical_history}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>
@@ -1024,7 +1058,7 @@ export function DoctorDashboard({
 }
 
 // ─────────────────────────────────────────────────────────────
-// HELPER — outside component to avoid re-creation
+// HELPER
 // ─────────────────────────────────────────────────────────────
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
