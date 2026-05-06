@@ -1,9 +1,7 @@
-// SuperAdminDashboard.tsx
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { EnhancedSidebar } from "./layout/EnhancedSidebar";
 import { DashboardOverviewPage } from "../pages/SuperAdmin/DashboardOverviewPage";
-import { HospitalRegistrationPage } from "./HospitalRegistrationPage";
+import { HospitalRegistrationPage } from "../pages/HospitalAdmin/HospitalRegistrationPage";
 import { HospitalDetailPage } from "../pages/SuperAdmin/HospitalDetailPage";
 import { HospitalsManagementPage } from "../pages/SuperAdmin/HospitalsManagementPage";
 import { AdminsManagementPage } from "../pages/SuperAdmin/AdminsManagementPage";
@@ -19,9 +17,7 @@ export function SuperAdminDashboard({
   onLogout,
 }: SuperAdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(
-    null,
-  );
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
@@ -82,7 +78,7 @@ export function SuperAdminDashboard({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="page-root">
       <EnhancedSidebar
         currentPage={currentPage}
         onNavigate={handleNavigate}
@@ -91,7 +87,9 @@ export function SuperAdminDashboard({
         userName="Super Admin"
         userSubtitle="System Administrator"
       />
-      <div className="flex-1 ml-64">{renderPage()}</div>
+      <div className="page-main">
+        {renderPage()}
+      </div>
     </div>
   );
 }

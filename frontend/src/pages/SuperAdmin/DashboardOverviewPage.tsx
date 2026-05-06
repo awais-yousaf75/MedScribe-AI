@@ -1,16 +1,13 @@
-// pages/DashboardOverviewPage.tsx
 import React, { useState, useEffect } from "react";
 import {
   Shield,
   Building2,
   Users,
   Clock,
-  TrendingUp,
   Activity,
   LoaderCircle,
-  Sparkles,
+  CheckCircle,
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
 import { toast } from "sonner";
 
 type SystemStats = {
@@ -26,9 +23,7 @@ interface DashboardOverviewPageProps {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function DashboardOverviewPage({
-  onNavigate,
-}: DashboardOverviewPageProps) {
+export function DashboardOverviewPage({ onNavigate }: DashboardOverviewPageProps) {
   const [stats, setStats] = useState<SystemStats>({
     totalAdmins: 0,
     totalHospitals: 0,
@@ -39,41 +34,38 @@ export function DashboardOverviewPage({
 
   const getToken = () => localStorage.getItem("accessToken");
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useEffect(() => { fetchStats(); }, []);
 
   const fetchStats = async () => {
     const token = getToken();
     if (!token) return;
-
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/superadmin/stats`, {
+      const res  = await fetch(`${API_URL}/api/superadmin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load stats");
       setStats({
-        totalAdmins: data.totalAdmins || 0,
-        totalHospitals: data.totalHospitals || 0,
-        totalUsers: data.totalUsers || 0,
+        totalAdmins:      data.totalAdmins      || 0,
+        totalHospitals:   data.totalHospitals   || 0,
+        totalUsers:       data.totalUsers       || 0,
         pendingApprovals: data.pendingApprovals || 0,
       });
     } catch (err: any) {
-      console.error(err);
       toast.error(err.message || "Failed to load stats");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50/30 flex items-center justify-center">
-        <div className="text-center">
-          <LoaderCircle className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Loading dashboard...</p>
+      <div className="page-main">
+        <div className="do-loading-screen">
+          <LoaderCircle size={36} className="animate-spin do-loading-icon" />
+          <p className="do-loading-text">Loading dashboard…</p>
         </div>
       </div>
     );
@@ -81,141 +73,113 @@ export function DashboardOverviewPage({
 
   const statCards = [
     {
-      label: "Total Hospital Admins",
-      value: stats.totalAdmins,
-      icon: Shield,
-      gradient: "from-purple-500 to-purple-600",
-      bgGradient: "from-purple-50 to-purple-100",
-      textColor: "text-purple-700",
+      label:  "Hospital Admins",
+      value:  stats.totalAdmins,
+      icon:   Shield,
       action: () => onNavigate("admins-management"),
     },
     {
-      label: "Total Hospitals",
-      value: stats.totalHospitals,
-      icon: Building2,
-      gradient: "from-blue-500 to-blue-600",
-      bgGradient: "from-blue-50 to-blue-100",
-      textColor: "text-blue-700",
+      label:  "Total Hospitals",
+      value:  stats.totalHospitals,
+      icon:   Building2,
       action: () => onNavigate("hospitals-management"),
     },
     {
-      label: "System Users",
-      value: stats.totalUsers,
-      icon: Users,
-      gradient: "from-teal-500 to-teal-600",
-      bgGradient: "from-teal-50 to-teal-100",
-      textColor: "text-teal-700",
+      label:  "System Users",
+      value:  stats.totalUsers,
+      icon:   Users,
       action: () => onNavigate("users-management"),
     },
     {
-      label: "Pending Approvals",
-      value: stats.pendingApprovals,
-      icon: Clock,
-      gradient: "from-orange-500 to-orange-600",
-      bgGradient: "from-orange-50 to-orange-100",
-      textColor: "text-orange-700",
+      label:  "Pending Approvals",
+      value:  stats.pendingApprovals,
+      icon:   Clock,
       action: () => onNavigate("pending-approvals"),
     },
   ];
 
+  const quickActions = [
+    { label: "Manage Admins",     description: "View all hospital admins",  icon: Shield,    action: () => onNavigate("admins-management")    },
+    { label: "Manage Hospitals",  description: "View all hospitals",         icon: Building2, action: () => onNavigate("hospitals-management") },
+    { label: "Manage Users",      description: "View all system users",      icon: Users,     action: () => onNavigate("users-management")     },
+    { label: "Pending Approvals", description: "Review items pending review",icon: Clock,     action: () => onNavigate("pending-approvals")    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50/30">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 p-8 shadow-lg">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-center gap-4 mb-2">
-            <Activity className="w-8 h-8 text-white" />
-            <h1 className="text-3xl text-white font-bold">
-              Dashboard Overview
-            </h1>
+    <div className="page-main">
+
+      {/* ── HEADER ── */}
+      <div className="page-header">
+        <div className="page-header-top">
+          <div className="page-header-left">
+            <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+              <Activity size={18} color="#fff" />
+            </div>
+            <div>
+              <div className="page-header-title">Dashboard Overview</div>
+              <div className="page-header-sub">
+                Real-time system statistics and key metrics
+              </div>
+            </div>
           </div>
-          <p className="text-white/90 text-lg">
-            Real-time system statistics and key metrics
-          </p>
         </div>
       </div>
 
-      <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* ── CONTENT ── */}
+      <div className="page-content">
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((card, idx) => {
+        <div className="stat-grid">
+          {statCards.map((card) => {
             const Icon = card.icon;
             return (
               <button
-                key={idx}
+                key={card.label}
+                type="button"
                 onClick={card.action}
-                className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-6 shadow-lg text-white relative overflow-hidden group cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl`}
+                className="stat-card do-stat-btn"
               >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-12 -mt-12" />
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-4">
-                    <Icon className="w-10 h-10 opacity-80" />
-                    <TrendingUp className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity" />
+                <div className="do-stat-top">
+                  <div className="icon-wrap icon-wrap-sm icon-wrap-muted">
+                    <Icon size={16} color="var(--ms-teal)" />
                   </div>
-                  <p className="text-4xl font-bold mb-2">{card.value}</p>
-                  <p className="text-sm text-white/90">{card.label}</p>
                 </div>
+                <div className="stat-value">{card.value}</div>
+                <div className="stat-label">{card.label}</div>
               </button>
             );
           })}
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-purple-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <Sparkles className="w-6 h-6 text-purple-600" />
-            Quick Actions
-          </h2>
+        <div className="card">
+          <div className="card-header">
+            <div className="card-header-left">
+              <div className="icon-wrap icon-wrap-md icon-wrap-navy">
+                <Activity size={18} color="var(--ms-teal)" />
+              </div>
+              <div>
+                <div className="card-title">Quick Actions</div>
+                <div className="card-subtitle">Navigate to key sections</div>
+              </div>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                label: "View All Admins",
-                description: "Manage hospital admins",
-                action: () => onNavigate("admins-management"),
-                icon: Shield,
-                color: "purple",
-              },
-              {
-                label: "View All Hospitals",
-                description: "Manage all hospitals",
-                action: () => onNavigate("hospitals-management"),
-                icon: Building2,
-                color: "blue",
-              },
-              {
-                label: "View All Users",
-                description: "Manage system users",
-                action: () => onNavigate("users-management"),
-                icon: Users,
-                color: "teal",
-              },
-              {
-                label: "Pending Approvals",
-                description: "Review pending items",
-                action: () => onNavigate("pending-approvals"),
-                icon: Clock,
-                color: "orange",
-              },
-            ].map((action, idx) => {
-              const colorMap: Record<string, string> = {
-                purple:
-                  "from-purple-50 to-purple-100 text-purple-600 border-purple-200",
-                blue: "from-blue-50 to-blue-100 text-blue-600 border-blue-200",
-                teal: "from-teal-50 to-teal-100 text-teal-600 border-teal-200",
-                orange:
-                  "from-orange-50 to-orange-100 text-orange-600 border-orange-200",
-              };
+          <div className="do-qa-grid">
+            {quickActions.map((action) => {
               const Icon = action.icon;
               return (
                 <button
-                  key={idx}
+                  key={action.label}
+                  type="button"
                   onClick={action.action}
-                  className={`bg-gradient-to-br ${colorMap[action.color]} border-2 rounded-2xl p-4 text-left transition-all hover:shadow-lg hover:scale-102 group`}
+                  className="do-qa-btn"
                 >
-                  <Icon className="w-6 h-6 mb-3 group-hover:scale-110 transition-transform" />
-                  <p className="font-semibold text-sm mb-1">{action.label}</p>
-                  <p className="text-xs opacity-70">{action.description}</p>
+                  <div className="icon-wrap icon-wrap-sm icon-wrap-muted do-qa-icon">
+                    <Icon size={15} color="var(--ms-teal)" />
+                  </div>
+                  <div className="do-qa-label">{action.label}</div>
+                  <div className="do-qa-sub">{action.description}</div>
                 </button>
               );
             })}
@@ -223,28 +187,32 @@ export function DashboardOverviewPage({
         </div>
 
         {/* System Health */}
-        <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-3xl p-8 border-2 border-green-200 shadow-xl">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
-              <Activity className="w-8 h-8 text-white" />
+        <div className="card do-health-card">
+          <div className="do-health-inner">
+            <div className="icon-wrap icon-wrap-lg icon-wrap-teal">
+              <CheckCircle size={24} color="#fff" />
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-green-900 mb-2">
-                System Healthy
-              </h3>
-              <p className="text-green-700 mb-3">
-                All systems operational. {stats.pendingApprovals} items pending
-                review.
-              </p>
-              <Button
-                onClick={() => onNavigate("pending-approvals")}
-                className="rounded-xl bg-gradient-to-r from-green-600 to-teal-600 hover:shadow-lg text-white border-0"
-              >
-                Review Pending Items →
-              </Button>
+            <div className="do-health-content">
+              <div className="do-health-title">System Operational</div>
+              <div className="do-health-sub">
+                All services running normally.{" "}
+                {stats.pendingApprovals > 0
+                  ? `${stats.pendingApprovals} item${stats.pendingApprovals !== 1 ? "s" : ""} pending review.`
+                  : "No pending items."}
+              </div>
+              {stats.pendingApprovals > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm do-health-btn"
+                  onClick={() => onNavigate("pending-approvals")}
+                >
+                  Review Pending Items
+                </button>
+              )}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

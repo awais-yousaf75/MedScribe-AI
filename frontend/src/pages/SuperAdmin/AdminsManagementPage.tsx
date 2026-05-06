@@ -1,4 +1,3 @@
-// src/pages/SuperAdmin/AdminsManagementPage.tsx
 import React, { useState, useEffect } from "react";
 import {
   Shield,
@@ -12,8 +11,6 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
 
 interface AdminsManagementPageProps {
@@ -27,20 +24,19 @@ type HospitalAdmin = {
   phone?: string | null;
   approval_status: "pending" | "approved" | "rejected";
   created_at?: string | null;
-  hospital_name?: string | null; // from /api/superadmin/users
+  hospital_name?: string | null;
 };
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export function AdminsManagementPage({
-  onNavigate: _onNavigate, // avoid unused prop warning
+  onNavigate: _onNavigate,
 }: AdminsManagementPageProps) {
-  const [admins, setAdmins] = useState<HospitalAdmin[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const [searchAdmins, setSearchAdmins] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [admins,      setAdmins]      = useState<HospitalAdmin[]>([]);
+  const [loading,     setLoading]     = useState(false);
+  const [deletingId,  setDeletingId]  = useState<string | null>(null);
+  const [searchAdmins,  setSearchAdmins]  = useState("");
+  const [statusFilter,  setStatusFilter]  = useState("all");
 
   const getToken = () => localStorage.getItem("accessToken");
 
@@ -52,22 +48,15 @@ export function AdminsManagementPage({
   const fetchAdmins = async () => {
     const token = getToken();
     if (!token) return;
-
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/superadmin/users`, {
+      const res  = await fetch(`${API_URL}/api/superadmin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load users");
-
-      const hospitalAdmins = (data.users || []).filter(
-        (u: any) => u.role === "hospital_admin",
-      );
-
-      setAdmins(hospitalAdmins);
+      setAdmins((data.users || []).filter((u: any) => u.role === "hospital_admin"));
     } catch (err: any) {
-      console.error(err);
       toast.error(err.message || "Failed to load admins");
     } finally {
       setLoading(false);
@@ -77,34 +66,22 @@ export function AdminsManagementPage({
   const handleEditAdminEmail = async (admin: HospitalAdmin) => {
     const token = getToken();
     if (!token) return;
-
-    const current = admin.email || "";
-    const next = window.prompt("Enter new email for this admin:", current);
+    const next = window.prompt("Enter new email for this admin:", admin.email || "");
     if (!next) return;
-
     try {
       const res = await fetch(
         `${API_URL}/api/superadmin/hospital-admins/${admin.id}/email`,
         {
           method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ email: next }),
         },
       );
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error);
-
       toast.success("Admin email updated");
-
-      setAdmins((prev) =>
-        prev.map((a) => (a.id === admin.id ? { ...a, email: next } : a)),
-      );
+      setAdmins((prev) => prev.map((a) => (a.id === admin.id ? { ...a, email: next } : a)));
     } catch (err: any) {
-      console.error(err);
       toast.error(err.message || "Failed to update email");
     }
   };
@@ -112,27 +89,21 @@ export function AdminsManagementPage({
   const handleDeleteAdmin = async (admin: HospitalAdmin) => {
     const token = getToken();
     if (!token) return;
-
     const ok = window.confirm(
       `Delete hospital admin "${admin.full_name}"?\n\nThis will permanently delete the user and related data.`,
     );
     if (!ok) return;
-
     try {
       setDeletingId(admin.id);
-
       const res = await fetch(`${API_URL}/api/superadmin/users/${admin.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error);
-
       toast.success("Hospital admin deleted");
       setAdmins((prev) => prev.filter((a) => a.id !== admin.id));
     } catch (err: any) {
-      console.error(err);
       toast.error(err.message || "Failed to delete admin");
     } finally {
       setDeletingId(null);
@@ -140,214 +111,179 @@ export function AdminsManagementPage({
   };
 
   const getStatusBadge = (status?: string | null) => {
-    if (!status) return <span className="text-xs text-gray-400">-</span>;
-
-    const styles: Record<string, string> = {
-      approved:
-        "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
-      pending:
-        "bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 border-yellow-200",
-      rejected:
-        "bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-200",
+    if (!status) return <span className="list-item-sub">—</span>;
+    const map: Record<string, { cls: string; icon: typeof CheckCircle }> = {
+      approved: { cls: "badge badge-success", icon: CheckCircle },
+      pending:  { cls: "badge badge-warning", icon: Clock       },
+      rejected: { cls: "badge badge-error",   icon: XCircle     },
     };
-
-    const icons: Record<string, any> = {
-      approved: CheckCircle,
-      pending: Clock,
-      rejected: XCircle,
-    };
-
-    const Icon = icons[status] || Clock;
-    const style = styles[status] || styles.pending;
-
+    const { cls, icon: Icon } = map[status] || map.pending;
     return (
-      <span
-        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border shadow-sm ${style}`}
-      >
-        <Icon className="w-3 h-3" />
+      <span className={cls}>
+        <Icon size={11} />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
-  const filteredAdmins = admins.filter((admin) => {
-    const matchesSearch =
-      (admin.full_name || "").toLowerCase().includes(searchAdmins.toLowerCase()) ||
-      (admin.email || "").toLowerCase().includes(searchAdmins.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" || admin.approval_status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
   const formatDate = (value?: string | null) => {
-    if (!value) return "-";
+    if (!value) return "—";
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "-";
+    if (Number.isNaN(d.getTime())) return "—";
     return d.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+      year: "numeric", month: "short", day: "numeric",
     });
   };
 
+  const filteredAdmins = admins.filter((admin) => {
+    const matchesSearch =
+      (admin.full_name || "").toLowerCase().includes(searchAdmins.toLowerCase()) ||
+      (admin.email    || "").toLowerCase().includes(searchAdmins.toLowerCase());
+    const matchesStatus = statusFilter === "all" || admin.approval_status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50/30">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 p-8 shadow-lg">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-8 h-8 text-white" />
-            <h1 className="text-3xl text-white font-bold">
-              Hospital Admins Management
-            </h1>
+    <div className="page-main">
+
+      {/* ── HEADER ── */}
+      <div className="page-header">
+        <div className="page-header-top">
+          <div className="page-header-left">
+            <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+              <Shield size={18} color="#fff" />
+            </div>
+            <div>
+              <div className="page-header-title">Hospital Admins</div>
+              <div className="page-header-sub">
+                Manage all hospital administrators in the system
+              </div>
+            </div>
           </div>
-          <p className="text-white/90 text-lg">
-            Manage all hospital administrators in the system
-          </p>
+
+          <div className="page-header-actions">
+            <button
+              type="button"
+              className="btn btn-icon btn-icon-lg"
+              onClick={fetchAdmins}
+              disabled={loading}
+              title="Refresh"
+            >
+              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* ── CONTENT ── */}
+      <div className="page-content">
+
         {/* Filters */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-purple-100">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-3">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-11 px-4 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium focus:border-purple-400 focus:outline-none"
-              >
-                <option value="all">All Status</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-              </select>
-
-              <div className="relative w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search admins..."
-                  value={searchAdmins}
-                  onChange={(e) => setSearchAdmins(e.target.value)}
-                  className="pl-10 h-11 bg-gray-50 border-2 focus:border-purple-400 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchAdmins}
-              disabled={loading}
-              className="rounded-xl"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+        <div className="card card-sm">
+          <div className="am-filter-row">
+            <div className="search-wrap am-search">
+              <Search className="search-icon" />
+              <input
+                className="search-input"
+                placeholder="Search by name or email…"
+                value={searchAdmins}
+                onChange={(e) => setSearchAdmins(e.target.value)}
               />
-            </Button>
+            </div>
+            <select
+              className="field-select am-status-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
           </div>
         </div>
 
-        {/* Admins List */}
+        {/* List */}
         {loading ? (
-          <div className="bg-white rounded-3xl p-12 shadow-xl text-center">
-            <p className="text-gray-500">Loading admins...</p>
-          </div>
+          <div className="loading-text">Loading admins…</div>
         ) : filteredAdmins.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 shadow-xl text-center">
-            <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-semibold">No admins found</p>
+          <div className="empty-state">
+            <Shield size={40} className="empty-icon" />
+            <div className="empty-title">No admins found</div>
+            <div className="empty-sub">
+              Try adjusting your search or status filter.
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="am-grid">
             {filteredAdmins.map((admin) => (
-              <div
-                key={admin.id}
-                className="bg-white rounded-2xl p-6 shadow-lg border-2 border-purple-100 hover:border-purple-300 hover:shadow-xl transition-all"
-              >
-                {/* Avatar */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-                    <Shield className="w-7 h-7" />
+              <div key={admin.id} className="am-card ms-card-hover">
+
+                {/* Card Top */}
+                <div className="am-card-top">
+                  <div className="icon-wrap icon-wrap-md icon-wrap-navy">
+                    <Shield size={18} color="var(--ms-teal)" />
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-gray-800 truncate">
-                      {admin.full_name}
-                    </h3>
+                  <div className="am-card-identity">
+                    <div className="am-card-name">{admin.full_name}</div>
                     {getStatusBadge(admin.approval_status)}
                   </div>
                 </div>
 
-                {/* Contact Info */}
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="flex items-center gap-2 min-w-0">
-                      <Mail className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span className="truncate">
-                        {admin.email || "No email"}
-                      </span>
-                    </p>
-
-                    <div className="flex items-center gap-1">
-                      {/* Edit Email */}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="rounded-xl hover:bg-purple-50"
-                        onClick={() => handleEditAdminEmail(admin)}
-                        title="Edit email"
-                        disabled={deletingId === admin.id}
-                      >
-                        <Pencil className="w-4 h-4 text-purple-700" />
-                      </Button>
-
-                      {/* Delete Admin */}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="rounded-xl hover:bg-red-50"
-                        onClick={() => handleDeleteAdmin(admin)}
-                        title="Delete admin"
-                        disabled={deletingId === admin.id}
-                      >
-                        {deletingId === admin.id ? (
-                          <RefreshCw className="w-4 h-4 text-red-600 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        )}
-                      </Button>
-                    </div>
+                {/* Email Row */}
+                <div className="am-contact-row">
+                  <div className="am-contact-item">
+                    <Mail size={14} color="var(--ms-teal)" />
+                    <span className="am-contact-text">
+                      {admin.email || "No email"}
+                    </span>
                   </div>
-
-                  {admin.phone && (
-                    <p className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-purple-600" />
-                      {admin.phone}
-                    </p>
-                  )}
+                  <div className="am-action-row">
+                    <button
+                      type="button"
+                      className="btn btn-icon"
+                      onClick={() => handleEditAdminEmail(admin)}
+                      disabled={deletingId === admin.id}
+                      title="Edit email"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-icon am-delete-btn"
+                      onClick={() => handleDeleteAdmin(admin)}
+                      disabled={deletingId === admin.id}
+                      title="Delete admin"
+                    >
+                      {deletingId === admin.id
+                        ? <RefreshCw size={14} className="animate-spin" />
+                        : <Trash2 size={14} />
+                      }
+                    </button>
+                  </div>
                 </div>
 
-                {/* Hospital Info */}
-                {admin.hospital_name && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 mb-1">
-                      Assigned Hospital
-                    </p>
-                    <p className="font-semibold text-gray-800">
-                      {admin.hospital_name}
-                    </p>
+                {/* Phone */}
+                {admin.phone && (
+                  <div className="am-contact-item" style={{ marginTop: 8 }}>
+                    <Phone size={14} color="var(--ms-teal)" />
+                    <span className="am-contact-text">{admin.phone}</span>
                   </div>
                 )}
 
-                {/* Created Date */}
-                <div className="pt-4 mt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">Created</p>
-                  <p className="text-sm text-gray-700">
-                    {formatDate(admin.created_at)}
-                  </p>
-                </div>
+                {/* Hospital */}
+                {admin.hospital_name && (
+                  <>
+                    <hr className="divider divider-sm" />
+                    <div className="info-label">Assigned Hospital</div>
+                    <div className="info-value">{admin.hospital_name}</div>
+                  </>
+                )}
+
+                {/* Date */}
+                <hr className="divider divider-sm" />
+                <div className="info-label">Created</div>
+                <div className="am-date">{formatDate(admin.created_at)}</div>
               </div>
             ))}
           </div>

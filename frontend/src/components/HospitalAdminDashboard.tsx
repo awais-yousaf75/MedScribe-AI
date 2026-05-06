@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import HospitalAdminSidebar from "./layout/HospitalAdminSidebar";
-import OverviewPage        from "../pages/HospitalAdmin/OverviewPage";
-import HospitalProfilePage from "../pages/HospitalAdmin/HospitalProfilePage";
-import SettingsPage        from "../pages/HospitalAdmin/SettingsPage";
-import AssistantsPage      from "../pages/HospitalAdmin/AssistantsPage";
-import DoctorsPage         from "../pages/HospitalAdmin/DoctorsPage";
-import { toast }           from "sonner";
+import OverviewPage         from "../pages/HospitalAdmin/OverviewPage";
+import HospitalProfilePage  from "../pages/HospitalAdmin/HospitalProfilePage";
+import SettingsPage         from "../pages/HospitalAdmin/SettingsPage";
+import AssistantsPage       from "../pages/HospitalAdmin/AssistantsPage";
+import DoctorsPage          from "../pages/HospitalAdmin/DoctorsPage";
+import { toast }            from "sonner";
 
 interface HospitalAdminDashboardProps {
   onNavigate: (page: string) => void;
@@ -40,8 +40,8 @@ type AdminPage =
   | "settings";
 
 export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps) {
-  const [page,      setPage]      = useState<AdminPage>("overview");
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [page,        setPage]        = useState<AdminPage>("overview");
+  const [dashboard,   setDashboard]   = useState<DashboardData | null>(null);
   const [loadingDash, setLoadingDash] = useState(false);
 
   const token = localStorage.getItem("accessToken");
@@ -72,7 +72,7 @@ export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps
   const subtitle = dashboard?.hospital?.name   || "No hospital assigned";
 
   return (
-    <div className="min-h-screen" style={{ background: "#f8fafc" }}>
+    <div className="page-root">
       <HospitalAdminSidebar
         currentPage={page}
         onNavigate={(id) => setPage(id as AdminPage)}
@@ -81,8 +81,7 @@ export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps
         subtitle={subtitle}
       />
 
-      {/* Main content — offset by sidebar width */}
-      <main className="ml-72 min-h-screen">
+      <main className="page-main">
         {page === "overview" && (
           <OverviewPage
             dashboard={dashboard}
@@ -91,12 +90,8 @@ export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps
             onNavigate={(p) => setPage(p as AdminPage)}
           />
         )}
-        {page === "doctors" && (
-          <DoctorsPage onRefreshGlobal={fetchDashboard} />
-        )}
-        {page === "assistants" && (
-          <AssistantsPage onRefreshGlobal={fetchDashboard} />
-        )}
+        {page === "doctors"          && <DoctorsPage onRefreshGlobal={fetchDashboard} />}
+        {page === "assistants"       && <AssistantsPage onRefreshGlobal={fetchDashboard} />}
         {page === "hospital-profile" && <HospitalProfilePage />}
         {page === "settings"         && <SettingsPage />}
       </main>

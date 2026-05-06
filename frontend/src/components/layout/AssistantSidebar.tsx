@@ -1,53 +1,55 @@
-import React from "react";
 import {
   Activity,
-  Shield,
-  Building2,
   Users,
+  Calendar,
   LogOut,
-  BarChart3,
+  UserPlus,
+  Search,
+  Building2,
 } from "lucide-react";
 
-interface EnhancedSidebarProps {
+interface AssistantSidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   onLogout: () => void;
   userRole?: string;
   userName?: string;
   userSubtitle?: string;
+  pendingCount?: number;
 }
 
 const menuItems = [
   {
-    id: "dashboard",
-    label: "Dashboard Overview",
-    icon: BarChart3,
+    id: "assistant-search-patient",
+    label: "Search Patient",
+    icon: Search,
   },
   {
-    id: "hospitals-management",
-    label: "Hospitals Management",
+    id: "assistant-register-patient",
+    label: "Register New Patient",
+    icon: UserPlus,
+  },
+  {
+    id: "assistant-hospital-patients",
+    label: "Hospital Patients",
     icon: Building2,
   },
   {
-    id: "admins-management",
-    label: "Hospital Admins",
-    icon: Shield,
-  },
-  {
-    id: "users-management",
-    label: "All Users",
-    icon: Users,
+    id: "assistant-appointments",
+    label: "Appointments",
+    icon: Calendar,
+    hasBadge: true,
   },
 ];
 
-export function EnhancedSidebar({
+export function AssistantSidebar({
   currentPage,
   onNavigate,
   onLogout,
-  userRole = "super_admin",
-  userName = "Admin",
-  userSubtitle = "System Administrator",
-}: EnhancedSidebarProps) {
+  userName = "Assistant",
+  userSubtitle = "Doctor Assistant",
+  pendingCount = 0,
+}: AssistantSidebarProps) {
   const initials = userName
     .split(" ")
     .map((n) => n[0])
@@ -65,7 +67,7 @@ export function EnhancedSidebar({
         </div>
         <div>
           <div className="sidebar-logo-text">MedScribe AI</div>
-          <div className="sidebar-logo-sub">Administration</div>
+          <div className="sidebar-logo-sub">Assistant Portal</div>
         </div>
       </div>
 
@@ -81,8 +83,10 @@ export function EnhancedSidebar({
       {/* ── Navigation ── */}
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
-          const Icon = item.icon;
+          const Icon     = item.icon;
           const isActive = currentPage === item.id;
+          const badge    = item.hasBadge && pendingCount > 0 ? pendingCount : null;
+
           return (
             <button
               key={item.id}
@@ -92,6 +96,11 @@ export function EnhancedSidebar({
             >
               <Icon className="sidebar-nav-icon" />
               <span className="sidebar-nav-label">{item.label}</span>
+              {badge && (
+                <span className="tab-badge" style={{ marginLeft: "auto" }}>
+                  {badge}
+                </span>
+              )}
               {isActive && <div className="sidebar-nav-indicator" />}
             </button>
           );
@@ -115,4 +124,4 @@ export function EnhancedSidebar({
   );
 }
 
-export default EnhancedSidebar;
+export default AssistantSidebar;

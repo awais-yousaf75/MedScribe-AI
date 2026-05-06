@@ -1,0 +1,430 @@
+/* ============================================================
+   MEDSCRIBE AI — DESIGN TOKENS
+   
+   This file contains ONLY CSS custom properties.
+   No selectors. No rules. No utilities.
+   Just token definitions.
+
+   Naming convention:
+   --ms-[category]-[variant]
+
+   Categories:
+   brand, bg, text, border, shadow,
+   font, radius, space, ease, z, layout
+   ============================================================ */
+
+:root {
+
+  /* ── SHADCN COMPATIBILITY ──────────────────────────
+     Required by shadcn/ui component library.
+     DO NOT REMOVE. Mapped to brand tokens below.
+  ─────────────────────────────────────────────────── */
+  --font-size:                    16px;
+  --radius:                       0.5rem;
+  --font-weight-medium:           500;
+  --font-weight-normal:           400;
+
+  --background:                   #F7F8F4;
+  --foreground:                   #10213D;
+  --card:                         #FFFFFF;
+  --card-foreground:              #10213D;
+  --popover:                      #FFFFFF;
+  --popover-foreground:           #10213D;
+  --primary:                      #1A7C6D;
+  --primary-foreground:           #FFFFFF;
+  --secondary:                    #E8EFEB;
+  --secondary-foreground:         #10213D;
+  --muted:                        #E8EFEB;
+  --muted-foreground:             #5E697A;
+  --accent:                       #E8EFEB;
+  --accent-foreground:            #10213D;
+  --destructive:                  #D94F4F;
+  --destructive-foreground:       #FFFFFF;
+  --border:                       #D7DDE4;
+  --input:                        transparent;
+  --input-background:             rgba(255, 255, 255, 0.72);
+  --switch-background:            #D1D8E0;
+  --ring:                         #1A7C6D;
+
+  --chart-1:                      #1A7C6D;
+  --chart-2:                      #B99657;
+  --chart-3:                      #2D8659;
+  --chart-4:                      #5E697A;
+  --chart-5:                      #D94F4F;
+
+  --sidebar:                      #0B1D3A;
+  --sidebar-foreground:           rgba(255, 255, 255, 0.88);
+  --sidebar-primary:              #1A7C6D;
+  --sidebar-primary-foreground:   #FFFFFF;
+  --sidebar-accent:               rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground:    #FFFFFF;
+  --sidebar-border:               rgba(255, 255, 255, 0.08);
+  --sidebar-ring:                 #1A7C6D;
+
+  /* ── BRAND COLORS ──────────────────────────────────
+     Core brand palette.
+     These are the foundation. All other tokens
+     reference these — never the other way around.
+  ─────────────────────────────────────────────────── */
+  --ms-navy:                      #0B1D3A;
+  --ms-navy-deep:                 #10213D;
+  --ms-teal:                      #1A7C6D;
+  --ms-teal-dark:                 #145F54;
+  --ms-teal-hover:                #1D7F70;
+  --ms-teal-subtle:               rgba(26, 124, 109, 0.11);
+  --ms-teal-ring:                 rgba(26, 124, 109, 0.18);
+  --ms-gold:                      #B99657;
+  --ms-gold-muted:                rgba(185, 150, 87, 0.22);
+  --ms-gold-soft:                 rgba(185, 150, 87, 0.48);
+  --ms-gold-strong:               rgba(185, 150, 87, 0.72);
+  --ms-gold-text:                 #9A7A42;
+
+  /* ── BACKGROUNDS ───────────────────────────────────
+     Light UI backgrounds.
+     --ms-bg-dark* are for auth screens only,
+     not for dark mode.
+  ─────────────────────────────────────────────────── */
+  --ms-bg:                        #F7F8F4;
+  --ms-bg-dark:                   #080D14;
+  --ms-bg-dark-mid:               #0B121C;
+  --ms-bg-card:                   #FFFFFF;
+  --ms-bg-card-warm:              #F6F2EA;
+  --ms-bg-card-warm-top:          #FBF8F2;
+  --ms-bg-muted:                  #E8EFEB;
+  --ms-bg-subtle:                 #F4F6F8;
+  --ms-bg-field:                  rgba(255, 255, 255, 0.72);
+  --ms-bg-field-focus:            #FFFFFF;
+  --ms-bg-field-disabled:         #F0F2F4;
+  --ms-bg-sidebar:                #0B1D3A;
+  --ms-bg-sidebar-item:           rgba(255, 255, 255, 0.06);
+  --ms-bg-sidebar-active:         rgba(26, 124, 109, 0.15);
+
+  /* ── TEXT ───────────────────────────────────────── */
+  --ms-text:                      #10213D;
+  --ms-text-soft:                 #5E697A;
+  --ms-text-muted:                #7A8493;
+  --ms-text-placeholder:          #99A4B2;
+  --ms-text-inverse:              #FFFFFF;
+  --ms-text-inverse-soft:         rgba(255, 255, 255, 0.65);
+  --ms-text-inverse-muted:        rgba(255, 255, 255, 0.14);
+  --ms-text-link:                 #1A7C6D;
+  --ms-text-link-hover:           #10213D;
+  --ms-text-eyebrow:              #9A7A42;
+
+  /* ── BORDERS ─────────────────────────────────────── */
+  --ms-border:                    #D7DDE4;
+  --ms-border-light:              rgba(16, 33, 61, 0.07);
+  --ms-border-card:               rgba(185, 150, 87, 0.18);
+  --ms-border-dark:               rgba(255, 255, 255, 0.08);
+  --ms-border-separator:          rgba(16, 33, 61, 0.10);
+  --ms-border-focus:              #1A7C6D;
+
+  /* ── STATUS ─────────────────────────────────────── */
+  --ms-success:                   #2D8659;
+  --ms-success-bg:                #F0FDF4;
+  --ms-success-border:            rgba(45, 134, 89, 0.20);
+  --ms-error:                     #D94F4F;
+  --ms-error-bg:                  #FEF2F2;
+  --ms-error-border:              rgba(217, 79, 79, 0.20);
+  --ms-warning:                   #D97706;
+  --ms-warning-bg:                #FFFBEB;
+  --ms-warning-border:            rgba(217, 119, 6, 0.20);
+  --ms-info:                      #1A7C6D;
+  --ms-info-bg:                   rgba(26, 124, 109, 0.08);
+
+  /* ── TYPOGRAPHY ─────────────────────────────────── */
+  --ms-font-serif:                'Source Serif 4', Georgia, serif;
+  --ms-font-sans:                 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ms-font-mono:                 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── FONT SIZES ─────────────────────────────────── */
+  --ms-text-2xs:                  10px;
+  --ms-text-xs:                   11px;
+  --ms-text-sm:                   13px;
+  --ms-text-base:                 14px;
+  --ms-text-md:                   16px;
+  --ms-text-lg:                   18px;
+  --ms-text-xl:                   22px;
+  --ms-text-2xl:                  26px;
+  --ms-text-3xl:                  30px;
+  --ms-text-4xl:                  38px;
+  --ms-text-5xl:                  48px;
+
+  /* ── FONT WEIGHTS ───────────────────────────────── */
+  --ms-weight-regular:            400;
+  --ms-weight-medium:             500;
+  --ms-weight-semibold:           600;
+  --ms-weight-bold:               700;
+
+  /* ── LINE HEIGHTS ───────────────────────────────── */
+  --ms-leading-tight:             1.08;
+  --ms-leading-snug:              1.2;
+  --ms-leading-normal:            1.5;
+  --ms-leading-relaxed:           1.65;
+
+  /* ── LETTER SPACING ─────────────────────────────── */
+  --ms-tracking-tighter:          -0.03em;
+  --ms-tracking-tight:            -0.01em;
+  --ms-tracking-normal:           0;
+  --ms-tracking-wide:             0.05em;
+  --ms-tracking-wider:            0.10em;
+  --ms-tracking-widest:           0.18em;
+
+  /* ── SPACING (4px base) ─────────────────────────── */
+  --ms-space-1:                   4px;
+  --ms-space-2:                   6px;
+  --ms-space-3:                   8px;
+  --ms-space-4:                   10px;
+  --ms-space-5:                   12px;
+  --ms-space-6:                   14px;
+  --ms-space-7:                   16px;
+  --ms-space-8:                   18px;
+  --ms-space-9:                   20px;
+  --ms-space-10:                  24px;
+  --ms-space-12:                  28px;
+  --ms-space-14:                  32px;
+  --ms-space-16:                  34px;
+  --ms-space-18:                  40px;
+  --ms-space-20:                  46px;
+  --ms-space-24:                  56px;
+  --ms-space-32:                  80px;
+  --ms-space-40:                  96px;
+
+  /* ── BORDER RADIUS ──────────────────────────────── */
+  --ms-radius-xs:                 4px;
+  --ms-radius-sm:                 6px;
+  --ms-radius-md:                 8px;
+  --ms-radius-lg:                 10px;
+  --ms-radius-xl:                 12px;
+  --ms-radius-2xl:                16px;
+  --ms-radius-3xl:                18px;
+  --ms-radius-4xl:                24px;
+  --ms-radius-full:               999px;
+
+  /* ── SHADOWS ────────────────────────────────────── */
+  --ms-shadow-xs:
+    0 1px 2px rgba(0, 0, 0, 0.04);
+  --ms-shadow-sm:
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  --ms-shadow-md:
+    0 6px 14px rgba(0, 0, 0, 0.08);
+  --ms-shadow-lg:
+    0 14px 28px rgba(0, 0, 0, 0.12);
+  --ms-shadow-xl:
+    0 24px 48px rgba(0, 0, 0, 0.18);
+  --ms-shadow-card:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 14px rgba(0, 0, 0, 0.10),
+    0 24px 48px rgba(0, 0, 0, 0.18),
+    0 48px 80px rgba(0, 0, 0, 0.28);
+  --ms-shadow-nav:
+    0 1px 8px rgba(11, 29, 58, 0.06);
+  --ms-shadow-btn:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 20px rgba(20, 95, 84, 0.18);
+  --ms-shadow-btn-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 26px rgba(20, 95, 84, 0.24);
+  --ms-shadow-focus:
+    0 0 0 3px rgba(26, 124, 109, 0.11);
+
+  /* ── TRANSITIONS ────────────────────────────────── */
+  --ms-ease-fast:                 180ms ease;
+  --ms-ease-base:                 200ms ease;
+  --ms-ease-slow:                 360ms ease;
+
+  /* ── Z-INDEX ────────────────────────────────────── */
+  --ms-z-below:                   -1;
+  --ms-z-base:                    0;
+  --ms-z-raised:                  2;
+  --ms-z-sticky:                  10;
+  --ms-z-dropdown:                100;
+  --ms-z-overlay:                 200;
+  --ms-z-modal:                   300;
+  --ms-z-toast:                   400;
+
+  /* ── LAYOUT ─────────────────────────────────────── */
+  --ms-max-width:                 1280px;
+  --ms-max-width-narrow:          760px;
+  --ms-max-width-form:            520px;
+  --ms-sidebar-width:             260px;
+  --ms-sidebar-collapsed:         72px;
+  --ms-nav-height:                64px;
+  --ms-input-height:              50px;
+  --ms-btn-height:                50px;
+  --ms-btn-height-sm:             38px;
+
+  /* ── COMPONENT SEMANTIC ALIASES ─────────────────────
+     High level tokens for specific UI contexts.
+     These map directly to component implementations.
+     Change here → changes everywhere that context is used.
+  ─────────────────────────────────────────────────── */
+
+  /* Auth */
+  --auth-root-bg:                 var(--ms-bg-dark);
+  --auth-card-bg-from:            var(--ms-bg-card-warm-top);
+  --auth-card-bg-to:              var(--ms-bg-card-warm);
+  --auth-card-border:             var(--ms-border-card);
+  --auth-card-shadow:             var(--ms-shadow-card);
+  --auth-card-radius:             var(--ms-radius-4xl);
+  --auth-gold-hairline:           var(--ms-gold-soft);
+  --auth-gold-line:               var(--ms-gold-muted);
+
+  /* Navigation */
+  --nav-bg:                       var(--ms-bg-card);
+  --nav-border:                   var(--ms-border);
+  --nav-text:                     var(--ms-text);
+  --nav-text-hover:               var(--ms-teal);
+  --nav-shadow:                   var(--ms-shadow-nav);
+  --nav-height:                   var(--ms-nav-height);
+
+  /* Sidebar */
+  --sidebar-bg:                   var(--ms-bg-sidebar);
+  --sidebar-text:                 var(--ms-text-inverse-soft);
+  --sidebar-text-active:          var(--ms-text-inverse);
+  --sidebar-item-hover:           var(--ms-bg-sidebar-item);
+  --sidebar-item-active:          var(--ms-bg-sidebar-active);
+  --sidebar-border-color:         var(--ms-border-dark);
+  --sidebar-w:                    var(--ms-sidebar-width);
+  --sidebar-collapsed-w:          var(--ms-sidebar-collapsed);
+
+  /* Dashboard */
+  --dash-bg:                      var(--ms-bg);
+  --dash-card-bg:                 var(--ms-bg-card);
+  --dash-card-border:             var(--ms-border);
+  --dash-card-radius:             var(--ms-radius-xl);
+  --dash-card-shadow:             var(--ms-shadow-sm);
+  --dash-card-shadow-hover:       var(--ms-shadow-lg);
+
+  /* Form fields */
+  --field-bg:                     var(--ms-bg-field);
+  --field-bg-focus:               var(--ms-bg-field-focus);
+  --field-bg-disabled:            var(--ms-bg-field-disabled);
+  --field-border:                 var(--ms-border);
+  --field-border-focus:           var(--ms-border-focus);
+  --field-shadow-focus:           var(--ms-shadow-focus);
+  --field-text:                   var(--ms-text);
+  --field-placeholder:            var(--ms-text-placeholder);
+  --field-radius:                 var(--ms-radius-lg);
+  --field-height:                 var(--ms-input-height);
+
+  /* Buttons */
+  --btn-primary-bg:               var(--ms-teal);
+  --btn-primary-bg-hover:         var(--ms-teal-dark);
+  --btn-primary-text:             var(--ms-text-inverse);
+  --btn-primary-shadow:           var(--ms-shadow-btn);
+  --btn-primary-shadow-hover:     var(--ms-shadow-btn-hover);
+  --btn-primary-radius:           var(--ms-radius-lg);
+
+  /* Cards */
+  --card-bg:                      var(--ms-bg-card);
+  --card-border:                  var(--ms-border);
+  --card-radius:                  var(--ms-radius-xl);
+  --card-shadow:                  var(--ms-shadow-sm);
+  --card-shadow-hover:            var(--ms-shadow-lg);
+  --card-padding:                 var(--ms-space-14);
+
+  /* Status badges */
+  --badge-success-bg:             var(--ms-success-bg);
+  --badge-success-text:           var(--ms-success);
+  --badge-success-border:         var(--ms-success-border);
+  --badge-error-bg:               var(--ms-error-bg);
+  --badge-error-text:             var(--ms-error);
+  --badge-error-border:           var(--ms-error-border);
+  --badge-warning-bg:             var(--ms-warning-bg);
+  --badge-warning-text:           var(--ms-warning);
+  --badge-warning-border:         var(--ms-warning-border);
+}
+
+/* ── DARK MODE ───────────────────────────────────────
+   Applied when .dark class is on <html>.
+   Auth dark background ≠ dark mode.
+   This is for a full product dark theme — future use.
+─────────────────────────────────────────────────── */
+.dark {
+  --background:                   #0B1D3A;
+  --foreground:                   #F7F8F4;
+  --card:                         #0F2444;
+  --card-foreground:              #F7F8F4;
+  --popover:                      #0F2444;
+  --popover-foreground:           #F7F8F4;
+  --primary:                      #1A7C6D;
+  --primary-foreground:           #FFFFFF;
+  --secondary:                    rgba(255, 255, 255, 0.06);
+  --secondary-foreground:         #F7F8F4;
+  --muted:                        rgba(255, 255, 255, 0.06);
+  --muted-foreground:             rgba(255, 255, 255, 0.55);
+  --accent:                       rgba(255, 255, 255, 0.06);
+  --accent-foreground:            #F7F8F4;
+  --destructive:                  #D94F4F;
+  --destructive-foreground:       #FFFFFF;
+  --border:                       rgba(255, 255, 255, 0.08);
+  --input:                        rgba(255, 255, 255, 0.06);
+  --input-background:             rgba(255, 255, 255, 0.06);
+  --ring:                         #1A7C6D;
+  --sidebar:                      #080D14;
+  --sidebar-foreground:           rgba(255, 255, 255, 0.88);
+  --sidebar-primary:              #1A7C6D;
+  --sidebar-primary-foreground:   #FFFFFF;
+  --sidebar-accent:               rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground:    #FFFFFF;
+  --sidebar-border:               rgba(255, 255, 255, 0.06);
+  --sidebar-ring:                 #1A7C6D;
+}
+
+/* ── TAILWIND v4 THEME BRIDGE ───────────────────────
+   Exposes CSS tokens to Tailwind utility classes.
+   Required for Tailwind v4 — replaces tailwind.config.
+─────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:                   var(--background);
+  --color-foreground:                   var(--foreground);
+  --color-card:                         var(--card);
+  --color-card-foreground:              var(--card-foreground);
+  --color-popover:                      var(--popover);
+  --color-popover-foreground:           var(--popover-foreground);
+  --color-primary:                      var(--primary);
+  --color-primary-foreground:           var(--primary-foreground);
+  --color-secondary:                    var(--secondary);
+  --color-secondary-foreground:         var(--secondary-foreground);
+  --color-muted:                        var(--muted);
+  --color-muted-foreground:             var(--muted-foreground);
+  --color-accent:                       var(--accent);
+  --color-accent-foreground:            var(--accent-foreground);
+  --color-destructive:                  var(--destructive);
+  --color-destructive-foreground:       var(--destructive-foreground);
+  --color-border:                       var(--border);
+  --color-input:                        var(--input);
+  --color-input-background:             var(--input-background);
+  --color-switch-background:            var(--switch-background);
+  --color-ring:                         var(--ring);
+  --color-chart-1:                      var(--chart-1);
+  --color-chart-2:                      var(--chart-2);
+  --color-chart-3:                      var(--chart-3);
+  --color-chart-4:                      var(--chart-4);
+  --color-chart-5:                      var(--chart-5);
+  --color-sidebar:                      var(--sidebar);
+  --color-sidebar-foreground:           var(--sidebar-foreground);
+  --color-sidebar-primary:              var(--sidebar-primary);
+  --color-sidebar-primary-foreground:   var(--sidebar-primary-foreground);
+  --color-sidebar-accent:               var(--sidebar-accent);
+  --color-sidebar-accent-foreground:    var(--sidebar-accent-foreground);
+  --color-sidebar-border:               var(--sidebar-border);
+  --color-sidebar-ring:                 var(--sidebar-ring);
+
+  /* MedScribe brand tokens in Tailwind */
+  --color-ms-navy:                      var(--ms-navy);
+  --color-ms-teal:                      var(--ms-teal);
+  --color-ms-teal-dark:                 var(--ms-teal-dark);
+  --color-ms-gold:                      var(--ms-gold);
+  --color-ms-success:                   var(--ms-success);
+  --color-ms-error:                     var(--ms-error);
+  --color-ms-warning:                   var(--ms-warning);
+
+  /* Radius */
+  --radius-sm:                          var(--ms-radius-sm);
+  --radius-md:                          var(--ms-radius-md);
+  --radius-lg:                          var(--ms-radius-lg);
+  --radius-xl:                          var(--ms-radius-xl);
+}

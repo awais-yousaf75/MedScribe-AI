@@ -1,4 +1,3 @@
-// pages/HospitalsManagementPage.tsx
 import React, { useState, useEffect } from "react";
 import {
   Building2,
@@ -9,15 +8,12 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertTriangle,
 } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
 
 interface HospitalsManagementPageProps {
   onViewDetail: (hospitalId: string) => void;
-  onNavigate: (page: string) => void;
+  onNavigate:  (page: string) => void;
 }
 
 type SystemHospital = {
@@ -49,33 +45,27 @@ export function HospitalsManagementPage({
   onViewDetail,
   onNavigate,
 }: HospitalsManagementPageProps) {
-  const [allHospitals, setAllHospitals] = useState<SystemHospital[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchHospitals, setSearchHospitals] = useState("");
-  const [hospitalStatusFilter, setHospitalStatusFilter] = useState("all");
+  const [allHospitals,          setAllHospitals]          = useState<SystemHospital[]>([]);
+  const [loading,               setLoading]               = useState(false);
+  const [searchHospitals,       setSearchHospitals]       = useState("");
+  const [hospitalStatusFilter,  setHospitalStatusFilter]  = useState("all");
 
   const getToken = () => localStorage.getItem("accessToken");
 
-  useEffect(() => {
-    fetchAllHospitals();
-  }, []);
+  useEffect(() => { fetchAllHospitals(); }, []);
 
   const fetchAllHospitals = async () => {
     const token = getToken();
-    if (!token) {
-      toast.error("Not authenticated");
-      return;
-    }
+    if (!token) { toast.error("Not authenticated"); return; }
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/superadmin/hospitals`, {
+      const res  = await fetch(`${API_URL}/api/superadmin/hospitals`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load hospitals");
       setAllHospitals(data.hospitals as SystemHospital[]);
     } catch (err: any) {
-      console.error(err);
       toast.error(err.message || "Failed to load hospitals");
     } finally {
       setLoading(false);
@@ -83,31 +73,16 @@ export function HospitalsManagementPage({
   };
 
   const getStatusBadge = (status?: string | null) => {
-    if (!status) return <span className="text-xs text-gray-400">-</span>;
-
-    const styles: Record<string, string> = {
-      approved:
-        "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200",
-      pending:
-        "bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 border-yellow-200",
-      rejected:
-        "bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-200",
+    if (!status) return <span className="list-item-sub">—</span>;
+    const map: Record<string, { cls: string; icon: typeof CheckCircle }> = {
+      approved: { cls: "badge badge-success", icon: CheckCircle },
+      pending:  { cls: "badge badge-warning", icon: Clock       },
+      rejected: { cls: "badge badge-error",   icon: XCircle     },
     };
-
-    const icons: Record<string, typeof CheckCircle> = {
-      approved: CheckCircle,
-      pending: Clock,
-      rejected: XCircle,
-    };
-
-    const Icon = icons[status] || Clock;
-    const style = styles[status] || styles.pending;
-
+    const { cls, icon: Icon } = map[status] || map.pending;
     return (
-      <span
-        className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs border shadow-sm ${style}`}
-      >
-        <Icon className="w-3 h-3" />
+      <span className={cls}>
+        <Icon size={11} />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -123,149 +98,160 @@ export function HospitalsManagementPage({
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 via-green-500 to-teal-600 p-8 shadow-lg">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Building2 className="w-8 h-8 text-white" />
-                <h1 className="text-3xl text-white font-bold">
-                  Hospitals Management
-                </h1>
-              </div>
-              <p className="text-white/90 text-lg">
-                View and manage all registered hospitals
-              </p>
+    <div className="page-main">
+
+      {/* ── HEADER ── */}
+      <div className="page-header">
+        <div className="page-header-top">
+          <div className="page-header-left">
+            <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+              <Building2 size={18} color="#fff" />
             </div>
-            <Button
+            <div>
+              <div className="page-header-title">Hospitals Management</div>
+              <div className="page-header-sub">
+                View and manage all registered hospitals
+              </div>
+            </div>
+          </div>
+          <div className="page-header-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
               onClick={() => onNavigate("register-hospital")}
-              className="rounded-xl bg-white hover:bg-gray-50 text-green-600 font-semibold shadow-lg"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Register New Hospital
-            </Button>
+              <Plus size={15} />
+              Register Hospital
+            </button>
+            <button
+              type="button"
+              className="btn btn-icon btn-icon-lg"
+              onClick={fetchAllHospitals}
+              disabled={loading}
+              title="Refresh"
+            >
+              <RefreshCw
+                size={15}
+                className={loading ? "animate-spin" : ""}
+              />
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* ── CONTENT ── */}
+      <div className="page-content">
+
         {/* Filters */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-green-100">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-3">
-              <select
-                value={hospitalStatusFilter}
-                onChange={(e) => setHospitalStatusFilter(e.target.value)}
-                className="h-11 px-4 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium focus:border-green-400 focus:outline-none"
-              >
-                <option value="all">All Status</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-              </select>
-              <div className="relative w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Search hospitals..."
-                  value={searchHospitals}
-                  onChange={(e) => setSearchHospitals(e.target.value)}
-                  className="pl-10 h-11 bg-gray-50 border-2 focus:border-green-400 focus:outline-none"
-                />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchAllHospitals}
-              disabled={loading}
-              className="rounded-xl"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+        <div className="card card-sm">
+          <div className="am-filter-row">
+            <div className="search-wrap am-search">
+              <Search className="search-icon" />
+              <input
+                className="search-input"
+                placeholder="Search hospitals…"
+                value={searchHospitals}
+                onChange={(e) => setSearchHospitals(e.target.value)}
               />
-            </Button>
+            </div>
+            <select
+              className="field-select am-status-select"
+              value={hospitalStatusFilter}
+              onChange={(e) => setHospitalStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
           </div>
         </div>
 
-        {/* Hospitals List */}
+        {/* List */}
         {loading ? (
-          <div className="bg-white rounded-3xl p-12 shadow-xl text-center">
-            <p className="text-gray-500">Loading hospitals...</p>
-          </div>
+          <div className="loading-text">Loading hospitals…</div>
         ) : filteredHospitals.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 shadow-xl text-center">
-            <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 font-semibold">No hospitals found</p>
+          <div className="empty-state">
+            <Building2 size={40} className="empty-icon" />
+            <div className="empty-title">No hospitals found</div>
+            <div className="empty-sub">
+              Try adjusting your search or status filter.
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="hm-grid">
             {filteredHospitals.map((hospital) => (
               <div
                 key={hospital.id}
-                className="bg-white rounded-2xl p-6 shadow-lg border-2 border-green-100 hover:border-green-300 hover:shadow-xl transition-all cursor-pointer group"
+                className="hm-card ms-card-hover"
                 onClick={() => onViewDetail(hospital.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && onViewDetail(hospital.id)}
               >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
-                    <Building2 className="w-6 h-6 text-white" />
+                {/* Card Top */}
+                <div className="hm-card-top">
+                  <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+                    <Building2 size={18} color="#fff" />
                   </div>
                   {getStatusBadge(hospital.status)}
                 </div>
 
-                {/* Hospital Name */}
-                <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors">
-                  {hospital.name}
-                </h3>
+                {/* Name */}
+                <div className="hm-hospital-name">{hospital.name}</div>
 
-                {/* Registration Number */}
-                <p className="text-xs font-mono bg-gray-100 px-2 py-1 rounded inline-block mb-3 text-gray-600">
+                {/* Reg Number */}
+                <div className="hm-reg-number">
                   {hospital.registration_number}
-                </p>
+                </div>
 
-                {/* Details */}
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
-                  <p className="flex items-center gap-2">
-                    <span className="font-semibold">Type:</span>
-                    {hospital.hospital_type || "-"}
-                  </p>
+                {/* Meta */}
+                <div className="hm-meta">
+                  <div className="hm-meta-row">
+                    <span className="hm-meta-label">Type</span>
+                    <span className="hm-meta-value">
+                      {hospital.hospital_type || "—"}
+                    </span>
+                  </div>
                   {hospital.admin && (
-                    <p className="flex items-center gap-2">
-                      <span className="font-semibold">Admin:</span>
-                      {hospital.admin.full_name}
-                    </p>
+                    <div className="hm-meta-row">
+                      <span className="hm-meta-label">Admin</span>
+                      <span className="hm-meta-value">
+                        {hospital.admin.full_name}
+                      </span>
+                    </div>
                   )}
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-200">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">
+                <div className="hm-stats">
+                  <div className="hm-stat-item">
+                    <div className="hm-stat-value">
                       {hospital.doctors_count ?? 0}
-                    </p>
-                    <p className="text-xs text-gray-500">Doctors</p>
+                    </div>
+                    <div className="hm-stat-label">Doctors</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">
+                  <div className="hm-stat-divider" />
+                  <div className="hm-stat-item">
+                    <div className="hm-stat-value">
                       {hospital.assistants_count ?? 0}
-                    </p>
-                    <p className="text-xs text-gray-500">Assistants</p>
+                    </div>
+                    <div className="hm-stat-label">Assistants</div>
                   </div>
                 </div>
 
                 {/* View Button */}
-                <Button
-                  className="w-full mt-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 hover:shadow-lg text-white border-0"
-                  onClick={(e: { stopPropagation: () => void }) => {
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm hm-view-btn"
+                  onClick={(e) => {
                     e.stopPropagation();
                     onViewDetail(hospital.id);
                   }}
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Eye size={14} />
                   View Details
-                </Button>
+                </button>
               </div>
             ))}
           </div>

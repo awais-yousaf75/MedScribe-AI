@@ -1,4 +1,15 @@
-import { Activity, LayoutDashboard, Users, Building2, FileText, Settings, LogOut, UserCog, Stethoscope, UserPlus } from 'lucide-react';
+import {
+  Activity,
+  LayoutDashboard,
+  Users,
+  Building2,
+  FileText,
+  Settings,
+  LogOut,
+  UserCog,
+  Stethoscope,
+  UserPlus,
+} from 'lucide-react';
 
 interface SidebarProps {
   currentPage: string;
@@ -9,7 +20,14 @@ interface SidebarProps {
   userSubtitle: string;
 }
 
-export default function Sidebar({ currentPage, onNavigate, onLogout, userRole, userName, userSubtitle }: SidebarProps) {
+export default function Sidebar({
+  currentPage,
+  onNavigate,
+  onLogout,
+  userRole,
+  userName,
+  userSubtitle,
+}: SidebarProps) {
   const getMenuItems = () => {
     switch (userRole) {
       case 'doctor':
@@ -46,66 +64,69 @@ export default function Sidebar({ currentPage, onNavigate, onLogout, userRole, u
 
   const menuItems = getMenuItems();
 
+  const initials = userName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+
   return (
-    <div className="w-64 h-screen bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col fixed left-0 top-0 shadow-lg">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-200 bg-white">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center shadow-lg">
-            <Activity className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold gradient-text">MedScribe AI</h1>
-            <p className="text-xs text-muted-foreground">Clinical Platform</p>
-          </div>
+    <aside className="sidebar">
+
+      {/* ── Logo ── */}
+      <div className="sidebar-logo">
+        <div className="sidebar-logo-icon">
+          <Activity size={18} color="#fff" />
+        </div>
+        <div>
+          <div className="sidebar-logo-text">MedScribe AI</div>
+          <div className="sidebar-logo-sub">Clinical Intelligence</div>
         </div>
       </div>
 
-      {/* User Info */}
-      <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-teal-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center text-white text-sm shadow-md">
-            {userName.split(' ').map(n => n[0]).join('')}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{userName}</p>
-            <p className="text-xs text-muted-foreground truncate">{userSubtitle}</p>
-          </div>
+      {/* ── User ── */}
+      <div className="sidebar-user">
+        <div className="sidebar-avatar">{initials}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="sidebar-user-name">{userName}</div>
+          <div className="sidebar-user-role">{userSubtitle}</div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {/* ── Navigation ── */}
+      <nav className="sidebar-nav">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => onNavigate(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all shadow-premium-hover ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#2563EB] to-[#14B8A6] text-white shadow-lg scale-105'
-                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-teal-50'
-              }`}
+              className={`sidebar-nav-item${isActive ? ' sidebar-nav-item-active' : ''}`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{item.label}</span>
+              <Icon className="sidebar-nav-icon" />
+              <span className="sidebar-nav-label">{item.label}</span>
+              {isActive && <div className="sidebar-nav-indicator" />}
             </button>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-gray-200 bg-white">
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all shadow-premium-hover"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm font-medium">Logout</span>
+      {/* ── Footer ── */}
+      <div className="sidebar-footer">
+        <button type="button" className="sidebar-logout" onClick={onLogout}>
+          <LogOut className="sidebar-logout-icon" />
+          <span>Sign Out</span>
         </button>
+
+        <div className="sidebar-ornament" aria-hidden="true">
+          <span className="sidebar-ornament-line" />
+          <span className="sidebar-ornament-dot" />
+          <span className="sidebar-ornament-line" />
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }
