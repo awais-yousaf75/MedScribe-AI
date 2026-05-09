@@ -1046,3 +1046,638 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6331
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "cough, shortness of breath, and fever",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "since the evening of hospital discharge, 5 days ago",
+      "severity": "harsh and persistent",
+      "location": null,
+      "onset": "started after hospital discharge"
+    },
+    {
+      "name": "shortness of breath",
+      "duration": "since after cough started",
+      "severity": null,
+      "location": null,
+      "onset": "worsened with activity"
+    },
+    {
+      "name": "fever",
+      "duration": "since after shortness of breath started",
+      "severity": null,
+      "location": null,
+      "onset": "accompanied by chills"
+    },
+    {
+      "name": "chills",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "muscle aches",
+      "duration": null,
+      "severity": "a little bit",
+      "location": "lower limbs, thighs, shoulders",
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "bacterial pneumonia",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "antibiotics",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "previous"
+    },
+    {
+      "name": "multivitamins",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "calcium",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "vitamin D",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "Synthroid",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["hypothyroidism"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6331
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "cough, shortness of breath, and fever",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "since the evening after hospital discharge, 5 days ago",
+      "severity": "harsh and persistent",
+      "location": null,
+      "onset": "started after hospital discharge"
+    },
+    {
+      "name": "shortness of breath",
+      "duration": "since after cough started",
+      "severity": "worsening",
+      "location": null,
+      "onset": "started after cough"
+    },
+    {
+      "name": "fever",
+      "duration": "since after shortness of breath started",
+      "severity": "worsening",
+      "location": null,
+      "onset": "started after shortness of breath"
+    },
+    {
+      "name": "chills",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "muscle aches",
+      "duration": null,
+      "severity": "a little bit",
+      "location": "lower limbs, thighs, shoulders",
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "bacterial pneumonia",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "antibiotics",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "previous"
+    },
+    {
+      "name": "multivitamins",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "calcium",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "vitamin D",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "Synthroid",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["hypothyroidism"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6331
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "cough, shortness of breath, and fever",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "since the evening after hospital discharge, 5 days ago",
+      "severity": "harsh and persistent",
+      "location": null,
+      "onset": "started after hospital discharge"
+    },
+    {
+      "name": "shortness of breath",
+      "duration": "since after cough started",
+      "severity": "worsening",
+      "location": null,
+      "onset": "started after cough"
+    },
+    {
+      "name": "fever",
+      "duration": "since after shortness of breath started",
+      "severity": null,
+      "location": null,
+      "onset": "started after shortness of breath"
+    },
+    {
+      "name": "chills",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "muscle aches",
+      "duration": null,
+      "severity": "a little bit",
+      "location": "lower limbs, thighs, shoulders",
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "bacterial pneumonia",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "antibiotics",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "previous"
+    },
+    {
+      "name": "multivitamins",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "calcium",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "vitamin D",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    },
+    {
+      "name": "Synthroid",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "current"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["hypothyroidism"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6930
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "short of breath and increased cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "shortness of breath",
+      "duration": "last few days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "worsened over the last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "coughing fits",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "chest discomfort",
+      "duration": null,
+      "severity": null,
+      "location": "chest",
+      "onset": "during coughing fits"
+    },
+    {
+      "name": "chills",
+      "duration": "last couple of days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": "steady"
+  },
+  "diagnoses": [
+    {
+      "name": "COPD",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "high cholesterol",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "Ventolin",
+      "generic_name": "Salbutamol",
+      "dose": null,
+      "frequency": "almost 10 times this past week",
+      "duration": null,
+      "route": "inhalation",
+      "instructions": "for relief",
+      "status": "continue"
+    },
+    {
+      "name": "Spireva",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "diuretic",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "stopped"
+    }
+  ],
+  "investigations": [
+    {
+      "name": "temperature measurement",
+      "type": "vital sign",
+      "status": "ordered",
+      "result": null
+    }
+  ],
+  "allergies": [],
+  "past_medical_history": ["high blood pressure"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6906
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "short of breath and increased cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "shortness of breath",
+      "duration": "last few days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "worsened over the last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "discomfort in chest",
+      "duration": null,
+      "severity": null,
+      "location": "chest",
+      "onset": "during coughing fits"
+    },
+    {
+      "name": "chills",
+      "duration": "last couple of days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": "steady"
+  },
+  "diagnoses": [
+    {
+      "name": "COPD",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "high cholesterol",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "Ventolin",
+      "generic_name": "Salbutamol",
+      "dose": null,
+      "frequency": "used 10 times in the last week",
+      "duration": null,
+      "route": "inhalation",
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "Spireva",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "diuretic",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "stopped"
+    }
+  ],
+  "investigations": [
+    {
+      "name": "temperature measurement",
+      "type": "vital sign",
+      "status": "ordered",
+      "result": null
+    }
+  ],
+  "allergies": [],
+  "past_medical_history": ["high blood pressure"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

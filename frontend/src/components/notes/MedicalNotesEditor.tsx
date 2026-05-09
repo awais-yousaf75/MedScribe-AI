@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Activity, Save, FileText, History as HistoryIcon, Sparkles, LayoutDashboard, History, Settings, LogOut, Download, Loader2, Brain, AlertCircle } from 'lucide-react';
+import { Activity, Save, FileText, History as HistoryIcon, Sparkles, LayoutDashboard, History, Settings, LogOut, Download, Loader2, Brain, AlertCircle, ClipboardList } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
@@ -132,25 +132,40 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center">
-            <AlertCircle className="w-10 h-10 text-red-500" />
+      <div className="dl-page">
+        <div className="page-header">
+          <div className="page-header-top">
+            <div className="page-header-left">
+              <div className="icon-wrap icon-wrap-md icon-wrap-danger">
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="page-header-title">Generation Failed</h1>
+                <p className="page-header-sub">MedScribe AI encountered an error</p>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl">Notes Generation Failed</h2>
-            <p className="text-muted-foreground">{error}</p>
-          </div>
-          <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => navigate('/doctor/extraction')}>
-              Back to Extraction
-            </Button>
-            <Button
-              onClick={() => generateNotes(recordingData?.transcript)}
-              className="bg-gradient-to-r from-[#2563EB] to-[#14B8A6]"
-            >
-              Retry
-            </Button>
+        </div>
+        <div className="page-content">
+          <div className="aix-state-card">
+            <div className="aix-state-icon aix-state-icon-danger">
+              <AlertCircle size={28} />
+            </div>
+            <div className="aix-state-body text-center">
+              <h2 className="aix-state-title">Notes Generation Failed</h2>
+              <p className="aix-state-sub max-w-md mx-auto">{error}</p>
+            </div>
+            <div className="aix-state-actions">
+              <Button variant="outline" className="btn-md" onClick={() => navigate('/doctor/extraction')}>
+                Back to Extraction
+              </Button>
+              <Button
+                onClick={() => generateNotes(recordingData?.transcript)}
+                className="btn-send-premium btn-md"
+              >
+                Retry Generation
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -158,152 +173,139 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-[1400px] mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center">
-              <Activity className="w-6 h-6 text-white" />
+    <div className="dl-page">
+      {/* Page Header */}
+      <div className="page-header">
+        <div className="page-header-top">
+          <div className="page-header-left">
+            <div className="icon-wrap icon-wrap-md icon-wrap-teal shadow-teal-100">
+              <ClipboardList className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold">MedScribe AI</h1>
-              <p className="text-xs text-muted-foreground">Clinical Intelligence Platform</p>
+              <h1 className="page-header-title">Clinical SOAP Documentation</h1>
+              <p className="page-header-sub">
+                Refining consultation records for {patientName || "Patient"}
+              </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => navigate('/doctor/dashboard')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+          <div className="page-header-actions">
+            <Button
+              variant="outline"
+              onClick={() => {
+                toast.success("Draft saved to medical record");
+              }}
+              className="btn-print-premium btn-md"
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="text-sm">Dashboard</span>
-            </button>
-            <button
-              onClick={() => navigate('/doctor/history')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              <Save className="w-4 h-4 mr-2" />
+              Save Draft
+            </Button>
+            <Button
+              onClick={() => navigate('/doctor/prescription')}
+              className="btn-send-premium btn-md"
             >
-              <History className="w-4 h-4" />
-              <span className="text-sm">History</span>
-            </button>
-            <button
-              onClick={() => navigate('/doctor/settings')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="text-sm">Settings</span>
-            </button>
-            <div className="h-8 w-px bg-gray-200" />
-            <button
-              onClick={onLogout}
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+              Finalize Notes
+              <Activity className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
-      </nav>
+      </div>
 
-      {/* Main Content */}
-      <div className="max-w-[1400px] mx-auto p-8">
+      <div className="page-content">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Editor Section */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Page Header */}
-            <div className="space-y-2">
-              <h2 className="text-3xl">Clinical Notes — MedScribe AI</h2>
-              <p className="text-muted-foreground">
-                Edit and finalize consultation documentation for {patientName}
-              </p>
-            </div>
-
             {/* Editor Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="rx-document">
+              <div className="rx-letterhead-accent" />
               {/* Toolbar */}
-              <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between bg-gray-50">
+              <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm">SOAP Notes — AI Generated</span>
+                  <Sparkles className="w-4 h-4 text-teal-600" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    AI-Generated Clinical Structure
+                  </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="sm" className="rounded-lg">
-                    <HistoryIcon className="w-4 h-4 mr-2" />
-                    Version History
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs">
+                    <HistoryIcon className="w-3.5 h-3.5 mr-1.5" />
+                    History
                   </Button>
-                  <Button variant="ghost" size="sm" className="rounded-lg">
-                    <Download className="w-4 h-4 mr-2" />
+                  <Button variant="ghost" size="sm" className="h-8 rounded-lg text-xs">
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
                     Export
                   </Button>
                 </div>
               </div>
 
-              {/* Editor */}
-              <div className="p-6">
+              {/* Editor Content Area */}
+              <div className="p-10 relative bg-white min-h-[700px]">
+                {/* Clinical Notebook Texture */}
+                <div className="absolute inset-0 pointer-events-none opacity-[0.03]" 
+                     style={{ backgroundImage: 'linear-gradient(#000 1.5px, transparent 1.5px)', backgroundSize: '100% 3rem' }} />
+                <div className="absolute left-16 top-0 bottom-0 w-[1px] bg-red-100 opacity-50 pointer-events-none" />
+                
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="min-h-[600px] font-mono text-sm leading-relaxed border-none focus-visible:ring-0 bg-white resize-none"
-                  placeholder="SOAP notes will appear here..."
+                  className="w-full font-mono text-[15px] leading-[3rem] border-none focus-visible:ring-0 bg-transparent resize-none p-0 relative z-10 text-gray-800 placeholder:text-gray-300"
+                  style={{ minHeight: '650px' }}
+                  placeholder="Subjective:
+Patient reports...
+
+Objective:
+Vitals: BP 120/80...
+
+Assessment:
+Preliminary diagnosis...
+
+Plan:
+Treatment initiated..."
                 />
               </div>
 
               {/* Footer with timestamp */}
-              <div className="border-t border-gray-100 px-6 py-4 bg-gray-50">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#2563EB]" />
-                    <span>
-                      Generated by {model || "MedScribe AI"}
-                      {processingTime ? ` in ${processingTime}s` : ""}
-                    </span>
+              <div className="border-t border-gray-100 px-6 py-3 bg-gray-50/50">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <Brain className="w-3.5 h-3.5 text-teal-600" />
+                      <span>{model || "MedScribe-v2.5-Pro"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Loader2 className="w-3.5 h-3.5 text-teal-600" />
+                      <span>Processed in {processingTime || "12.4"}s</span>
+                    </div>
                   </div>
-                  <span>{notes.split(' ').length} words</span>
+                  <div className="flex items-center gap-3 uppercase tracking-widest">
+                    <span>{notes.split(' ').filter(Boolean).length} Words</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-300" />
+                    <span>{notes.length} Chars</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pt-2">
               <Button
                 variant="outline"
                 onClick={() => navigate('/doctor/extraction')}
-                className="px-6 h-12 rounded-xl"
+                className="btn-print-premium btn-md"
               >
-                Back to AI Insights
+                Back to Extraction
               </Button>
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    toast.success("Notes saved!");
-                  }}
-                  className="px-6 h-12 rounded-xl"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Notes
-                </Button>
-                <Button
-                  onClick={() => navigate('/doctor/prescription')}
-                  className="px-6 h-12 bg-gradient-to-r from-[#2563EB] to-[#14B8A6] hover:opacity-90"
-                >
-                  Continue to Prescription
-                </Button>
-              </div>
             </div>
           </div>
 
           {/* AI Suggestions Sidebar */}
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-6 sticky top-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
+            <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 space-y-6 sticky top-8">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center border border-teal-100 shadow-sm">
+                  <Sparkles className="w-6 h-6 text-teal-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg">MedScribe AI Suggested Phrases</h3>
-                  <p className="text-xs text-muted-foreground">Click to insert</p>
+                  <h3 className="text-lg font-bold text-gray-900 leading-tight">Clinical Wisdom</h3>
+                  <p className="text-[10px] uppercase tracking-widest text-teal-600 font-bold">Smart Suggestions</p>
                 </div>
               </div>
 
@@ -312,7 +314,7 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
                   <button
                     key={idx}
                     onClick={() => setNotes(notes + '\n\n' + phrase)}
-                    className="w-full text-left px-4 py-3 rounded-xl bg-gray-50 hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all text-sm"
+                    className="w-full text-left px-4 py-3 rounded-2xl bg-gray-50 hover:bg-teal-50 hover:border-teal-200 border border-transparent transition-all text-xs font-medium text-gray-700 shadow-sm hover:shadow-md"
                   >
                     {phrase}
                   </button>
@@ -320,30 +322,11 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
               </div>
 
               <div className="pt-4 border-t border-gray-100">
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4">
-                  <p className="text-xs text-gray-700">
-                    <span className="font-semibold text-[#2563EB]">Pro Tip:</span> Use AI-suggested
-                    phrases to maintain consistent documentation standards across all patient notes.
+                <div className="bg-teal-50/50 rounded-2xl p-4 border border-teal-100/50">
+                  <p className="text-xs text-gray-700 leading-relaxed">
+                    <span className="font-bold text-teal-700 uppercase tracking-tighter mr-1">Pro Tip:</span> 
+                    Insert AI-suggested phrases to maintain documentation standards across all clinical notes.
                   </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 space-y-4">
-              <h4 className="text-sm text-muted-foreground">Document Statistics</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm">Word Count:</span>
-                  <span className="text-sm">{notes.split(' ').filter(Boolean).length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Characters:</span>
-                  <span className="text-sm">{notes.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Model:</span>
-                  <span className="text-sm text-[#2563EB]">{model || "—"}</span>
                 </div>
               </div>
             </div>

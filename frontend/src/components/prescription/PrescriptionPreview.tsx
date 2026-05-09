@@ -19,6 +19,7 @@ import {
   Award,
   Hash,
   CheckCircle,
+  Phone,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
@@ -476,17 +477,15 @@ export default function PrescriptionPreview({
           </div>
           <div className="page-header-actions">
             <Button
-              variant="outline"
               onClick={handlePrint}
-              className="btn-sm"
+              className="btn-print-premium btn-md"
             >
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
             <Button
-              variant="outline"
               onClick={handleDownloadPDF}
-              className="btn-sm"
+              className="btn-download-premium btn-md"
               disabled={isDownloading}
             >
               {isDownloading ? (
@@ -498,7 +497,7 @@ export default function PrescriptionPreview({
             </Button>
             <Button
               onClick={handleSendToPatient}
-              className="btn-sm"
+              className="btn-send-premium btn-md"
               disabled={isSending || isSent || noMeds}
             >
               {isSent ? (
@@ -537,13 +536,19 @@ export default function PrescriptionPreview({
 
         {/* ════════ PRESCRIPTION DOCUMENT ════════ */}
         <div className="rx-document" ref={rxDocumentRef}>
+          {/* Subtle Watermark */}
+          <div className="rx-watermark-container">
+            <div className="rx-watermark-text">MEDSCRIBE AI</div>
+            <div className="rx-watermark-text">CERTIFIED PRESCRIPTION</div>
+          </div>
 
           {/* ─── Letterhead ─── */}
           <div className="rx-letterhead">
+            <div className="rx-letterhead-accent" />
             <div className="rx-letterhead-top">
               <div className="rx-hospital">
                 <div className="rx-hospital-icon">
-                  <Building2 size={28} />
+                  <Building2 size={32} />
                 </div>
                 <div className="rx-hospital-text">
                   <h1 className="rx-hospital-name">
@@ -560,7 +565,7 @@ export default function PrescriptionPreview({
                     )}
                     {hospital.contact_phone && (
                       <span className="rx-hospital-meta-item">
-                        ☎ {hospital.contact_phone}
+                        <Phone size={10} className="mr-1" /> {hospital.contact_phone}
                       </span>
                     )}
                     {hospital.registration_number && (
@@ -602,9 +607,9 @@ export default function PrescriptionPreview({
             </div>
 
             <div className="rx-letterhead-divider">
-              <span className="rx-divider-line" />
+              <div className="rx-divider-ornament left" />
               <span className="rx-divider-symbol">℞</span>
-              <span className="rx-divider-line" />
+              <div className="rx-divider-ornament right" />
             </div>
 
             <div className="rx-meta-row">

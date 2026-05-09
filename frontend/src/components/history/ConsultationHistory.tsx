@@ -1068,15 +1068,20 @@ function PrescriptionModal({
                 </div>
 
                 <div className="ch-modal-body ch-modal-body-rx">
-                    {/* Reuse the rx-document design */}
                     <div className="rx-document">
+                        {/* Subtle Watermark */}
+                        <div className="rx-watermark-container">
+                            <div className="rx-watermark-text">MEDSCRIBE AI</div>
+                            <div className="rx-watermark-text">CERTIFIED PRESCRIPTION</div>
+                        </div>
 
                         {/* Letterhead */}
                         <div className="rx-letterhead">
+                            <div className="rx-letterhead-accent" />
                             <div className="rx-letterhead-top">
                                 <div className="rx-hospital">
                                     <div className="rx-hospital-icon">
-                                        <Building2 size={28} />
+                                        <Building2 size={32} />
                                     </div>
                                     <div className="rx-hospital-text">
                                         <h1 className="rx-hospital-name">
@@ -1109,7 +1114,7 @@ function PrescriptionModal({
                                     <div className="rx-doctor-name-row">
                                         <Stethoscope size={16} />
                                         <span className="rx-doctor-name">
-                                            Dr. {doctorInfo.full_name?.replace(/^Dr\.?\s*/i, "") || "Doctor"}
+                                            Dr. {doctorInfo.full_name || "Doctor Name"}
                                         </span>
                                     </div>
                                     {doctorInfo.specialization && (
@@ -1133,9 +1138,9 @@ function PrescriptionModal({
                             </div>
 
                             <div className="rx-letterhead-divider">
-                                <span className="rx-divider-line" />
+                                <div className="rx-divider-ornament left" />
                                 <span className="rx-divider-symbol">℞</span>
-                                <span className="rx-divider-line" />
+                                <div className="rx-divider-ornament right" />
                             </div>
 
                             <div className="rx-meta-row">

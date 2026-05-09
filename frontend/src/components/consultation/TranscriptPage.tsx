@@ -205,12 +205,12 @@ export default function TranscriptPage({
               </div>
             </div>
             <div className="tp-header-actions">
-              <Button variant="outline" size="sm" onClick={handleCopy}>
-                <Copy className="w-4 h-4 mr-2" />
+              <Button onClick={handleCopy} className="btn-print-premium btn-sm">
+                <Copy className="w-4 h-4 mr-1.5" />
                 Copy
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="w-4 h-4 mr-2" />
+              <Button onClick={handleDownload} className="btn-print-premium btn-sm">
+                <Download className="w-4 h-4 mr-1.5" />
                 Download
               </Button>
             </div>
@@ -228,24 +228,23 @@ export default function TranscriptPage({
           {/* Footer actions */}
           <div className="tp-footer">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => navigate("/doctor/recording")}
-              className="tp-discard-btn"
+              className="btn-print-premium btn-md text-red-600 hover:text-red-700 hover:border-red-200"
             >
               Discard and Re-record
             </Button>
             <div className="tp-footer-right">
               <Button
-                variant="outline"
                 onClick={() => navigate("/doctor/extraction")}
-                className="tp-manual-btn"
+                className="btn-download-premium btn-md"
               >
                 Manual Review Flow
               </Button>
               <Button
                 onClick={handleGenerateAll}
                 disabled={isProcessing}
-                className="tp-generate-btn"
+                className="btn-send-premium btn-md"
               >
                 {isProcessing ? (
                   <>

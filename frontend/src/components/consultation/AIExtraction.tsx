@@ -254,12 +254,13 @@ export default function AIExtraction({
             </div>
             <div className="aix-state-actions">
               <Button
-                variant="outline"
+                className="btn-print-premium btn-md"
                 onClick={() => navigate("/doctor/transcript")}
               >
                 Back to Transcript
               </Button>
               <Button
+                className="btn-send-premium btn-md"
                 onClick={() =>
                   extractMedicalData(recordingData?.transcript)
                 }
@@ -455,24 +456,22 @@ export default function AIExtraction({
         {/* Footer actions */}
         <div className="aix-footer">
           <Button
-            variant="outline"
             onClick={() => navigate("/doctor/transcript")}
-            className="aix-footer-back"
+            className="btn-print-premium btn-md"
           >
             Back to Transcript
           </Button>
           <div className="aix-footer-right">
             <Button
-              variant="outline"
               onClick={handleSave}
-              className="aix-footer-secondary"
+              className="btn-download-premium btn-md"
             >
               <Save className="w-4 h-4 mr-2" />
               Continue to SOAP Notes
             </Button>
             <Button
               onClick={handleGeneratePrescription}
-              className="aix-footer-primary"
+              className="btn-send-premium btn-md"
             >
               <FileText className="w-4 h-4 mr-2" />
               Generate Prescription

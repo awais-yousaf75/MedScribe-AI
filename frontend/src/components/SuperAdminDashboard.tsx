@@ -50,9 +50,7 @@ export function SuperAdminDashboard({
         userName="Super Admin"
         userSubtitle="System Administrator"
       />
-      <div className="page-main">
-        {renderRoutes()}
-      </div>
+      {renderRoutes()}
     </div>
   );
 }
