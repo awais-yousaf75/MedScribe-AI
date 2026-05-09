@@ -106,6 +106,7 @@ router.get("/patients", async (req, res) => {
 
     const hospitalId = assistantLink.hospital_id;
 
+    // 2. Fetch patients for this hospital (direct link or via appointment)
     const { data: patientProfiles, error: ppError } = await supabase
       .from("patient_profiles")
       .select("profile_id, cnic, created_at")
@@ -117,34 +118,43 @@ router.get("/patients", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch patients" });
     }
 
-    if (!patientProfiles || patientProfiles.length === 0) {
-      return res.json({ patients: [] });
-    }
+    // Also fetch patients who have an approved appointment at this hospital
+    const { data: apptPatients } = await supabase
+      .from("appointments")
+      .select("patient_profile_id")
+      .eq("hospital_id", hospitalId)
+      .eq("status", "approved");
 
-    const patientIds = patientProfiles.map((p) => p.profile_id);
+    const apptPatientIds = apptPatients?.map(a => a.patient_profile_id) || [];
+    const directPatientIds = patientProfiles.map(p => p.profile_id);
+    const allPatientIds = Array.from(new Set([...directPatientIds, ...apptPatientIds]));
 
-    const { data: profiles, error: profError } = await supabase
+    if (allPatientIds.length === 0) return res.json({ patients: [] });
+
+    // 3. Fetch profile details (name, phone, etc.)
+    const { data: profiles } = await supabase
       .from("profiles")
       .select("id, full_name, phone, gender, dob")
-      .in("id", patientIds);
+      .in("id", allPatientIds);
 
-    if (profError) {
-      console.error("Fetch patient base profiles error:", profError);
-      return res
-        .status(500)
-        .json({ error: "Failed to fetch patient profile data" });
-    }
+    // Fetch patient_profiles for those who might not be in directPatientIds
+    const { data: extraPatientProfiles } = await supabase
+      .from("patient_profiles")
+      .select("profile_id, cnic, created_at")
+      .in("profile_id", allPatientIds);
 
-    const patients = patientProfiles.map((pp) => {
-      const p = profiles?.find((pr) => pr.id === pp.profile_id);
+    // 4. Merge data
+    const patients = allPatientIds.map((id) => {
+      const p = profiles?.find((pr) => pr.id === id);
+      const pp = extraPatientProfiles?.find((pr) => pr.profile_id === id);
       return {
-        id: pp.profile_id,
+        id,
         full_name: p?.full_name || "Unknown",
         phone: p?.phone || null,
         gender: p?.gender || null,
         dob: p?.dob || null,
-        cnic: pp.cnic,
-        created_at: pp.created_at,
+        cnic: pp?.cnic || "—",
+        created_at: pp?.created_at || new Date().toISOString(),
       };
     });
 

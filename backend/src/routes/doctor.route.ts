@@ -264,7 +264,7 @@ router.get("/patients", async (req, res) => {
       return res.status(400).json({ error: "Doctor not linked to a hospital" });
     }
 
-    // 2. Fetch patients for this hospital
+    // 2. Fetch patients for this hospital (direct link or via appointment)
     const { data: patientProfiles, error: ppError } = await supabase
       .from("patient_profiles")
       .select("profile_id, cnic, created_at")
@@ -276,26 +276,43 @@ router.get("/patients", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch patients" });
     }
 
-    if (!patientProfiles.length) return res.json({ patients: [] });
+    // Also fetch patients who have an approved appointment at this hospital
+    const { data: apptPatients, error: apptError } = await supabase
+      .from("appointments")
+      .select("patient_profile_id")
+      .eq("hospital_id", doctorProfile.hospital_id)
+      .eq("status", "approved");
+
+    const apptPatientIds = apptPatients?.map(a => a.patient_profile_id) || [];
+    const directPatientIds = patientProfiles.map(p => p.profile_id);
+    const allPatientIds = Array.from(new Set([...directPatientIds, ...apptPatientIds]));
+
+    if (allPatientIds.length === 0) return res.json({ patients: [] });
 
     // 3. Fetch profile details (name, phone, etc.)
-    const patientIds = patientProfiles.map((p) => p.profile_id);
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, full_name, phone, dob, gender")
-      .in("id", patientIds);
+      .in("id", allPatientIds);
+
+    // Fetch patient_profiles for those who might not be in directPatientIds
+    const { data: extraPatientProfiles } = await supabase
+      .from("patient_profiles")
+      .select("profile_id, cnic, created_at")
+      .in("profile_id", allPatientIds);
 
     // 4. Merge data
-    const patients = patientProfiles.map((pp) => {
-      const p = profiles?.find((prof) => prof.id === pp.profile_id);
+    const patients = allPatientIds.map((id) => {
+      const p = profiles?.find((prof) => prof.id === id);
+      const pp = extraPatientProfiles?.find((prof) => prof.profile_id === id);
       return {
-        id: pp.profile_id,
+        id,
         full_name: p?.full_name || "Unknown",
         phone: p?.phone,
         gender: p?.gender,
         dob: p?.dob,
-        cnic: pp.cnic,
-        created_at: pp.created_at,
+        cnic: pp?.cnic || "—",
+        created_at: pp?.created_at || new Date().toISOString(),
       };
     });
 

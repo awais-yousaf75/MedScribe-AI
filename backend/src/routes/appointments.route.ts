@@ -656,7 +656,8 @@ router.patch(
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
-        .select()
+        .eq("assigned_to", userId)
+        .select("*, patient_profile_id, hospital_id")
         .single();
 
       if (updateError) {
@@ -664,6 +665,19 @@ router.patch(
           success: false,
           message: "Failed to update appointment: " + updateError.message,
         });
+      }
+
+      // If approved, ensure patient is linked to this hospital in patient_profiles
+      if (action === "approved" && updated) {
+        const { error: linkError } = await supabase
+          .from("patient_profiles")
+          .update({ hospital_id: updated.hospital_id })
+          .eq("profile_id", updated.patient_profile_id);
+
+        if (linkError) {
+          console.error("Failed to link patient to hospital on approval:", linkError);
+          // We don't fail the whole request, but we log it
+        }
       }
 
       return res.status(200).json({

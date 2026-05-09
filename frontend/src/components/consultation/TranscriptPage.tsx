@@ -1,8 +1,7 @@
-import { useMemo } from "react";
-import { Activity, Copy, Download, FileText, User as UserIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Copy, Download, Sparkles, Loader2, FileText } from "lucide-react";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
-import ConsultationTopNav from "./ConsultationTopNav";
 
 export interface TranscriptData {
   patientName: string;
@@ -11,30 +10,49 @@ export interface TranscriptData {
   language?: string;
   words?: unknown[];
   createdAt?: string;
+  consultationId?: string;
 }
 
 interface TranscriptPageProps {
   data: TranscriptData | null;
   onNavigate: (page: string) => void;
   onLogout: () => void;
+  onPipelineComplete?: (data: any) => void;
 }
 
-export default function TranscriptPage({ data, onNavigate, onLogout }: TranscriptPageProps) {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = API_URL.replace(/\/$/, "");
+
+export default function TranscriptPage({
+  data,
+  onNavigate,
+  onLogout: _onLogout,
+  onPipelineComplete,
+}: TranscriptPageProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const safe = useMemo(() => {
     return {
       patientName: data?.patientName || "New Patient",
       duration: data?.duration ?? 0,
       transcript: data?.transcript || "",
       language: data?.language || "unknown",
-      createdAt: data?.createdAt ? new Date(data.createdAt).toLocaleString() : "-",
-      wordCount: data?.transcript ? data.transcript.trim().split(/\s+/).filter(Boolean).length : 0,
+      createdAt: data?.createdAt
+        ? new Date(data.createdAt).toLocaleString()
+        : "-",
+      wordCount: data?.transcript
+        ? data.transcript.trim().split(/\s+/).filter(Boolean).length
+        : 0,
+      consultationId: data?.consultationId,
     };
   }, [data]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleCopy = async () => {
@@ -55,67 +73,143 @@ export default function TranscriptPage({ data, onNavigate, onLogout }: Transcrip
       toast.error("No transcript to download.");
       return;
     }
-    const filename = `Transcript - ${safe.patientName}.txt`.replace(/[\/\\:*?"<>|]/g, "_");
-    const blob = new Blob([safe.transcript], { type: "text/plain;charset=utf-8" });
+    const filename = `Transcript - ${safe.patientName}.txt`.replace(
+      /[\/\\:*?"<>|]/g,
+      "_"
+    );
+    const blob = new Blob([safe.transcript], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     a.click();
-
     URL.revokeObjectURL(url);
     toast.success("Transcript downloaded.");
   };
 
+  const handleGenerateAll = async () => {
+    if (!safe.transcript) {
+      toast.error("No transcript available to process.");
+      return;
+    }
+    setIsProcessing(true);
+    const toastId = toast.loading(
+      "MedScribe AI is generating all documentation..."
+    );
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) throw new Error("Not authenticated");
+
+      const res = await fetch(`${BASE_URL}/api/nlp/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          transcript: safe.transcript,
+          consultation_id: safe.consultationId,
+          generate_notes: true,
+          generate_prescription: true,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || result.details || "Pipeline failed");
+      }
+
+      // Save to DB in background — fire and forget
+      if (safe.consultationId) {
+        const savedToken = localStorage.getItem("accessToken");
+        fetch(`${BASE_URL}/api/doctor/consultations/${safe.consultationId}`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${savedToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            extracted_data: result.extracted_data,
+            soap_notes: result.notes,
+            prescription: result.prescription,
+          }),
+        }).catch((err) => console.warn("Background save failed:", err));
+      }
+
+      toast.success("All documentation generated!", { id: toastId });
+
+      // Let parent handle navigation — it sets state then navigates
+      // so prescription page always mounts with data ready
+      if (onPipelineComplete) {
+        onPipelineComplete(result);
+      }
+      // Do NOT call onNavigate here — App.tsx handles it
+
+    } catch (err: any) {
+      console.error("Pipeline error:", err);
+      toast.error(err.message || "Failed to generate documentation", {
+        id: toastId,
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const initials = safe.patientName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      <ConsultationTopNav
-        onNavigate={onNavigate}
-        onLogout={onLogout}
-        doctorName="Dr. Ahmed Hassan"
-        doctorSubtitle="Internal Medicine"
-      />
-
-      <div className="max-w-[1100px] mx-auto p-8 space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl">Transcript</h2>
-          <p className="text-muted-foreground">
-            Review, copy, or download the consultation transcript.
-          </p>
-        </div>
-
-        <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-          {/* Patient header */}
-          <div className="flex items-center gap-3 pb-6 border-b border-gray-100">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-white" />
+    <div className="dl-page">
+      {/* Page header */}
+      <div className="page-header">
+        <div className="page-header-top">
+          <div className="page-header-left">
+            <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+              <FileText className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">Patient</p>
-              <p className="text-lg font-semibold">{safe.patientName}</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-600">
-                <span className="px-3 py-1 rounded-full bg-gray-50 border">
+            <div>
+              <h1 className="page-header-title">Consultation Transcript</h1>
+              <p className="page-header-sub">
+                Review and generate clinical documentation
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page content */}
+      <div className="page-content">
+        <div className="tp-card">
+          {/* Patient header */}
+          <div className="tp-patient-header">
+            <div className="tp-patient-avatar">{initials}</div>
+            <div className="tp-patient-info">
+              <span className="tp-patient-label">Patient</span>
+              <span className="tp-patient-name">{safe.patientName}</span>
+              <div className="tp-meta-chips">
+                <span className="tp-chip">
                   Duration: {formatDuration(safe.duration)}
                 </span>
-                <span className="px-3 py-1 rounded-full bg-gray-50 border">
+                <span className="tp-chip">Words: {safe.wordCount}</span>
+                <span className="tp-chip tp-chip-cap">
                   Language: {safe.language}
                 </span>
-                <span className="px-3 py-1 rounded-full bg-gray-50 border">
-                  Words: {safe.wordCount}
-                </span>
-                <span className="px-3 py-1 rounded-full bg-gray-50 border">
-                  Created: {safe.createdAt}
-                </span>
+                <span className="tp-chip">Recorded: {safe.createdAt}</span>
               </div>
             </div>
-
-            <div className="hidden sm:flex gap-2">
-              <Button variant="outline" onClick={handleCopy} className="rounded-xl">
+            <div className="tp-header-actions">
+              <Button variant="outline" size="sm" onClick={handleCopy}>
                 <Copy className="w-4 h-4 mr-2" />
                 Copy
               </Button>
-              <Button variant="outline" onClick={handleDownload} className="rounded-xl">
+              <Button variant="outline" size="sm" onClick={handleDownload}>
                 <Download className="w-4 h-4 mr-2" />
                 Download
               </Button>
@@ -123,43 +217,49 @@ export default function TranscriptPage({ data, onNavigate, onLogout }: Transcrip
           </div>
 
           {/* Transcript body */}
-          <div className="mt-6">
-            {!safe.transcript ? (
-              <div className="p-6 rounded-2xl border bg-gray-50 text-gray-600">
-                No transcript available yet. Go back and record a consultation.
-              </div>
-            ) : (
-              <div className="p-6 rounded-2xl border bg-gradient-to-r from-gray-50 to-blue-50/40 whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
-                {safe.transcript}
-              </div>
-            )}
+          <div className="tp-body">
+            <div className="tp-transcript-box">
+              <p className="tp-transcript-text">
+                {safe.transcript || "No transcript available."}
+              </p>
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex flex-wrap gap-3">
+          {/* Footer actions */}
+          <div className="tp-footer">
             <Button
+              variant="ghost"
               onClick={() => onNavigate("recording")}
-              className="bg-gradient-to-r from-[#2563EB] to-[#14B8A6] hover:opacity-90"
+              className="tp-discard-btn"
             >
-              <Activity className="w-4 h-4 mr-2" />
-              Record Again
+              Discard and Re-record
             </Button>
-
-            <Button variant="outline" onClick={() => onNavigate("dashboard")} className="rounded-xl">
-              Back to Dashboard
-            </Button>
-
-            {/* Optional: continue to extraction / notes */}
-            <Button
-              variant="outline"
-              onClick={() => onNavigate("extraction")}
-              className="rounded-xl"
-              disabled={!safe.transcript}
-              title={!safe.transcript ? "No transcript available" : "Go to extraction"}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Continue to AI Extraction
-            </Button>
+            <div className="tp-footer-right">
+              <Button
+                variant="outline"
+                onClick={() => onNavigate("extraction")}
+                className="tp-manual-btn"
+              >
+                Manual Review Flow
+              </Button>
+              <Button
+                onClick={handleGenerateAll}
+                disabled={isProcessing}
+                className="tp-generate-btn"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate All with AI
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -10,9 +10,10 @@ import doctorRoutes from "./routes/doctor.route";
 import assistantRoutes from "./routes/assistant.route";
 import doctorConsultationsRouter from "./routes/doctorConsultations.route";
 import transcribe from "./routes/transcribe.route";
+import nlpRoutes from "./routes/nlp.route";
 import patientAuthRoutes from "./routes/patientAuth.route";
 import appointmentsRoutes from "./routes/appointments.route";
-
+import patientPrescriptionsRoutes from "./routes/patientPrescriptions.route";
 
 dotenv.config();
 
@@ -34,8 +35,10 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/assistant", assistantRoutes);
 app.use("/api/doctor", doctorConsultationsRouter);
 app.use("/api", transcribe);
+app.use("/api/nlp", nlpRoutes);
 app.use("/api/patient-auth", patientAuthRoutes);
 app.use("/api/appointments", appointmentsRoutes);
+app.use("/api/patient", patientPrescriptionsRoutes);
 
 // app.get("/", (_req, res) => {
 //   res.send("Backend is running");

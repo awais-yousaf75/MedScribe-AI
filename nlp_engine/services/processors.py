@@ -3,7 +3,6 @@
 # ============================================================
 import json
 import re
-import time
 
 from services.rag_engine import retrieve_context
 from services.llm_service import (
@@ -12,36 +11,113 @@ from services.llm_service import (
     SOAP_NOTES_PROMPT,
     PRESCRIPTION_PROMPT,
     QA_PROMPT,
-    llm,
 )
+
+# Max chars sent to LLM to stay under token limits
+# llama-3.3-70b-versatile has 6000 TPM on free tier
+# ~4 chars per token → 1500 tokens for transcript = 6000 chars safe limit
+MAX_TRANSCRIPT_CHARS = 4000
 
 
 def clean_json(raw: str) -> str:
     """Strip markdown fences and extract clean JSON"""
-    cleaned = re.sub(r"```(?:json)?\s*\n?", "", raw)
+    cleaned = re.sub(r"```(?:json)?\s*", "", raw)
     cleaned = cleaned.replace("```", "").strip()
-    start   = cleaned.find("{")
-    end     = cleaned.rfind("}") + 1
+    start = cleaned.find("{")
+    end   = cleaned.rfind("}") + 1
     if start != -1 and end > start:
         cleaned = cleaned[start:end]
     return cleaned.strip()
 
 
+def truncate_transcript(transcript: str, max_chars: int = MAX_TRANSCRIPT_CHARS) -> str:
+    """Truncate transcript to stay within token limits"""
+    if len(transcript) <= max_chars:
+        return transcript
+    print(f"⚠️  Transcript truncated: {len(transcript)} → {max_chars} chars")
+    return transcript[:max_chars] + "\n[...transcript truncated for length...]"
+
+
 async def extract_medical_data(transcript: str) -> dict:
-    context = retrieve_context(
-        f"medical history symptoms diagnosis medications {transcript[:400]}"
-    )
-    chain     = get_chain(EXTRACTION_PROMPT)
-    raw       = await chain.ainvoke({"context": context, "transcript": transcript})
+    # Use only first 200 chars for RAG query — just for context retrieval
+    rag_query = f"medical history symptoms diagnosis medications {transcript[:200]}"
+    context   = retrieve_context(rag_query)
+
+    # Truncate transcript before sending to LLM
+    truncated = truncate_transcript(transcript)
+
+    chain = get_chain(EXTRACTION_PROMPT)
+    raw   = await chain.ainvoke({
+        "context":    context,
+        "transcript": truncated,
+    })
+
+    # Debug log
     try:
-        return json.loads(clean_json(raw))
+        with open("debug_extract.log", "a", encoding="utf-8") as f:
+            f.write("\n" + "=" * 50 + "\n")
+            f.write(f"TRANSCRIPT LENGTH (original): {len(transcript)}\n")
+            f.write(f"TRANSCRIPT LENGTH (sent to LLM): {len(truncated)}\n")
+            f.write(f"RAW LLM OUTPUT:\n{raw}\n")
+            f.write("=" * 50 + "\n")
+    except Exception as e:
+        print(f"Failed to write debug log: {e}")
+
+    try:
+        data = json.loads(clean_json(raw))
+
+        # Normalize common LLM field name variations
+        if "medication" in data and "medications" not in data:
+            data["medications"] = data.pop("medication")
+        if "diagnosis" in data and "diagnoses" not in data:
+            data["diagnoses"] = data.pop("diagnosis")
+        if "symptom" in data and "symptoms" not in data:
+            data["symptoms"] = data.pop("symptom")
+
+        # Ensure required arrays always exist
+        data.setdefault("medications",         [])
+        data.setdefault("diagnoses",           [])
+        data.setdefault("symptoms",            [])
+        data.setdefault("investigations",      [])
+        data.setdefault("allergies",           [])
+        data.setdefault("past_medical_history",[])
+        data.setdefault("vital_signs",         {})
+        data.setdefault("follow_up", {
+            "timing": None,
+            "instructions": None,
+            "red_flags": [],
+        })
+
+        # Ensure medications are always dicts with a name field
+        cleaned_meds = []
+        for m in data["medications"]:
+            if isinstance(m, str) and m.strip():
+                cleaned_meds.append({"name": m, "dose": None,
+                                     "frequency": None, "duration": None,
+                                     "route": None, "instructions": None,
+                                     "status": "new"})
+            elif isinstance(m, dict) and m.get("name"):
+                cleaned_meds.append(m)
+        data["medications"] = cleaned_meds
+
+        return data
+
     except json.JSONDecodeError as e:
-        print(f"⚠️  Extraction parse error: {e} | raw[:200]: {raw[:200]}")
+        print(f"⚠️  Extraction parse error: {e} | raw[:300]: {raw[:300]}")
         return {
-            "error":       "parse_failed",
-            "symptoms":    [], "diagnoses": [], "medications": [],
-            "vital_signs": {}, "investigations": [], "allergies": [],
-            "follow_up":   {"timing": None, "instructions": None, "red_flags": []},
+            "error":               "parse_failed",
+            "symptoms":            [],
+            "diagnoses":           [],
+            "medications":         [],
+            "vital_signs":         {},
+            "investigations":      [],
+            "allergies":           [],
+            "past_medical_history":[],
+            "follow_up": {
+                "timing": None,
+                "instructions": None,
+                "red_flags": [],
+            },
         }
 
 
@@ -53,12 +129,17 @@ async def generate_soap_notes(
     diagnoses_text = " ".join(
         d.get("name", "") for d in extracted_data.get("diagnoses", [])
     )
-    context = retrieve_context(f"SOAP note clinical documentation {diagnoses_text}")
-    chain   = get_chain(SOAP_NOTES_PROMPT)
+    context = retrieve_context(
+        f"SOAP note clinical documentation {diagnoses_text}"
+    )
+    chain = get_chain(SOAP_NOTES_PROMPT)
+
+    truncated = truncate_transcript(transcript)
+
     return await chain.ainvoke({
         "context":        context,
-        "transcript":     transcript,
-        "extracted_data": json.dumps(extracted_data, indent=2),
+        "transcript":     truncated,
+        "extracted_data": json.dumps(extracted_data, indent=2)[:1000],
         "model_name":     model_name,
     })
 
@@ -68,46 +149,28 @@ async def generate_prescription(transcript: str, extracted_data: dict) -> dict:
     diagnoses   = extracted_data.get("diagnoses",   [])
     allergies   = extracted_data.get("allergies",   [])
 
-    if not medications:
-        return {
-            "medications":            [],
-            "investigations_ordered": [],
-            "note":                   "No medications prescribed in this consultation",
-            "allergy_summary":        f"Allergies: {', '.join(allergies) or 'None documented'}",
-        }
+    med_names  = " ".join(
+        m.get("name", "") if isinstance(m, dict) else str(m)
+        for m in medications
+    )
+    diag_names = " ".join(
+        d.get("name", "") if isinstance(d, dict) else str(d)
+        for d in diagnoses
+    )
 
-    med_names  = " ".join(m.get("name", "") for m in medications)
-    diag_names = " ".join(d.get("name", "") for d in diagnoses)
-
-    # ── RAG lookup 1: Drug dosing & prescription reference ──
+    # RAG context for drug dosing
     drug_context = retrieve_context(
-        f"prescription medications dosing warnings {med_names}"
-    )
-
-    # ── RAG lookup 2: Do's & don'ts, patient counselling ────
-    # This ensures do's/don'ts are always populated from the
-    # knowledge base even if the transcript has no such discussion
-    dos_donts_context = retrieve_context(
-        f"do's don'ts patient advice counselling lifestyle warnings "
-        f"side effects instructions {med_names} {diag_names}"
-    )
-
-    # ── RAG lookup 3: Lifestyle advice for diagnosis ─────────
-    lifestyle_context = retrieve_context(
-        f"lifestyle advice diet exercise smoking alcohol {diag_names}"
-    )
-
-    # Merge all three contexts for the LLM
-    combined_context = (
-        f"{drug_context}\n\n"
-        f"--- Patient Counselling, Do's & Don'ts ---\n{dos_donts_context}\n\n"
-        f"--- Lifestyle & General Advice ---\n{lifestyle_context}"
+        f"prescription medications dosing warnings {med_names} {diag_names}",
+        k=3,
     )
 
     chain = get_chain(PRESCRIPTION_PROMPT)
-    raw   = await chain.ainvoke({
-        "context":     combined_context,
-        "transcript":  transcript,
+
+    truncated = truncate_transcript(transcript, max_chars=2000)
+
+    raw = await chain.ainvoke({
+        "context":     drug_context,
+        "transcript":  truncated,
         "medications": json.dumps(medications, indent=2),
         "diagnoses":   json.dumps(diagnoses,   indent=2),
         "allergies":   json.dumps(allergies),
@@ -116,102 +179,38 @@ async def generate_prescription(transcript: str, extracted_data: dict) -> dict:
     try:
         result = json.loads(clean_json(raw))
 
-        # ── Post-processing: ensure every medication has do's & don'ts ──
-        # If LLM left dos_and_donts empty for any medication,
-        # fill it from a targeted knowledge base lookup
-        for med in result.get("medications", []):
-            dd = med.get("dos_and_donts", {})
-            has_dos   = bool(dd.get("dos"))
-            has_donts = bool(dd.get("donts"))
-
-            if not has_dos or not has_donts:
-                print(f"⚠️  dos_and_donts missing for {med.get('name')} — fetching from KB")
-                kb_context = retrieve_context(
-                    f"do's don'ts advice instructions warnings {med.get('name', '')} "
-                    f"patient counselling side effects"
-                )
-                # Ask LLM specifically for this one medication's do's & don'ts
-                fallback_chain = get_chain(PRESCRIPTION_PROMPT)
-                fallback_raw   = await fallback_chain.ainvoke({
-                    "context":     kb_context,
-                    "transcript":  transcript,
-                    "medications": json.dumps([med], indent=2),
-                    "diagnoses":   json.dumps(diagnoses, indent=2),
-                    "allergies":   json.dumps(allergies),
-                })
-                try:
-                    fallback = json.loads(clean_json(fallback_raw))
-                    fallback_meds = fallback.get("medications", [])
-                    if fallback_meds:
-                        fb_dd = fallback_meds[0].get("dos_and_donts", {})
-                        if not has_dos:
-                            med.setdefault("dos_and_donts", {})["dos"]   = fb_dd.get("dos", [])
-                        if not has_donts:
-                            med.setdefault("dos_and_donts", {})["donts"] = fb_dd.get("donts", [])
-                except (json.JSONDecodeError, IndexError):
-                    print(f"⚠️  Fallback parse failed for {med.get('name')}")
-
-        # ── Post-processing: ensure general_lifestyle_advice exists ──
-        if not result.get("general_lifestyle_advice"):
-            print("⚠️  general_lifestyle_advice missing — fetching from KB")
-            result["general_lifestyle_advice"] = _get_lifestyle_advice_from_kb(
-                med_names, diag_names
-            )
+        # Ensure required fields exist
+        result.setdefault("medications",           medications)
+        result.setdefault("investigations_ordered",[])
+        result.setdefault("follow_up",             None)
+        result.setdefault("prescriber_notes",      None)
+        result.setdefault("allergy_summary",
+            ", ".join(allergies) if allergies else "No known allergies")
 
         return result
 
-    except json.JSONDecodeError:
-        return {"error": "parse_failed", "medications": medications}
-
-
-def _get_lifestyle_advice_from_kb(med_names: str, diag_names: str) -> dict:
-    """
-    Synchronous fallback: pull lifestyle do's & don'ts directly
-    from the knowledge base without an extra LLM call.
-    Returns a structured dict with 'dos' and 'donts' lists.
-    """
-    context = retrieve_context(
-        f"lifestyle advice diet exercise smoking alcohol do's don'ts "
-        f"patient counselling {med_names} {diag_names}",
-        k=3,
-    )
-
-    # Parse out Do's and Don'ts sentences from the retrieved KB text
-    dos, donts = [], []
-    for line in context.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        lower = line.lower()
-        if lower.startswith("do'") or lower.startswith("- do") or lower.startswith("do:"):
-            dos.append(line.lstrip("- "))
-        elif lower.startswith("don't") or lower.startswith("- don't") or lower.startswith("avoid"):
-            donts.append(line.lstrip("- "))
-
-    # Provide generic fallbacks if parsing found nothing
-    if not dos:
-        dos = [
-            "Follow the prescribed medication schedule consistently",
-            "Maintain a balanced diet and stay well hydrated",
-            "Attend all scheduled follow-up appointments",
-            "Report any new or worsening symptoms to your doctor",
-        ]
-    if not donts:
-        donts = [
-            "Do not stop medications without consulting your doctor",
-            "Avoid alcohol unless cleared by your doctor",
-            "Do not self-medicate or adjust doses on your own",
-            "Avoid smoking — it worsens most medical conditions",
-        ]
-
-    return {"dos": dos, "donts": donts}
+    except json.JSONDecodeError as e:
+        print(f"⚠️  Prescription parse error: {e} | raw[:300]: {raw[:300]}")
+        # Return a valid fallback so frontend doesn't break
+        return {
+            "medications":           medications,
+            "investigations_ordered":[],
+            "follow_up":             None,
+            "prescriber_notes":      "AI generation failed — please fill manually",
+            "allergy_summary":
+                ", ".join(allergies) if allergies else "No known allergies",
+            "error":                 "parse_failed",
+        }
 
 
 async def answer_question(transcript: str, question: str) -> str:
     context = retrieve_context(question, k=3)
     chain   = get_chain(QA_PROMPT)
+
+    truncated = truncate_transcript(transcript, max_chars=2000)
+
     return await chain.ainvoke({
         "context":    context,
-        "transcript": transcript,
+        "transcript": truncated,
         "question":   question,
     })

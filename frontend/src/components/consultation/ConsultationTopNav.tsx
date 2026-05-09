@@ -21,64 +21,71 @@ export default function ConsultationTopNav({
     .join("");
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between max-w-[1400px] mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center">
-            <Activity className="w-6 h-6 text-white" />
+    <nav className="ctn-nav">
+      <div className="ctn-inner">
+
+        {/* Brand */}
+        <div className="ctn-brand">
+          <div className="ctn-brand-icon">
+            <Activity className="ctn-brand-activity" />
           </div>
-          <div>
-            <h1 className="text-xl font-semibold">MedScribe AI</h1>
-            <p className="text-xs text-muted-foreground">
-              Clinical Intelligence Platform
-            </p>
+          <div className="ctn-brand-text">
+            <h1 className="ctn-brand-name">MedScribe AI</h1>
+            <p className="ctn-brand-sub">Clinical Intelligence Platform</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => onNavigate("dashboard")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span className="text-sm">Dashboard</span>
-          </button>
+        {/* Nav links + user */}
+        <div className="ctn-right">
 
-          <button
-            onClick={() => onNavigate("history")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-          >
-            <History className="w-4 h-4" />
-            <span className="text-sm">History</span>
-          </button>
+          <div className="ctn-links">
+            <button
+              onClick={() => onNavigate("dashboard")}
+              className="ctn-link"
+            >
+              <LayoutDashboard className="ctn-link-icon" />
+              <span className="ctn-link-label">Dashboard</span>
+            </button>
 
-          <button
-            onClick={() => onNavigate("settings")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">Settings</span>
-          </button>
+            <button
+              onClick={() => onNavigate("history")}
+              className="ctn-link"
+            >
+              <History className="ctn-link-icon" />
+              <span className="ctn-link-label">History</span>
+            </button>
 
-          <div className="h-8 w-px bg-gray-200" />
+            <button
+              onClick={() => onNavigate("settings")}
+              className="ctn-link"
+            >
+              <Settings className="ctn-link-icon" />
+              <span className="ctn-link-label">Settings</span>
+            </button>
+          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm">{doctorName}</p>
-              <p className="text-xs text-muted-foreground">{doctorSubtitle}</p>
+          <div className="ctn-divider" />
+
+          {/* Doctor info */}
+          <div className="ctn-doctor">
+            <div className="ctn-doctor-text">
+              <p className="ctn-doctor-name">{doctorName}</p>
+              <p className="ctn-doctor-sub">{doctorSubtitle}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-[#14B8A6] flex items-center justify-center text-white">
+            <div className="ctn-doctor-avatar">
               {initials || "DR"}
             </div>
           </div>
 
+          {/* Logout */}
           <button
             onClick={onLogout}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-700"
+            className="ctn-logout"
             title="Logout"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="ctn-logout-icon" />
           </button>
+
         </div>
       </div>
     </nav>

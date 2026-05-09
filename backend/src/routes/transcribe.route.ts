@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import multer from "multer";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
@@ -10,25 +10,40 @@ const router = Router();
 // Load environment variables
 dotenv.config();
 
-// Validate required environment variables
-if (!process.env.ELEVENLABS_API_KEY) {
-  console.error("❌ ELEVENLABS_API_KEY is not set in environment variables");
-  process.exit(1);
-}
+// NLP Engine URL (Groq-powered FastAPI service)
+const NLP_ENGINE_URL = (
+  process.env.NLP_ENGINE_URL || "http://localhost:8000"
+).replace(/\/$/, "");
+
+console.log(`🔗 NLP Engine URL: ${NLP_ENGINE_URL}`);
 
 // Configure multer with file size limit
 const upload = multer({
   limits: {
-    fileSize: 25 * 1024 * 1024, // 25MB
+    fileSize: 50 * 1024 * 1024, // 25MB
   },
 });
 
-// Health check endpoint
-router.get("/health", (_req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
+// Health check endpoint — also pings the NLP engine
+router.get("/health", async (_req: Request, res: Response) => {
+  try {
+    const nlpRes = await fetch(`${NLP_ENGINE_URL}/health`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    const nlpHealth = await nlpRes.json();
+
+    res.json({
+      status: "ok",
+      nlp_engine: nlpHealth,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    res.json({
+      status: "ok",
+      nlp_engine: { status: "unreachable" },
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Helper: determine file extension from MIME type
@@ -41,30 +56,34 @@ const getExtension = (mime?: string): string => {
   return "webm";
 };
 
-// ElevenLabs transcription response interface
-interface ElevenLabsTranscriptionResponse {
-  text: string;
-  language_code: string;
-  words?: unknown[];
+// NLP Engine transcription response interface
+interface NLPTranscriptionResponse {
+  success: boolean;
+  transcript: string;
+  language: string;
+  duration: number | null;
 }
 
-// Transcription endpoint
+// Transcription endpoint — proxies audio to NLP Engine (Groq Whisper)
 router.post(
   "/transcribe",
   upload.single("audio"),
   async (req: Request, res: Response) => {
     try {
       const file = req.file;
-    console.log("🚀 /transcribe called");
+      console.log("🚀 /transcribe called");
+
       if (!file) {
         return res.status(400).json({
           success: false,
           error: "No audio file uploaded",
         });
       }
-    console.log(`📥 Received file: ${file.originalname}, size: ${file.size} bytes`);
 
-    
+      console.log(
+        `📥 Received file: ${file.originalname}, size: ${file.size} bytes`
+      );
+
       const audioBuffer: Buffer = file.buffer;
       const mimeType: string | undefined = file.mimetype;
       const ext = getExtension(mimeType);
@@ -73,33 +92,31 @@ router.post(
         `📝 Received audio: ${audioBuffer.length} bytes, Type: ${mimeType}`
       );
 
-      // Build form data
+      // Build form data for the NLP Engine
       const formData = new FormData();
-      formData.append("file", audioBuffer, {
+      formData.append("audio", audioBuffer, {
         filename: `recording.${ext}`,
         contentType: mimeType || "audio/webm",
       });
-      formData.append("model_id", "scribe_v1");
-      formData.append("language_code", "en"); // Force English
-      formData.append("diarize", "true");     // Enable diarization
+      formData.append("language", "en");
 
-      console.log("📤 Sending audio to ElevenLabs (language: en)...");
+      console.log(`📤 Sending audio to NLP Engine: ${NLP_ENGINE_URL}/transcribe`);
 
-      const response = await fetch(
-        "https://api.elevenlabs.io/v1/speech-to-text",
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": process.env.ELEVENLABS_API_KEY as string,
-            ...formData.getHeaders(),
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(`${NLP_ENGINE_URL}/transcribe`, {
+        method: "POST",
+        headers: {
+          ...formData.getHeaders(),
+        },
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ ElevenLabs API Error:", response.status, errorText);
+        console.error(
+          "❌ NLP Engine transcription error:",
+          response.status,
+          errorText
+        );
 
         return res.status(response.status).json({
           success: false,
@@ -108,22 +125,38 @@ router.post(
         });
       }
 
-      // Parse response and assert type
+      // Parse NLP Engine response
       const rawData: unknown = await response.json();
-      const data = rawData as ElevenLabsTranscriptionResponse;
+      const data = rawData as NLPTranscriptionResponse;
 
-      console.log("✅ Transcription:", data.text);
-      console.log("🌍 Language:", data.language_code);
+      console.log("✅ Transcription:", data.transcript?.slice(0, 80), "...");
+      console.log("🌍 Language:", data.language);
+      console.log("⏱️  Duration:", data.duration, "seconds");
 
+      // Map to the shape the frontend expects (text, language, words)
       res.json({
         success: true,
-        text: data.text,
-        language: data.language_code,
-        words: data.words,
+        text: data.transcript,
+        language: data.language,
+        duration: data.duration,
+        words: [], // Groq Whisper doesn't return word-level timestamps in this mode
       });
     } catch (err) {
       const error = err as Error;
-      console.error("❌ Error:", error.message);
+      console.error("❌ Transcription proxy error:", error.message);
+
+      // Distinguish NLP engine connection errors from other failures
+      if (
+        error.message.includes("ECONNREFUSED") ||
+        error.message.includes("fetch failed")
+      ) {
+        return res.status(503).json({
+          success: false,
+          error:
+            "NLP Engine is not running. Start it with: cd nlp_engine && python main.py",
+          details: error.message,
+        });
+      }
 
       res.status(500).json({
         success: false,
@@ -132,7 +165,5 @@ router.post(
     }
   }
 );
-
-
 
 export default router;

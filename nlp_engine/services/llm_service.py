@@ -1,11 +1,9 @@
 # ============================================================
-# LLM Service — Groq Llama + Prompt Templates
+# LLM Service — Groq LLaMA + Prompt Templates
 # ============================================================
 from langchain_groq import ChatGroq
-
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-
 
 # Shared LLM instance (initialized at startup)
 llm: ChatGroq = None
@@ -17,8 +15,8 @@ def init_llm(api_key: str, model: str) -> None:
     llm = ChatGroq(
         api_key=api_key,
         model_name=model,
-        temperature=0.2,
-        max_tokens=4096,
+        temperature=0.1,
+        max_tokens=1500,
     )
     print(f"✅ Groq LLM ready: {model}")
 
@@ -33,10 +31,11 @@ Medical Knowledge Context:
 {context}
 
 STRICT RULES:
-1. Extract ONLY information explicitly stated in the transcript
-2. Never infer or hallucinate medical data
-3. Use null for missing fields — never guess
-4. Return ONLY valid JSON — no markdown, no explanation"""),
+1. Extract ALL medical data mentioned: symptoms, vitals, diagnoses, medications.
+2. If a doctor mentions a medication name, extract it even if dose is missing.
+3. Use null for missing specific fields like dose but keep the medication name.
+4. Never infer or hallucinate medical data not in the transcript.
+5. Return ONLY valid JSON — no markdown, no preamble, no explanation."""),
 
     ("human", """Extract all medical information from this transcript.
 
@@ -56,28 +55,21 @@ Return this exact JSON (no markdown, no extra text):
       "duration": "string or null",
       "severity": "string or null",
       "location": "string or null",
-      "character": "string or null",
-      "onset": "string or null",
-      "aggravating_factors": "string or null",
-      "relieving_factors": "string or null"
+      "onset": "string or null"
     }}
   ],
   "vital_signs": {{
     "blood_pressure": "string or null",
     "heart_rate": "string or null",
-    "respiratory_rate": "string or null",
     "temperature": "string or null",
     "spo2": "string or null",
-    "weight": "string or null",
-    "height": "string or null",
-    "bmi": "string or null",
-    "blood_glucose": "string or null"
+    "weight": "string or null"
   }},
   "diagnoses": [
     {{
       "name": "string",
       "icd10_code": "string or null",
-      "type": "primary or differential or rule_out",
+      "type": "primary or differential",
       "confidence": "confirmed or suspected or possible"
     }}
   ],
@@ -90,7 +82,7 @@ Return this exact JSON (no markdown, no extra text):
       "duration": "string or null",
       "route": "string or null",
       "instructions": "string or null",
-      "status": "new or continue or stop or change"
+      "status": "new or continue or stop"
     }}
   ],
   "investigations": [
@@ -103,24 +95,11 @@ Return this exact JSON (no markdown, no extra text):
   ],
   "allergies": ["string"],
   "past_medical_history": ["string"],
-  "social_history": {{
-    "smoking": "string or null",
-    "alcohol": "string or null",
-    "occupation": "string or null",
-    "other": "string or null"
-  }},
   "follow_up": {{
     "timing": "string or null",
     "instructions": "string or null",
     "red_flags": ["string"]
-  }},
-  "referrals": [
-    {{
-      "specialty": "string",
-      "reason": "string or null",
-      "urgency": "routine or urgent or emergency"
-    }}
-  ]
+  }}
 }}""")
 ])
 
@@ -136,9 +115,9 @@ RULES:
 - Use proper medical terminology
 - Only document what is in the transcript
 - Mark missing critical items as [NOT DOCUMENTED]
-- Use standard abbreviations (PRN, BD, TDS, PO, etc.)"""),
+- Be concise — stay under 800 words total"""),
 
-    ("human", """Generate a complete SOAP note from:
+    ("human", """Generate a SOAP note from:
 
 TRANSCRIPT:
 {transcript}
@@ -152,34 +131,23 @@ Format:
 Chief Complaint: [CC]
 History of Present Illness: [HPI]
 Past Medical History: [PMH]
-Current Medications: [list]
 Allergies: [list or NKDA]
-Social History: [relevant]
 
 **OBJECTIVE:**
 Vital Signs: [all documented vitals]
 Physical Examination: [findings or NOT DOCUMENTED]
-Investigations/Results: [results if discussed]
 
 **ASSESSMENT:**
-Primary Diagnosis: [with ICD-10]
-Differential Diagnoses: [if mentioned]
+Primary Diagnosis: [with ICD-10 if available]
 Clinical Reasoning: [brief]
 
 **PLAN:**
-Medications:
-[numbered list with full dosing]
-
-Investigations Ordered:
-[numbered list]
-
-Referrals: [if any]
-Patient Education: [what patient was told]
+Medications: [numbered list with dosing]
+Investigations: [if ordered]
 Follow-up: [timing and instructions]
-Red Flags to Return: [emergency warning signs]
 
 ---
-*AI-Generated — Requires physician review and countersignature*
+*AI-Generated — Requires physician review*
 *MedScribe AI | {model_name}*""")
 ])
 
@@ -192,10 +160,9 @@ Drug Reference:
 {context}
 
 SAFETY RULES:
-1. NEVER add medications not in the transcript
-2. Include complete dosing for every medication
-3. Flag missing details as [VERIFY WITH DOCTOR]
-4. Return ONLY valid JSON — no markdown"""),
+1. NEVER add medications not mentioned in the transcript or medications list
+2. Include dosing for every medication
+3. Return ONLY valid JSON — no markdown, no explanation"""),
 
     ("human", """Generate prescription from:
 
@@ -213,27 +180,25 @@ PATIENT ALLERGIES:
 
 Return this exact JSON (no markdown):
 {{
-  "prescription_date": "[TO BE COMPLETED BY PHYSICIAN]",
   "medications": [
     {{
       "name": "string",
-      "generic_name": "string",
+      "generic_name": "string or null",
       "brand_examples": ["string"],
-      "strength": "string",
-      "dosage_form": "tablet or capsule or syrup or injection or inhaler or cream or drops",
+      "strength": "string or null",
+      "dosage_form": "tablet or capsule or syrup or injection or inhaler or cream",
       "dose": "string",
-      "route": "oral or IV or IM or topical or sublingual or inhaled",
+      "route": "oral or IV or IM or topical or inhaled",
       "frequency": "string",
       "duration": "string",
-      "quantity_to_dispense": "string",
-      "refills": "0",
+      "quantity_to_dispense": "string or null",
       "instructions": "string",
       "warnings": ["string"],
       "allergy_flag": "string or null"
     }}
   ],
   "investigations_ordered": ["string"],
-  "follow_up": "string",
+  "follow_up": "string or null",
   "prescriber_notes": "string or null",
   "allergy_summary": "string"
 }}""")
@@ -242,7 +207,7 @@ Return this exact JSON (no markdown):
 
 QA_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """You are MedScribe AI, helping doctors review consultation records.
-Answer questions about the consultation based on the transcript.
+Answer questions about the consultation based on the transcript only.
 
 Medical Context:
 {context}

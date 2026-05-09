@@ -18,7 +18,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
-import Sidebar from "./layout/Sidebar";
+// import Sidebar from "./layout/Sidebar";
 
 // ─────────────────────────────────────────────────────────────
 // TYPES — untouched
@@ -414,19 +414,8 @@ export function DoctorDashboard({
   // ─────────────────────────────────────────────────────────
 
   return (
-    <div className="page-root">
-      <Sidebar
-        currentPage="doctor-dashboard"
-        onNavigate={onNavigate}
-        onLogout={onLogout}
-        userRole="doctor"
-        userName={doctorName}
-        userSubtitle={specialization}
-      />
-
-      <div className="page-main">
-
-        {/* ── HEADER ── */}
+    <>
+      {/* ── HEADER ── */}
         <div className="page-header">
           <div className="page-header-top">
             <div className="page-header-left">
@@ -1038,9 +1027,7 @@ export function DoctorDashboard({
               )}
             </div>
           )}
-
         </div>
-      </div>
-    </div>
-  );
-}
+      </>
+    );
+  }

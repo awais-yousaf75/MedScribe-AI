@@ -13,16 +13,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
-
-
 # ── Load environment ───────────────────────────────────────
 load_dotenv()
 
-GROQ_API_KEY    = os.getenv("GROQ_API_KEY",    "")
-PORT            = int(os.getenv("PORT",         "8000"))
-GROQ_STT_MODEL  = os.getenv("GROQ_STT_MODEL",  "whisper-large-v3-turbo")
-GROQ_LLM_MODEL  = os.getenv("GROQ_LLM_MODEL",  "llama-3.3-70b-versatile")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL",  "all-MiniLM-L6-v2")
+GROQ_API_KEY    = os.getenv("GROQ_API_KEY", "")
+PORT            = int(os.getenv("PORT", "8000"))
+GROQ_STT_MODEL  = os.getenv("GROQ_STT_MODEL", "whisper-large-v3-turbo")
+GROQ_LLM_MODEL = os.getenv("GROQ_LLM_MODEL", "llama-3.3-70b-versatile")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 
 if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY not set in nlp-engine/.env")
@@ -38,25 +36,20 @@ from knowledge_base.medical_kb import MEDICAL_KNOWLEDGE_BASE
 # ── Startup / Shutdown ─────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize all services once at startup"""
     print("\n🚀 MedScribe AI NLP Engine starting...")
 
-    # 1. Groq clients
     stt_service.groq_client = Groq(api_key=GROQ_API_KEY)
     print(f"✅ Groq STT client ready: {GROQ_STT_MODEL}")
 
-    # 2. Groq LLM
     llm_service.init_llm(api_key=GROQ_API_KEY, model=GROQ_LLM_MODEL)
 
-    # 3. FAISS vector store
     rag.build_vector_store(MEDICAL_KNOWLEDGE_BASE, EMBEDDING_MODEL)
 
     print(f"\n✅ Engine ready on http://localhost:{PORT}")
     print(f"   Docs: http://localhost:{PORT}/docs\n")
 
-    yield  # App runs here
+    yield
 
-    # Cleanup (if needed)
     print("👋 Engine shutting down")
 
 
@@ -71,8 +64,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",   # React frontend
-        "http://localhost:5000",   # Express backend
+        "http://localhost:3000",
+        "http://localhost:5000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -131,7 +124,10 @@ async def transcribe(
     if not audio_bytes:
         raise HTTPException(400, "Empty audio file")
     if len(audio_bytes) > 25 * 1024 * 1024:
-        raise HTTPException(413, f"File too large: {len(audio_bytes)/1024/1024:.1f}MB (max 25MB)")
+        raise HTTPException(
+            413,
+            f"File too large: {len(audio_bytes)/1024/1024:.1f}MB (max 25MB)"
+        )
 
     print(f"📨 Transcribe: {audio.filename} | {len(audio_bytes)/1024:.1f}KB")
 
@@ -204,7 +200,9 @@ async def prescription(request: PrescriptionRequest):
     print(f"📨 Prescription: consultation={request.consultation_id}")
     start = time.time()
 
-    rx = await proc.generate_prescription(request.transcript, request.extracted_data)
+    rx = await proc.generate_prescription(
+        request.transcript, request.extracted_data
+    )
 
     return {
         "success":                 True,
@@ -250,14 +248,16 @@ async def pipeline(request: PipelineRequest):
 
     # Step 2: SOAP Notes
     result["notes"] = (
-        await proc.generate_soap_notes(request.transcript, extracted, GROQ_LLM_MODEL)
+        await proc.generate_soap_notes(
+            request.transcript, extracted, GROQ_LLM_MODEL
+        )
         if request.generate_notes else None
     )
 
     # Step 3: Prescription
     result["prescription"] = (
         await proc.generate_prescription(request.transcript, extracted)
-        if request.generate_prescription and extracted.get("medications")
+        if request.generate_prescription
         else None
     )
 
@@ -275,6 +275,6 @@ if __name__ == "__main__":
         "main:app",
         host="127.0.0.1",
         port=PORT,
-        reload=True,       # Auto-restart on code changes during dev
+        reload=True,
         log_level="info",
     )
