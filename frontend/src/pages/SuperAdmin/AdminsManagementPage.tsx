@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Shield,
   Search,
@@ -13,9 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface AdminsManagementPageProps {
-  onNavigate: (page: string) => void;
-}
+interface AdminsManagementPageProps {}
 
 type HospitalAdmin = {
   id: string;
@@ -29,10 +28,9 @@ type HospitalAdmin = {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function AdminsManagementPage({
-  onNavigate: _onNavigate,
-}: AdminsManagementPageProps) {
-  const [admins,      setAdmins]      = useState<HospitalAdmin[]>([]);
+export function AdminsManagementPage({}: AdminsManagementPageProps) {
+  const navigate = useNavigate();
+  const [admins,       setAdmins]       = useState<HospitalAdmin[]>([]);
   const [loading,     setLoading]     = useState(false);
   const [deletingId,  setDeletingId]  = useState<string | null>(null);
   const [searchAdmins,  setSearchAdmins]  = useState("");

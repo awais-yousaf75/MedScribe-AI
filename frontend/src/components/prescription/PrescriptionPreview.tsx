@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Download,
   Send,
   Printer,
   User,
-  Calendar,
   FileText,
   Loader2,
   AlertCircle,
@@ -53,7 +53,6 @@ interface PrescriptionPreviewProps {
   recordingData: any;
   extractedData: any;
   pregeneratedData?: any;
-  onNavigate: (page: any) => void;
   onLogout: () => void;
   doctorInfo?: DoctorInfo;
   hospitalInfo?: HospitalInfo;
@@ -68,12 +67,12 @@ export default function PrescriptionPreview({
   recordingData,
   extractedData,
   pregeneratedData,
-  onNavigate,
   onLogout: _onLogout,
   doctorInfo,
   hospitalInfo,
   patientInfo,
 }: PrescriptionPreviewProps) {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [prescriptionData, setPrescriptionData] = useState<any>(null);
@@ -425,7 +424,7 @@ export default function PrescriptionPreview({
               <p className="aix-state-sub">{error}</p>
             </div>
             <div className="aix-state-actions">
-              <Button variant="outline" onClick={() => onNavigate("notes")}>
+              <Button variant="outline" onClick={() => navigate("/doctor/notes")}>
                 Back to Notes
               </Button>
               <Button onClick={() => generatePrescription(recordingData?.transcript)}>
@@ -1007,7 +1006,7 @@ export default function PrescriptionPreview({
         <div className="pp-footer no-print">
           <Button
             variant="outline"
-            onClick={() => onNavigate("notes")}
+            onClick={() => navigate("/doctor/notes")}
             className="pp-footer-back"
           >
             Back to Notes
@@ -1015,7 +1014,7 @@ export default function PrescriptionPreview({
           <div className="pp-footer-right">
             <Button
               variant="outline"
-              onClick={() => onNavigate("doctor-dashboard")}
+              onClick={() => navigate("/doctor/dashboard")}
               className="pp-footer-secondary"
             >
               Back to Dashboard
@@ -1024,10 +1023,10 @@ export default function PrescriptionPreview({
               onClick={() => {
                 if (!isSent) {
                   handleSendToPatient().then(() => {
-                    onNavigate("doctor-dashboard");
+                    navigate("/doctor/dashboard");
                   });
                 } else {
-                  onNavigate("doctor-dashboard");
+                  navigate("/doctor/dashboard");
                 }
               }}
               className="pp-footer-primary"

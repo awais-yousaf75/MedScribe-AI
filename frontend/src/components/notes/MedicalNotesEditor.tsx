@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Activity, Save, FileText, History as HistoryIcon, Sparkles, LayoutDashboard, History, Settings, LogOut, Download, Loader2, Brain, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
@@ -8,14 +9,14 @@ interface MedicalNotesEditorProps {
   patientName: string;
   recordingData: any;
   extractedData: any;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const BASE_URL = API_URL.replace(/\/$/, "");
 
-export default function MedicalNotesEditor({ patientName, recordingData, extractedData, onNavigate, onLogout }: MedicalNotesEditorProps) {
+export default function MedicalNotesEditor({ patientName, recordingData, extractedData, onLogout }: MedicalNotesEditorProps) {
+  const navigate = useNavigate();
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,7 +142,7 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
             <p className="text-muted-foreground">{error}</p>
           </div>
           <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => onNavigate('extraction')}>
+            <Button variant="outline" onClick={() => navigate('/doctor/extraction')}>
               Back to Extraction
             </Button>
             <Button
@@ -173,21 +174,21 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
 
           <div className="flex items-center gap-6">
             <button
-              onClick={() => onNavigate('doctor-dashboard')}
+              onClick={() => navigate('/doctor/dashboard')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="text-sm">Dashboard</span>
             </button>
             <button
-              onClick={() => onNavigate('history')}
+              onClick={() => navigate('/doctor/history')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <History className="w-4 h-4" />
               <span className="text-sm">History</span>
             </button>
             <button
-              onClick={() => onNavigate('settings')}
+              onClick={() => navigate('/doctor/settings')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <Settings className="w-4 h-4" />
@@ -267,7 +268,7 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
             <div className="flex items-center justify-between">
               <Button
                 variant="outline"
-                onClick={() => onNavigate('extraction')}
+                onClick={() => navigate('/doctor/extraction')}
                 className="px-6 h-12 rounded-xl"
               >
                 Back to AI Insights
@@ -284,7 +285,7 @@ export default function MedicalNotesEditor({ patientName, recordingData, extract
                   Save Notes
                 </Button>
                 <Button
-                  onClick={() => onNavigate('prescription')}
+                  onClick={() => navigate('/doctor/prescription')}
                   className="px-6 h-12 bg-gradient-to-r from-[#2563EB] to-[#14B8A6] hover:opacity-90"
                 >
                   Continue to Prescription

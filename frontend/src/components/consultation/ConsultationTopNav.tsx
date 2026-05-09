@@ -1,18 +1,18 @@
 import { Activity, LayoutDashboard, History, Settings, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ConsultationTopNavProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   doctorName?: string;
   doctorSubtitle?: string;
 }
 
 export default function ConsultationTopNav({
-  onNavigate,
   onLogout,
   doctorName = "Doctor",
   doctorSubtitle = "MedScribe AI",
 }: ConsultationTopNavProps) {
+  const navigate = useNavigate();
   const initials = doctorName
     .split(" ")
     .filter(Boolean)
@@ -40,7 +40,7 @@ export default function ConsultationTopNav({
 
           <div className="ctn-links">
             <button
-              onClick={() => onNavigate("dashboard")}
+              onClick={() => navigate("/doctor/dashboard")}
               className="ctn-link"
             >
               <LayoutDashboard className="ctn-link-icon" />
@@ -48,7 +48,7 @@ export default function ConsultationTopNav({
             </button>
 
             <button
-              onClick={() => onNavigate("history")}
+              onClick={() => navigate("/doctor/history")}
               className="ctn-link"
             >
               <History className="ctn-link-icon" />
@@ -56,7 +56,7 @@ export default function ConsultationTopNav({
             </button>
 
             <button
-              onClick={() => onNavigate("settings")}
+              onClick={() => navigate("/doctor/settings")}
               className="ctn-link"
             >
               <Settings className="ctn-link-icon" />

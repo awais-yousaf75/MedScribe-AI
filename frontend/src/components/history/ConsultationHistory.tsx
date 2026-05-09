@@ -32,8 +32,7 @@ import {
 import { toast } from "sonner";
 
 interface ConsultationHistoryProps {
-    onNavigate: (page: string) => void;
-    onLogout: () => void;
+  onLogout: () => void;
 }
 
 interface Patient {
@@ -79,7 +78,6 @@ const BASE_URL = API_URL.replace(/\/$/, "");
 type DateFilter = "all" | "7d" | "30d" | "90d" | "1y";
 
 export default function ConsultationHistory({
-    onNavigate: _onNavigate,
     onLogout: _onLogout,
 }: ConsultationHistoryProps) {
     /* ── State ── */

@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Activity,
   Users,
@@ -9,8 +10,6 @@ import {
 } from "lucide-react";
 
 interface AssistantSidebarProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   userRole?: string;
   userName?: string;
@@ -43,13 +42,15 @@ const menuItems = [
 ];
 
 export function AssistantSidebar({
-  currentPage,
-  onNavigate,
   onLogout,
   userName = "Assistant",
   userSubtitle = "Doctor Assistant",
   pendingCount = 0,
 }: AssistantSidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const rawPage = location.pathname.split("/").pop() || "search-patient";
+  const currentPage = rawPage === "assistant" ? "assistant-search-patient" : `assistant-${rawPage}`;
   const initials = userName
     .split(" ")
     .map((n) => n[0])
@@ -91,7 +92,7 @@ export function AssistantSidebar({
             <button
               key={item.id}
               type="button"
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(`/assistant/${item.id.replace('assistant-', '')}`)}
               className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
             >
               <Icon className="sidebar-nav-icon" />

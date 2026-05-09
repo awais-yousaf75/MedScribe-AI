@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Activity, User, Building2, Lock, Mail, Phone, Camera, LayoutDashboard, History, Settings as SettingsIcon, LogOut, Moon, Sun } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -6,11 +7,11 @@ import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
 
 interface SettingsPageProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export default function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
+export default function SettingsPage({ onLogout }: SettingsPageProps) {
+  const navigate = useNavigate();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [profile, setProfile] = useState({
     fullName: 'Dr. Ahmed Hassan',
@@ -54,21 +55,21 @@ export default function SettingsPage({ onNavigate, onLogout }: SettingsPageProps
 
           <div className="flex items-center gap-6">
             <button
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => navigate('/doctor/dashboard')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="text-sm">Dashboard</span>
             </button>
             <button
-              onClick={() => onNavigate('history')}
+              onClick={() => navigate('/doctor/history')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <History className="w-4 h-4" />
               <span className="text-sm">History</span>
             </button>
             <button
-              onClick={() => onNavigate('settings')}
+              onClick={() => navigate('/doctor/settings')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-[#2563EB]"
             >
               <SettingsIcon className="w-4 h-4" />

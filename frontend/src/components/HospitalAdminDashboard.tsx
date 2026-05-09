@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import HospitalAdminSidebar from "./layout/HospitalAdminSidebar";
 import OverviewPage         from "../pages/HospitalAdmin/OverviewPage";
 import HospitalProfilePage  from "../pages/HospitalAdmin/HospitalProfilePage";
@@ -8,7 +9,6 @@ import DoctorsPage          from "../pages/HospitalAdmin/DoctorsPage";
 import { toast }            from "sonner";
 
 interface HospitalAdminDashboardProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
@@ -32,15 +32,10 @@ type DashboardData = {
   };
 };
 
-type AdminPage =
-  | "overview"
-  | "doctors"
-  | "assistants"
-  | "hospital-profile"
-  | "settings";
+
 
 export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps) {
-  const [page,        setPage]        = useState<AdminPage>("overview");
+  const location = useLocation();
   const [dashboard,   setDashboard]   = useState<DashboardData | null>(null);
   const [loadingDash, setLoadingDash] = useState(false);
 
@@ -74,26 +69,30 @@ export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps
   return (
     <div className="page-root">
       <HospitalAdminSidebar
-        currentPage={page}
-        onNavigate={(id) => setPage(id as AdminPage)}
         onLogout={onLogout}
         userName={userName}
         subtitle={subtitle}
       />
 
       <main className="page-main">
-        {page === "overview" && (
-          <OverviewPage
-            dashboard={dashboard}
-            loading={loadingDash}
-            onRefresh={fetchDashboard}
-            onNavigate={(p) => setPage(p as AdminPage)}
+        <Routes>
+          <Route path="/" element={<Navigate to="/hospital-admin/overview" replace />} />
+          <Route 
+            path="overview" 
+            element={
+              <OverviewPage
+                dashboard={dashboard}
+                loading={loadingDash}
+                onRefresh={fetchDashboard}
+              />
+            } 
           />
-        )}
-        {page === "doctors"          && <DoctorsPage onRefreshGlobal={fetchDashboard} />}
-        {page === "assistants"       && <AssistantsPage onRefreshGlobal={fetchDashboard} />}
-        {page === "hospital-profile" && <HospitalProfilePage />}
-        {page === "settings"         && <SettingsPage />}
+          <Route path="doctors" element={<DoctorsPage onRefreshGlobal={fetchDashboard} />} />
+          <Route path="assistants" element={<AssistantsPage onRefreshGlobal={fetchDashboard} />} />
+          <Route path="hospital-profile" element={<HospitalProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/hospital-admin/overview" replace />} />
+        </Routes>
       </main>
     </div>
   );

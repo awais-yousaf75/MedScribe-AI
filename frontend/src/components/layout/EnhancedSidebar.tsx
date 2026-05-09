@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Activity,
   Shield,
@@ -9,8 +10,6 @@ import {
 } from "lucide-react";
 
 interface EnhancedSidebarProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   userRole?: string;
   userName?: string;
@@ -41,13 +40,14 @@ const menuItems = [
 ];
 
 export function EnhancedSidebar({
-  currentPage,
-  onNavigate,
   onLogout,
   userRole = "super_admin",
   userName = "Admin",
   userSubtitle = "System Administrator",
 }: EnhancedSidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPage = location.pathname.split("/").pop() || "dashboard";
   const initials = userName
     .split(" ")
     .map((n) => n[0])
@@ -87,7 +87,7 @@ export function EnhancedSidebar({
             <button
               key={item.id}
               type="button"
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(`/super-admin/${item.id}`)}
               className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
             >
               <Icon className="sidebar-nav-icon" />

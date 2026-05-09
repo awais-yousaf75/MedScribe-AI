@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Activity } from "lucide-react";
 import { toast } from "sonner";
 
 interface LoginPageProps {
   onLogin: () => void;
-  onNavigateToRegister: () => void;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
+export function LoginPage({ onLogin }: LoginPageProps) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);

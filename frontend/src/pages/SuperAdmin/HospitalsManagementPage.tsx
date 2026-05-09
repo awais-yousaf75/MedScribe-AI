@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Building2,
   Search,
@@ -12,9 +13,8 @@ import {
 import { toast } from "sonner";
 
 interface HospitalsManagementPageProps {
-  onViewDetail: (hospitalId: string) => void;
-  onNavigate:  (page: string) => void;
-}
+
+  }
 
 type SystemHospital = {
   id: string;
@@ -41,10 +41,9 @@ type SystemHospital = {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function HospitalsManagementPage({
-  onViewDetail,
-  onNavigate,
-}: HospitalsManagementPageProps) {
+export function HospitalsManagementPage({}: HospitalsManagementPageProps) {
+
+  const navigate = useNavigate();
   const [allHospitals,          setAllHospitals]          = useState<SystemHospital[]>([]);
   const [loading,               setLoading]               = useState(false);
   const [searchHospitals,       setSearchHospitals]       = useState("");
@@ -118,7 +117,7 @@ export function HospitalsManagementPage({
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => onNavigate("register-hospital")}
+              onClick={() => navigate(`../${"register-hospital".replace(/['"]/g, '')}`)}
             >
               <Plus size={15} />
               Register Hospital
@@ -184,10 +183,10 @@ export function HospitalsManagementPage({
               <div
                 key={hospital.id}
                 className="hm-card ms-card-hover"
-                onClick={() => onViewDetail(hospital.id)}
+                onClick={() => navigate(`../hospital-detail/${hospital.id}`)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && onViewDetail(hospital.id)}
+                onKeyDown={(e) => e.key === "Enter" && navigate(`../hospital-detail/${hospital.id}`)}
               >
                 {/* Card Top */}
                 <div className="hm-card-top">
@@ -246,7 +245,7 @@ export function HospitalsManagementPage({
                   className="btn btn-secondary btn-sm hm-view-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onViewDetail(hospital.id);
+                    navigate(`../hospital-detail/${hospital.id}`);
                   }}
                 >
                   <Eye size={14} />

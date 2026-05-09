@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Brain,
   Edit2,
@@ -15,7 +16,6 @@ import { toast } from "sonner";
 interface AIExtractionProps {
   patientName: string;
   recordingData: any;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   onExtractionComplete?: (data: any) => void;
 }
@@ -26,10 +26,10 @@ const BASE_URL = API_URL.replace(/\/$/, "");
 export default function AIExtraction({
   patientName,
   recordingData,
-  onNavigate,
   onLogout: _onLogout,
   onExtractionComplete,
 }: AIExtractionProps) {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<any>(null);
@@ -178,8 +178,8 @@ export default function AIExtraction({
     setIsEditing({ ...isEditing, [field]: !isEditing[field] });
   };
 
-  const handleSave = () => onNavigate("notes");
-  const handleGeneratePrescription = () => onNavigate("prescription");
+  const handleSave = () => navigate("/doctor/notes");
+  const handleGeneratePrescription = () => navigate("/doctor/prescription");
 
   /* ── Loading ── */
   if (isLoading) {
@@ -255,7 +255,7 @@ export default function AIExtraction({
             <div className="aix-state-actions">
               <Button
                 variant="outline"
-                onClick={() => onNavigate("transcript")}
+                onClick={() => navigate("/doctor/transcript")}
               >
                 Back to Transcript
               </Button>
@@ -456,7 +456,7 @@ export default function AIExtraction({
         <div className="aix-footer">
           <Button
             variant="outline"
-            onClick={() => onNavigate("transcript")}
+            onClick={() => navigate("/doctor/transcript")}
             className="aix-footer-back"
           >
             Back to Transcript

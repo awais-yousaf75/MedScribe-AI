@@ -1,5 +1,5 @@
-// pages/HospitalRegistrationPage.tsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Plus,
@@ -19,15 +19,12 @@ interface RegistrationFormData {
   hospitalTypes: string[];
 }
 
-interface HospitalRegistrationPageProps {
-  onBack: () => void;
-}
+interface HospitalRegistrationPageProps {}
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function HospitalRegistrationPage({
-  onBack,
-}: HospitalRegistrationPageProps) {
+export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     admin_email: "",
     admin_password: "",
@@ -214,7 +211,7 @@ export function HospitalRegistrationPage({
       setCurrentStep(1);
 
       setTimeout(() => {
-        onBack();
+        navigate(-1);
       }, 1500);
     } catch (err: any) {
       console.error(err);
@@ -231,7 +228,7 @@ export function HospitalRegistrationPage({
         <div className="hr-header-inner">
           <div className="hr-header-content">
             <button
-              onClick={onBack}
+              onClick={() => navigate(-1)}
               className="hr-back-btn"
               title="Go back"
               type="button"
@@ -754,7 +751,7 @@ export function HospitalRegistrationPage({
             )}
             <button
               type="button"
-              onClick={onBack}
+              onClick={() => navigate(-1)}
               disabled={loading}
               className="hr-btn hr-btn-outline hr-btn-full"
             >

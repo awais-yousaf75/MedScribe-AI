@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -44,14 +45,13 @@ interface Hospital {
   assistants_count?: number;
 }
 
-interface HospitalDetailPageProps {
-  hospitalId: string;
-  onBack: () => void;
-}
+interface HospitalDetailPageProps {}
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPageProps) {
+export function HospitalDetailPage({}: HospitalDetailPageProps) {
+  const { id: hospitalId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [hospital,       setHospital]       = useState<Hospital | null>(null);
   const [loading,        setLoading]        = useState(true);
   const [error,          setError]          = useState<string | null>(null);
@@ -166,7 +166,7 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
           <button
             type="button"
             className="btn btn-ghost btn-sm hd-back-btn"
-            onClick={onBack}
+            onClick={() => navigate(-1)}
           >
             <ArrowLeft size={15} />
             Back to list
@@ -367,7 +367,7 @@ export function HospitalDetailPage({ hospitalId, onBack }: HospitalDetailPagePro
         <button
           type="button"
           className="btn btn-ghost btn-sm hd-back-btn"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
         >
           <ArrowLeft size={15} />
           Back to list

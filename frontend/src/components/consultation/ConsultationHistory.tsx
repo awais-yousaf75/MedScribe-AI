@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Activity, Calendar, Download, Eye, Filter, History, LayoutDashboard, LogOut, Search, Settings, User } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 
 interface ConsultationHistoryProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
-export default function ConsultationHistory({ onNavigate, onLogout }: ConsultationHistoryProps) {
+export default function ConsultationHistory({ onLogout }: ConsultationHistoryProps) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -40,21 +41,21 @@ export default function ConsultationHistory({ onNavigate, onLogout }: Consultati
 
           <div className="flex items-center gap-6">
             <button
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => navigate('/doctor/dashboard')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="text-sm">Dashboard</span>
             </button>
             <button
-              onClick={() => onNavigate('history')}
+              onClick={() => navigate('/doctor/history')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-[#2563EB]"
             >
               <History className="w-4 h-4" />
               <span className="text-sm">History</span>
             </button>
             <button
-              onClick={() => onNavigate('settings')}
+              onClick={() => navigate('/doctor/settings')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <Settings className="w-4 h-4" />
@@ -187,7 +188,7 @@ export default function ConsultationHistory({ onNavigate, onLogout }: Consultati
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onNavigate('notes')}
+                          onClick={() => navigate('/doctor/notes')}
                           className="rounded-lg"
                         >
                           <Eye className="w-4 h-4 mr-1" />
@@ -196,7 +197,7 @@ export default function ConsultationHistory({ onNavigate, onLogout }: Consultati
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onNavigate('prescription')}
+                          onClick={() => navigate('/doctor/prescription')}
                           className="rounded-lg"
                         >
                           <Download className="w-4 h-4 mr-1" />

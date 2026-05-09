@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Building2,
@@ -90,7 +91,6 @@ type AvailabilityRecord = {
 };
 
 interface DoctorDashboardProps {
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   onStartConsultation: (patient: {
     profile_id: string;
@@ -122,10 +122,10 @@ function timeToMinutes(time: string): number {
 // ─────────────────────────────────────────────────────────────
 
 export function DoctorDashboard({
-  onNavigate,
   onLogout,
   onStartConsultation,
 }: DoctorDashboardProps) {
+  const navigate = useNavigate();
   type Tab = "overview" | "patients" | "availability" | "appointments";
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
@@ -641,7 +641,7 @@ export function DoctorDashboard({
                         key={item.page}
                         type="button"
                         className="workspace-btn"
-                        onClick={() => onNavigate(item.page)}
+                        onClick={() => navigate("/doctor/" + item.page)}
                       >
                         <div className="workspace-btn-icon">
                           <Icon size={20} color="#fff" />

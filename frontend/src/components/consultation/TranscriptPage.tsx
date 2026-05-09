@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Copy, Download, Sparkles, Loader2, FileText } from "lucide-react";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
@@ -15,7 +16,6 @@ export interface TranscriptData {
 
 interface TranscriptPageProps {
   data: TranscriptData | null;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   onPipelineComplete?: (data: any) => void;
 }
@@ -25,10 +25,10 @@ const BASE_URL = API_URL.replace(/\/$/, "");
 
 export default function TranscriptPage({
   data,
-  onNavigate,
   onLogout: _onLogout,
   onPipelineComplete,
 }: TranscriptPageProps) {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const safe = useMemo(() => {
@@ -229,7 +229,7 @@ export default function TranscriptPage({
           <div className="tp-footer">
             <Button
               variant="ghost"
-              onClick={() => onNavigate("recording")}
+              onClick={() => navigate("/doctor/recording")}
               className="tp-discard-btn"
             >
               Discard and Re-record
@@ -237,7 +237,7 @@ export default function TranscriptPage({
             <div className="tp-footer-right">
               <Button
                 variant="outline"
-                onClick={() => onNavigate("extraction")}
+                onClick={() => navigate("/doctor/extraction")}
                 className="tp-manual-btn"
               >
                 Manual Review Flow

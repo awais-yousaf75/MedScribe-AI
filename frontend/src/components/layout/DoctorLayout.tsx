@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Activity,
   LayoutDashboard,
@@ -14,7 +15,6 @@ import {
 interface DoctorLayoutProps {
   children: React.ReactNode;
   activePage: string;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
   doctorName?: string;
   doctorEmail?: string;
@@ -23,11 +23,11 @@ interface DoctorLayoutProps {
 export default function DoctorLayout({
   children,
   activePage,
-  onNavigate,
   onLogout,
   doctorName = "Dr. Ahmed Hassan",
   doctorEmail = "ahmed@hospital.com",
 }: DoctorLayoutProps) {
+  const navigate = useNavigate();
   const initials = doctorName
     .split(" ")
     .filter(Boolean)
@@ -37,7 +37,7 @@ export default function DoctorLayout({
 
   const mainNav = [
     {
-      id: "doctor-dashboard",
+      id: "dashboard",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -135,7 +135,7 @@ export default function DoctorLayout({
           {mainNav.map((item) => (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(`/doctor/${item.id}`)}
               className={`sidebar-nav-item ${
                 activePage === item.id && !isInConsultation
                   ? "sidebar-nav-item-active"
@@ -173,7 +173,7 @@ export default function DoctorLayout({
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (!isUpcoming) onNavigate(item.id);
+                      if (!isUpcoming) navigate(`/doctor/${item.id}`);
                     }}
                     disabled={isUpcoming}
                     className={`sidebar-nav-item ${
@@ -209,7 +209,7 @@ export default function DoctorLayout({
           {bottomNav.map((item) => (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(`/doctor/${item.id}`)}
               className={`sidebar-nav-item ${
                 activePage === item.id ? "sidebar-nav-item-active" : ""
               }`}

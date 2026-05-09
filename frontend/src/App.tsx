@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { LoginPage } from "./components/LoginPage";
 import { RegisterPage } from "./components/RegisterPage";
 import { SuperAdminDashboard } from "./components/SuperAdminDashboard";
@@ -16,27 +17,7 @@ import AIExtraction from "./components/consultation/AIExtraction";
 import MedicalNotesEditor from "./components/notes/MedicalNotesEditor";
 import PrescriptionPreview from "./components/prescription/PrescriptionPreview";
 import DoctorLayout from "./components/layout/DoctorLayout";
-import ConsultationHistory from "./components/history/ConsultationHistory";
-type Page =
-  | "login"
-  | "register"
-  | "dashboard"
-  | "doctor-dashboard"
-  | "super-admin-dashboard"
-  | "hospital-admin-dashboard"
-  | "assistant-dashboard"
-  | "recording"
-  | "transcript"
-  | "extraction"
-  | "notes"
-  | "prescription"
-  | "history"
-  | "settings"
-  | "all-users"
-  | "all-hospitals"
-  | "pending-doctors"
-  | "pending-assistants"
-  | "patients";
+import ConsultationHistory from "./components/consultation/ConsultationHistory";
 
 type UserRole =
   | "doctor"
@@ -233,7 +214,9 @@ function ComingSoon({
    MAIN APP
 ───────────────────────────────────────────────────────────── */
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>("login");
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
@@ -243,8 +226,7 @@ export default function App() {
   const [currentPatient, setCurrentPatient] = useState<string>("");
   const [currentPatientId, setCurrentPatientId] = useState<string>("");
   const [recordingData, setRecordingData] = useState<any>(null);
-  const [transcriptData, setTranscriptData] =
-    useState<TranscriptData | null>(null);
+  const [transcriptData, setTranscriptData] = useState<TranscriptData | null>(null);
   const [extractedData, setExtractedData] = useState<any>(null);
 
   // Stores the full prescription object from pipeline OR from
@@ -260,6 +242,17 @@ export default function App() {
     user?.email ||
     "User";
 
+  const getDefaultRoute = (role: UserRole | null) => {
+    switch (role) {
+      case "super_admin": return "/super-admin";
+      case "hospital_admin": return "/hospital-admin";
+      case "doctor": return "/doctor/dashboard";
+      case "doctor_assistant": return "/assistant";
+      case "patient": return "/patient";
+      default: return "/login";
+    }
+  };
+
   const loadCurrentUser = async (showWelcome = false) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -268,7 +261,9 @@ export default function App() {
       setCurrentProfile(null);
       setCurrentRole(null);
       setIsCheckingAuth(false);
-      setCurrentPage("login");
+      if (location.pathname !== '/register') {
+        navigate('/login');
+      }
       return;
     }
 
@@ -289,21 +284,8 @@ export default function App() {
       setCurrentRole(role);
       setIsAuthenticated(true);
 
-      switch (role) {
-        case "super_admin":
-          setCurrentPage("super-admin-dashboard");
-          break;
-        case "hospital_admin":
-          setCurrentPage("hospital-admin-dashboard");
-          break;
-        case "doctor":
-          setCurrentPage("doctor-dashboard");
-          break;
-        case "doctor_assistant":
-          setCurrentPage("assistant-dashboard");
-          break;
-        default:
-          setCurrentPage("dashboard");
+      if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
+        navigate(getDefaultRoute(role));
       }
 
       if (showWelcome) {
@@ -316,7 +298,7 @@ export default function App() {
       setCurrentUser(null);
       setCurrentProfile(null);
       setCurrentRole(null);
-      setCurrentPage("login");
+      navigate("/login");
       if (showWelcome) toast.error(err.message || "Authentication failed");
     } finally {
       setIsCheckingAuth(false);
@@ -332,7 +314,7 @@ export default function App() {
 
   const handleRegister = () => {
     toast.success("Account created successfully! Please sign in.");
-    setCurrentPage("login");
+    navigate("/login");
   };
 
   const handleLogout = () => {
@@ -348,65 +330,43 @@ export default function App() {
     setTranscriptData(null);
     setExtractedData(null);
     setPrescriptionData(null);
-    setCurrentPage("login");
+    navigate("/login");
     toast.info("You have been logged out");
   };
 
-  const handleNavigate = (page: string) => {
-    // Only clear patient state when explicitly starting fresh from dashboard
-    setCurrentPage(page as Page);
-  };
+
 
   const handleStartConsultation = (patient: {
     profile_id: string;
     full_name: string;
   }) => {
-    // Clear all consultation state before starting new one
     setTranscriptData(null);
     setRecordingData(null);
     setExtractedData(null);
     setPrescriptionData(null);
     setCurrentPatient(patient.full_name);
     setCurrentPatientId(patient.profile_id);
-    setCurrentPage("recording");
+    navigate("/doctor/recording");
   };
 
   const handleRecordingComplete = (data: any) => {
     setRecordingData(data);
     setTranscriptData(data as TranscriptData);
-    // Do NOT navigate here — LiveRecording calls onNavigate("transcript") itself
   };
 
-  // ── Pipeline complete handler ──────────────────────────────
-  // Called by TranscriptPage after the /pipeline call succeeds.
-  // We use useCallback so the reference is stable and we can
-  // safely use it as a dep if needed.
   const handlePipelineComplete = useCallback(
     (result: any) => {
-      // result shape:
-      // {
-      //   success: true,
-      //   extracted_data: {...},
-      //   notes: "...",
-      //   prescription: { medications: [...], ... },
-      //   consultation_id: "...",
-      // }
       const extracted = result.extracted_data ?? null;
       const prescription = result.prescription ?? null;
 
-      // Batch all state updates together
       setExtractedData(extracted);
       setPrescriptionData(prescription);
 
-      // Navigate to prescription AFTER state is committed.
-      // React 18 batches setState calls inside event handlers and
-      // callbacks, but to be safe we defer navigation one tick so
-      // the prescription page always mounts with the fresh data.
       setTimeout(() => {
-        setCurrentPage("prescription");
+        navigate("/doctor/prescription");
       }, 0);
     },
-    []
+    [navigate]
   );
 
   /* ── LOADING ──────────────────────────────────────── */
@@ -426,319 +386,151 @@ export default function App() {
     );
   }
 
-  /* ── NOT AUTHENTICATED ────────────────────────────── */
-  if (!isAuthenticated) {
-    if (currentPage === "register") {
-      return (
-        <>
-          <RegisterPage
-            onRegister={handleRegister}
-            onNavigateToLogin={() => setCurrentPage("login")}
-          />
-          <Toaster position="top-right" />
-        </>
-      );
-    }
-    return (
-      <>
-        <LoginPage
-          onLogin={handleLogin}
-          onNavigateToRegister={() => setCurrentPage("register")}
-        />
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── SUPER ADMIN ──────────────────────────────────── */
-  if (currentRole === "super_admin") {
-    return (
-      <>
-        <SuperAdminDashboard
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
-        />
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── HOSPITAL ADMIN ───────────────────────────────── */
-  if (currentRole === "hospital_admin") {
-    if (currentProfile?.approval_status !== "approved") {
-      return (
-        <>
-          <AwaitingApprovalScreen onLogout={handleLogout} />
-          <Toaster position="top-right" />
-        </>
-      );
-    }
-    return (
-      <>
-        <HospitalAdminDashboard
-          onLogout={handleLogout}
-          onNavigate={(_page: string) => {
-            throw new Error("Function not implemented.");
-          }}
-        />
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── DOCTOR ───────────────────────────────────────── */
-  if (currentRole === "doctor") {
-    if (currentProfile?.approval_status !== "approved") {
-      return (
-        <>
-          <AwaitingApprovalScreen onLogout={handleLogout} />
-          <Toaster position="top-right" />
-        </>
-      );
-    }
-
-    const renderDoctorPage = () => {
-      switch (currentPage) {
-
-        case "recording":
-          return (
-            <LiveRecording
-              patientProfileId={currentPatientId}
-              patientName={currentPatient}
-              onComplete={handleRecordingComplete}
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-            />
-          );
-
-        case "transcript":
-          return (
-            <TranscriptPage
-              data={transcriptData}
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-              // Pass stable callback — navigation is handled inside it
-              onPipelineComplete={handlePipelineComplete}
-            />
-          );
-
-        case "extraction":
-          return (
-            <AIExtraction
-              patientName={currentPatient}
-              recordingData={recordingData}
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-              onExtractionComplete={(data: any) => {
-                setExtractedData(data);
-                // Clear any stale prescription when re-extracting
-                setPrescriptionData(null);
-              }}
-            />
-          );
-
-        case "notes":
-          return (
-            <MedicalNotesEditor
-              patientName={currentPatient}
-              recordingData={recordingData}
-              extractedData={extractedData}
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-            />
-          );
-
-        case "prescription":
-          return (
-            <PrescriptionPreview
-              patientName={currentPatient}
-              recordingData={recordingData}
-              extractedData={extractedData}
-              pregeneratedData={prescriptionData}
-              patientInfo={{
-                full_name: currentPatient,
-                // patient.cnic, age, gender etc would come from your patient lookup
-                // For now PrescriptionPreview also fetches what it needs from extractedData
-              }}
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-            />
-          );
-        case "history":
-          return (
-            <ConsultationHistory
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-            />
-          );
-
-        case "settings":
-          return (
-            <ComingSoon
-              insideLayout
-              title="Settings"
-              description="Account and application settings are coming soon."
-              onBack={() => handleNavigate("doctor-dashboard")}
-              onLogout={handleLogout}
-            />
-          );
-
-        case "patients":
-          return (
-            <ComingSoon
-              insideLayout
-              title="Patients"
-              description="Your patient list and management tools are coming soon."
-              onBack={() => handleNavigate("doctor-dashboard")}
-              onLogout={handleLogout}
-            />
-          );
-
-        default:
-          return (
-            <DoctorDashboard
-              onNavigate={handleNavigate}
-              onLogout={handleLogout}
-              onStartConsultation={handleStartConsultation}
-            />
-          );
-      }
-    };
-
-    return (
-      <>
-        <DoctorLayout
-          activePage={currentPage}
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
-          doctorName={getDisplayName(currentUser, currentProfile)}
-          doctorEmail={currentUser?.email || ""}
-        >
-          {renderDoctorPage()}
-        </DoctorLayout>
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── DOCTOR ASSISTANT ─────────────────────────────── */
-  if (currentRole === "doctor_assistant") {
-    if (currentProfile?.approval_status !== "approved") {
-      return (
-        <>
-          <AwaitingApprovalScreen onLogout={handleLogout} />
-          <Toaster position="top-right" />
-        </>
-      );
-    }
-    return (
-      <>
-        <AssistantDashboard
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
-        />
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── PATIENT ──────────────────────────────────────── */
-  if (currentRole === "patient") {
-    return (
-      <>
-        <div className="app-screen-root">
-          <div className="app-screen-grain" />
-          <div className="app-screen-vignette" />
-          <div className="app-screen-card">
-            <div className="app-icon-wrap app-icon-wrap-navy">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#1A7C6D"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <div className="app-screen-eyebrow">
-              <span className="app-screen-eyebrow-line" />
-              <span className="app-screen-eyebrow-text">Patient Portal</span>
-              <span className="app-screen-eyebrow-line" />
-            </div>
-            <h1 className="app-screen-heading">
-              {getDisplayName(currentUser, currentProfile)}
-            </h1>
-            <p className="app-screen-sub">
-              The patient portal is currently under development. You will be
-              notified when it becomes available.
-            </p>
-            <div className="app-btn-row">
-              <button className="app-btn-danger" onClick={handleLogout}>
-                Sign out
-              </button>
-            </div>
-            <div className="app-screen-footer">
-              <span className="app-footer-line" />
-              <span className="app-footer-dot" />
-              <span className="app-footer-line" />
-            </div>
-          </div>
-        </div>
-        <Toaster position="top-right" />
-      </>
-    );
-  }
-
-  /* ── FALLBACK ─────────────────────────────────────── */
+  /* ── ROUTES ───────────────────────────────────────── */
   return (
     <>
-      <div className="app-screen-root">
-        <div className="app-screen-grain" />
-        <div className="app-screen-vignette" />
-        <div className="app-screen-card">
-          <div className="app-icon-wrap app-icon-wrap-teal">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </div>
-          <div className="app-screen-eyebrow">
-            <span className="app-screen-eyebrow-line" />
-            <span className="app-screen-eyebrow-text">MedScribe AI</span>
-            <span className="app-screen-eyebrow-line" />
-          </div>
-          <h1 className="app-screen-heading">Unknown role</h1>
-          <p className="app-screen-sub">
-            Your account role could not be determined. Please contact your
-            administrator.
-          </p>
-          <div className="app-btn-row">
-            <button className="app-btn-danger" onClick={handleLogout}>
-              Sign out
-            </button>
-          </div>
-          <div className="app-screen-footer">
-            <span className="app-footer-line" />
-            <span className="app-footer-dot" />
-            <span className="app-footer-line" />
-          </div>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+        <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
+
+        {/* SUPER ADMIN */}
+        <Route path="/super-admin/*" element={
+          isAuthenticated && currentRole === "super_admin" ? (
+            <SuperAdminDashboard onLogout={handleLogout} />
+          ) : <Navigate to="/login" />
+        } />
+
+        {/* HOSPITAL ADMIN */}
+        <Route path="/hospital-admin/*" element={
+          isAuthenticated && currentRole === "hospital_admin" ? (
+            currentProfile?.approval_status !== "approved" ? (
+              <AwaitingApprovalScreen onLogout={handleLogout} />
+            ) : (
+              <HospitalAdminDashboard onLogout={handleLogout} />
+            )
+          ) : <Navigate to="/login" />
+        } />
+
+        {/* ASSISTANT */}
+        <Route path="/assistant/*" element={
+          isAuthenticated && currentRole === "doctor_assistant" ? (
+            currentProfile?.approval_status !== "approved" ? (
+              <AwaitingApprovalScreen onLogout={handleLogout} />
+            ) : (
+              <AssistantDashboard onLogout={handleLogout} />
+            )
+          ) : <Navigate to="/login" />
+        } />
+
+        {/* DOCTOR */}
+        <Route path="/doctor/*" element={
+          isAuthenticated && currentRole === "doctor" ? (
+            currentProfile?.approval_status !== "approved" ? (
+              <AwaitingApprovalScreen onLogout={handleLogout} />
+            ) : (
+              <DoctorLayout
+                activePage={location.pathname.split("/").pop() || "dashboard"}
+                onLogout={handleLogout}
+                doctorName={getDisplayName(currentUser, currentProfile)}
+                doctorEmail={currentUser?.email || ""}
+              >
+                <Routes>
+                  <Route path="dashboard" element={<DoctorDashboard onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
+                  <Route path="recording" element={<LiveRecording patientProfileId={currentPatientId} patientName={currentPatient} onComplete={handleRecordingComplete} onLogout={handleLogout} />} />
+                  <Route path="transcript" element={<TranscriptPage data={transcriptData} onLogout={handleLogout} onPipelineComplete={handlePipelineComplete} />} />
+                  <Route path="extraction" element={<AIExtraction patientName={currentPatient} recordingData={recordingData} onLogout={handleLogout} onExtractionComplete={(data: any) => { setExtractedData(data); setPrescriptionData(null); }} />} />
+                  <Route path="notes" element={<MedicalNotesEditor patientName={currentPatient} recordingData={recordingData} extractedData={extractedData} onLogout={handleLogout} />} />
+                  <Route path="prescription" element={<PrescriptionPreview patientName={currentPatient} recordingData={recordingData} extractedData={extractedData} pregeneratedData={prescriptionData} patientInfo={{ full_name: currentPatient }} onLogout={handleLogout} />} />
+                  <Route path="history" element={<ConsultationHistory onLogout={handleLogout} />} />
+                  <Route path="settings" element={<ComingSoon insideLayout title="Settings" description="Account and application settings are coming soon." onBack={() => navigate("/doctor/dashboard")} onLogout={handleLogout} />} />
+                  <Route path="patients" element={<ComingSoon insideLayout title="Patients" description="Your patient list and management tools are coming soon." onBack={() => navigate("/doctor/dashboard")} onLogout={handleLogout} />} />
+                  <Route path="*" element={<Navigate to="/doctor/dashboard" replace />} />
+                </Routes>
+              </DoctorLayout>
+            )
+          ) : <Navigate to="/login" />
+        } />
+
+        {/* PATIENT */}
+        <Route path="/patient/*" element={
+          isAuthenticated && currentRole === "patient" ? (
+            <div className="app-screen-root">
+              <div className="app-screen-grain" />
+              <div className="app-screen-vignette" />
+              <div className="app-screen-card">
+                <div className="app-icon-wrap app-icon-wrap-navy">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A7C6D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <div className="app-screen-eyebrow">
+                  <span className="app-screen-eyebrow-line" />
+                  <span className="app-screen-eyebrow-text">Patient Portal</span>
+                  <span className="app-screen-eyebrow-line" />
+                </div>
+                <h1 className="app-screen-heading">
+                  {getDisplayName(currentUser, currentProfile)}
+                </h1>
+                <p className="app-screen-sub">
+                  The patient portal is currently under development. You will be notified when it becomes available.
+                </p>
+                <div className="app-btn-row">
+                  <button className="app-btn-danger" onClick={handleLogout}>
+                    Sign out
+                  </button>
+                </div>
+                <div className="app-screen-footer">
+                  <span className="app-footer-line" />
+                  <span className="app-footer-dot" />
+                  <span className="app-footer-line" />
+                </div>
+              </div>
+            </div>
+          ) : <Navigate to="/login" />
+        } />
+
+        {/* FALLBACK ROOT REDIRECT */}
+        <Route path="/" element={<Navigate to={isAuthenticated ? getDefaultRoute(currentRole) : "/login"} />} />
+        
+        {/* CATCH ALL (404-like) */}
+        <Route path="*" element={
+          isAuthenticated ? (
+            <div className="app-screen-root">
+              <div className="app-screen-grain" />
+              <div className="app-screen-vignette" />
+              <div className="app-screen-card">
+                <div className="app-icon-wrap app-icon-wrap-teal">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <div className="app-screen-eyebrow">
+                  <span className="app-screen-eyebrow-line" />
+                  <span className="app-screen-eyebrow-text">MedScribe AI</span>
+                  <span className="app-screen-eyebrow-line" />
+                </div>
+                <h1 className="app-screen-heading">Page Not Found</h1>
+                <p className="app-screen-sub">
+                  The page you are looking for does not exist or you do not have permission to view it.
+                </p>
+                <div className="app-btn-row">
+                  <button className="app-btn-danger" onClick={handleLogout}>
+                    Sign out
+                  </button>
+                </div>
+                <div className="app-screen-footer">
+                  <span className="app-footer-line" />
+                  <span className="app-footer-dot" />
+                  <span className="app-footer-line" />
+                </div>
+              </div>
+            </div>
+          ) : <Navigate to="/login" />
+        } />
+      </Routes>
       <Toaster position="top-right" />
     </>
   );

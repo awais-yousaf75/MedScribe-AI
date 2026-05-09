@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { UserCog } from "lucide-react";
 import { toast } from "sonner";
 import AssistantSidebar from "../components/layout/AssistantSidebar";
@@ -47,14 +48,9 @@ export type AppointmentFromAPI = {
   hospitals: { id: string; name: string };
 };
 
-export type AssistantPage =
-  | "assistant-search-patient"
-  | "assistant-register-patient"
-  | "assistant-hospital-patients"
-  | "assistant-appointments";
+
 
 interface AssistantDashboardProps {
-  onNavigate: (page: string) => void;
   onLogout:   () => void;
 }
 
@@ -65,15 +61,15 @@ export const getToken = () => localStorage.getItem("accessToken");
 // COMPONENT
 // ─────────────────────────────────────────────────────────────
 
-export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardProps) {
-
-  const [activePage, setActivePage] = useState<AssistantPage>("assistant-search-patient");
+export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
+  const location = useLocation();
+  const activePage = location.pathname.split("/").pop() || "search-patient";
 
   const [assistantInfo, setAssistantInfo] = useState<AssistantMeResponse | null>(null);
   const [patients,      setPatients]      = useState<Patient[]>([]);
   const [appointments,  setAppointments]  = useState<AppointmentFromAPI[]>([]);
 
-  const [loading,             setLoading]             = useState(false);
+
   const [loadingPatients,     setLoadingPatients]     = useState(false);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
 
@@ -82,13 +78,11 @@ export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardP
   const fetchAssistantInfo = async () => {
     const token = getToken(); if (!token) return;
     try {
-      setLoading(true);
       const res  = await fetch(`${API_URL}/api/assistant/me`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load profile");
       setAssistantInfo(data);
     } catch (err: any) { toast.error(err.message || "Failed to load assistant info"); }
-    finally { setLoading(false); }
   };
 
   const fetchPatients = async () => {
@@ -129,14 +123,16 @@ export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardP
 
   // ── Page titles ───────────────────────────────────────────
 
-  const pageMeta: Record<AssistantPage, { title: string; sub: string }> = {
-    "assistant-search-patient":   { title: "Search Patient",       sub: "Find and verify patient by CNIC"          },
-    "assistant-register-patient": { title: "Register New Patient",  sub: "Add a new patient to the system"          },
-    "assistant-hospital-patients":{ title: "Hospital Patients",     sub: "All patients registered at your hospital" },
-    "assistant-appointments":     { title: "Appointments",          sub: "Manage and handle appointment requests"   },
+  const pageMeta: Record<string, { title: string; sub: string }> = {
+    "search-patient":   { title: "Search Patient",       sub: "Find and verify patient by CNIC"          },
+    "register-patient": { title: "Register New Patient",  sub: "Add a new patient to the system"          },
+    "hospital-patients":{ title: "Hospital Patients",     sub: "All patients registered at your hospital" },
+    "appointments":     { title: "Appointments",          sub: "Manage and handle appointment requests"   },
   };
 
-  const { title, sub } = pageMeta[activePage];
+  const meta = pageMeta[activePage] || pageMeta["search-patient"];
+  const title = meta.title;
+  const sub = meta.sub;
 
   // ─────────────────────────────────────────────────────────
   // RENDER
@@ -145,8 +141,6 @@ export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardP
   return (
     <div className="page-root">
       <AssistantSidebar
-        currentPage={activePage}
-        onNavigate={(page) => setActivePage(page as AssistantPage)}
         onLogout={onLogout}
         userRole="doctor_assistant"
         userName={assistantName}
@@ -179,35 +173,36 @@ export function AssistantDashboard({ onNavigate, onLogout }: AssistantDashboardP
           {/* Profile card always visible at top */}
           <AssistantProfileCard assistantInfo={assistantInfo} />
 
-          {activePage === "assistant-search-patient" && (
-            <SearchPatientPage
-              onRefreshPatients={fetchPatients}
-            />
-          )}
-
-          {activePage === "assistant-register-patient" && (
-            <RegisterPatientPage
-              onRefreshPatients={fetchPatients}
-            />
-          )}
-
-          {activePage === "assistant-hospital-patients" && (
-            <HospitalPatientsPage
-              patients={patients}
-              loadingPatients={loadingPatients}
-              onRefreshPatients={fetchPatients}
-            />
-          )}
-
-          {activePage === "assistant-appointments" && (
-            <AssistantAppointmentsPage
-              appointments={appointments}
-              loadingAppointments={loadingAppointments}
-              pendingCount={pendingCount}
-              onRefreshAppointments={fetchAppointments}
-              onAppointmentsChange={setAppointments}
-            />
-          )}
+          <Routes>
+            <Route path="/" element={<Navigate to="/assistant/search-patient" replace />} />
+            <Route path="search-patient" element={
+              <SearchPatientPage
+                onRefreshPatients={fetchPatients}
+              />
+            } />
+            <Route path="register-patient" element={
+              <RegisterPatientPage
+                onRefreshPatients={fetchPatients}
+              />
+            } />
+            <Route path="hospital-patients" element={
+              <HospitalPatientsPage
+                patients={patients}
+                loadingPatients={loadingPatients}
+                onRefreshPatients={fetchPatients}
+              />
+            } />
+            <Route path="appointments" element={
+              <AssistantAppointmentsPage
+                appointments={appointments}
+                loadingAppointments={loadingAppointments}
+                pendingCount={pendingCount}
+                onRefreshAppointments={fetchAppointments}
+                onAppointmentsChange={setAppointments}
+              />
+            } />
+            <Route path="*" element={<Navigate to="/assistant/search-patient" replace />} />
+          </Routes>
         </div>
       </div>
     </div>

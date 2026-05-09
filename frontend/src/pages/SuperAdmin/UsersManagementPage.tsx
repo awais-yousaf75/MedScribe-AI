@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Search,
@@ -18,9 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface UsersManagementPageProps {
-  onNavigate: (page: string) => void;
-}
+interface UsersManagementPageProps {}
 
 type AppUser = {
   id: string;
@@ -55,10 +54,9 @@ function formatDate(value?: string | null) {
   });
 }
 
-export function UsersManagementPage({
-  onNavigate: _onNavigate,
-}: UsersManagementPageProps) {
-  const [users,         setUsers]         = useState<AppUser[]>([]);
+export function UsersManagementPage({}: UsersManagementPageProps) {
+  const navigate = useNavigate();
+  const [users,          setUsers]          = useState<AppUser[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [searchUsers,   setSearchUsers]   = useState("");
   const [deletingUserId,setDeletingUserId]= useState<string | null>(null);

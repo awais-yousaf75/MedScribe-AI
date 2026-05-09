@@ -934,3 +934,115 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5252
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "sore throat",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "sore throat",
+      "duration": "4 days",
+      "severity": "very sore",
+      "location": "throat",
+      "onset": "4 days ago, gradual"
+    },
+    {
+      "name": "difficulty swallowing food",
+      "duration": "4 days",
+      "severity": null,
+      "location": null,
+      "onset": "4 days ago"
+    },
+    {
+      "name": "difficulty breathing",
+      "duration": "1 day",
+      "severity": null,
+      "location": null,
+      "onset": "yesterday"
+    },
+    {
+      "name": "reduced taste",
+      "duration": "2 days",
+      "severity": null,
+      "location": null,
+      "onset": "2 days ago"
+    },
+    {
+      "name": "muscle aches",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": "immediately after sore throat started"
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "mono",
+      "icd10_code": null,
+      "type": "past diagnosis",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "COPD",
+      "icd10_code": null,
+      "type": "chronic condition",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "long-acting beta agonist",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "vitamins",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "mono"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

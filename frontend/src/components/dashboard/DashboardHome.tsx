@@ -1,14 +1,15 @@
 import { Activity, Clock, FileText, LayoutDashboard, History, Settings, LogOut, TrendingUp, Users, Sparkles } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardHomeProps {
-  onNavigate: (page: string) => void;
   onStartConsultation: (patientName: string) => void;
   onLogout: () => void;
 }
 
-export default function DashboardHome({ onNavigate, onStartConsultation, onLogout }: DashboardHomeProps) {
+export default function DashboardHome({ onStartConsultation, onLogout }: DashboardHomeProps) {
+  const navigate = useNavigate();
   const [selectedPatient, setSelectedPatient] = useState('');
 
   const stats = [
@@ -75,21 +76,21 @@ export default function DashboardHome({ onNavigate, onStartConsultation, onLogou
 
           <div className="flex items-center gap-6">
             <button
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => navigate('/doctor/dashboard')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-[#2563EB]"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="text-sm">Dashboard</span>
             </button>
             <button
-              onClick={() => onNavigate('history')}
+              onClick={() => navigate('/doctor/history')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <History className="w-4 h-4" />
               <span className="text-sm">History</span>
             </button>
             <button
-              onClick={() => onNavigate('settings')}
+              onClick={() => navigate('/doctor/settings')}
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
             >
               <Settings className="w-4 h-4" />
@@ -184,7 +185,7 @@ export default function DashboardHome({ onNavigate, onStartConsultation, onLogou
             <h3 className="text-2xl">Recent Consultations</h3>
             <Button
               variant="outline"
-              onClick={() => onNavigate('history')}
+              onClick={() => navigate('/doctor/history')}
               className="rounded-xl"
             >
               View All
@@ -225,7 +226,7 @@ export default function DashboardHome({ onNavigate, onStartConsultation, onLogou
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onNavigate('notes')}
+                          onClick={() => navigate('/doctor/notes')}
                           className="rounded-lg"
                         >
                           View
@@ -233,7 +234,7 @@ export default function DashboardHome({ onNavigate, onStartConsultation, onLogou
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onNavigate('prescription')}
+                          onClick={() => navigate('/doctor/prescription')}
                           className="rounded-lg"
                         >
                           Prescription

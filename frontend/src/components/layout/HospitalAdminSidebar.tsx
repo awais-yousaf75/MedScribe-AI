@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Activity,
   LayoutDashboard,
@@ -24,18 +25,17 @@ const items: Item[] = [
 ];
 
 export function HospitalAdminSidebar({
-  currentPage,
-  onNavigate,
   onLogout,
   userName,
   subtitle,
 }: {
-  currentPage: string;
-  onNavigate: (id: string) => void;
   onLogout: () => void;
   userName: string;
   subtitle: string;
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPage = location.pathname.split("/").pop() || "overview";
   const initials = userName
     ?.split(" ")
     .map((n) => n[0])
@@ -75,7 +75,7 @@ export function HospitalAdminSidebar({
             <button
               key={item.id}
               type="button"
-              onClick={() => onNavigate(item.id)}
+              onClick={() => navigate(`/hospital-admin/${item.id}`)}
               className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
             >
               <Icon className="sidebar-nav-icon" />

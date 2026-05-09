@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Shield,
   Building2,
@@ -17,13 +18,12 @@ type SystemStats = {
   pendingApprovals: number;
 };
 
-interface DashboardOverviewPageProps {
-  onNavigate: (page: string) => void;
-}
+interface DashboardOverviewPageProps {}
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export function DashboardOverviewPage({ onNavigate }: DashboardOverviewPageProps) {
+export function DashboardOverviewPage({}: DashboardOverviewPageProps) {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<SystemStats>({
     totalAdmins: 0,
     totalHospitals: 0,
@@ -76,33 +76,33 @@ export function DashboardOverviewPage({ onNavigate }: DashboardOverviewPageProps
       label:  "Hospital Admins",
       value:  stats.totalAdmins,
       icon:   Shield,
-      action: () => onNavigate("admins-management"),
+      action: () => navigate("../admins-management"),
     },
     {
       label:  "Total Hospitals",
       value:  stats.totalHospitals,
       icon:   Building2,
-      action: () => onNavigate("hospitals-management"),
+      action: () => navigate("../hospitals-management"),
     },
     {
       label:  "System Users",
       value:  stats.totalUsers,
       icon:   Users,
-      action: () => onNavigate("users-management"),
+      action: () => navigate("../users-management"),
     },
     {
       label:  "Pending Approvals",
       value:  stats.pendingApprovals,
       icon:   Clock,
-      action: () => onNavigate("pending-approvals"),
+      action: () => navigate("../pending-approvals"),
     },
   ];
 
   const quickActions = [
-    { label: "Manage Admins",     description: "View all hospital admins",  icon: Shield,    action: () => onNavigate("admins-management")    },
-    { label: "Manage Hospitals",  description: "View all hospitals",         icon: Building2, action: () => onNavigate("hospitals-management") },
-    { label: "Manage Users",      description: "View all system users",      icon: Users,     action: () => onNavigate("users-management")     },
-    { label: "Pending Approvals", description: "Review items pending review",icon: Clock,     action: () => onNavigate("pending-approvals")    },
+    { label: "Manage Admins",     description: "View all hospital admins",  icon: Shield,    action: () => navigate("../admins-management")    },
+    { label: "Manage Hospitals",  description: "View all hospitals",         icon: Building2, action: () => navigate("../hospitals-management") },
+    { label: "Manage Users",      description: "View all system users",      icon: Users,     action: () => navigate("../users-management")     },
+    { label: "Pending Approvals", description: "Review items pending review",icon: Clock,     action: () => navigate("../pending-approvals")    },
   ];
 
   return (
@@ -204,7 +204,7 @@ export function DashboardOverviewPage({ onNavigate }: DashboardOverviewPageProps
                 <button
                   type="button"
                   className="btn btn-primary btn-sm do-health-btn"
-                  onClick={() => onNavigate("pending-approvals")}
+                  onClick={() => navigate("../pending-approvals")}
                 >
                   Review Pending Items
                 </button>

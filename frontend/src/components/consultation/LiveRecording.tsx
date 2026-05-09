@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mic, Square, Upload, FileAudio, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
@@ -7,7 +8,6 @@ interface LiveRecordingProps {
   patientProfileId: string;
   patientName: string;
   onComplete: (data: any) => void;
-  onNavigate: (page: string) => void;
   onLogout: () => void;
 }
 
@@ -53,9 +53,9 @@ export default function LiveRecording({
   patientProfileId,
   patientName,
   onComplete,
-  onNavigate,
   onLogout: _onLogout,
 }: LiveRecordingProps) {
+  const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -303,7 +303,7 @@ export default function LiveRecording({
       };
 
       onComplete(payload);
-      onNavigate("transcript");
+      navigate("/doctor/transcript");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to transcribe audio");
@@ -430,7 +430,7 @@ export default function LiveRecording({
     setIsTranscribing(false);
     setUploadedFile(null);
     setIsUploadMode(false);
-    onNavigate("doctor-dashboard");
+    navigate("/doctor/dashboard");
   };
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Building2, RefreshCw, Stethoscope, UserCog, Users,
   ArrowRight, AlertTriangle, Link2, TrendingUp, Activity,
@@ -6,13 +7,13 @@ import {
 } from "lucide-react";
 
 export default function OverviewPage({
-  dashboard, loading, onRefresh, onNavigate,
+  dashboard, loading, onRefresh,
 }: {
   dashboard: any;
   loading: boolean;
   onRefresh: () => void;
-  onNavigate: (page: "overview" | "doctors" | "assistants" | "hospital-profile") => void;
 }) {
+  const navigate = useNavigate();
   const stats = dashboard?.stats || {
     doctorsActive: 0, doctorsInactive: 0,
     assistantsActive: 0, assistantsInactive: 0,
@@ -98,7 +99,7 @@ export default function OverviewPage({
             <button
               type="button"
               className="ov-strip-link"
-              onClick={() => onNavigate("hospital-profile")}
+              onClick={() => navigate(`../${"hospital-profile".replace(/['"]/g, '')}`)}
             >
               View Profile <ArrowRight size={13} />
             </button>
@@ -130,7 +131,7 @@ export default function OverviewPage({
                   <button
                     type="button"
                     className="btn btn-primary btn-sm ov-stat-btn"
-                    onClick={() => onNavigate(card.page!)}
+                    onClick={() => navigate(`../${card.page!.replace(/['"]/g, '')}`)}
                   >
                     {card.btnLabel} <ArrowRight size={13} />
                   </button>
@@ -195,7 +196,7 @@ export default function OverviewPage({
             <button
               type="button"
               className="btn btn-secondary btn-sm ov-health-btn"
-              onClick={() => onNavigate("doctors")}
+              onClick={() => navigate(`../${"doctors".replace(/['"]/g, '')}`)}
             >
               Go to Doctors <ArrowRight size={13} />
             </button>
@@ -251,7 +252,7 @@ export default function OverviewPage({
             <button
               type="button"
               className="btn btn-secondary btn-sm ov-health-btn"
-              onClick={() => onNavigate("assistants")}
+              onClick={() => navigate(`../${"assistants".replace(/['"]/g, '')}`)}
             >
               Go to Assistants <ArrowRight size={13} />
             </button>
@@ -277,7 +278,7 @@ export default function OverviewPage({
               <button
                 type="button"
                 className="btn btn-sm ap-btn-warn"
-                onClick={() => onNavigate("assistants")}
+                onClick={() => navigate(`../${"assistants".replace(/['"]/g, '')}`)}
               >
                 <Link2 size={13} /> Link Now
               </button>
@@ -312,7 +313,7 @@ export default function OverviewPage({
                   type="button"
                   className="btn btn-ghost btn-sm"
                   style={{ marginTop: 14, color: "var(--ms-teal)" }}
-                  onClick={() => onNavigate("assistants")}
+                  onClick={() => navigate(`../${"assistants".replace(/['"]/g, '')}`)}
                 >
                   Go to Assistants <ArrowRight size={13} />
                 </button>
@@ -341,7 +342,7 @@ export default function OverviewPage({
           <button
             type="button"
             className="btn btn-primary btn-sm"
-            onClick={() => onNavigate("hospital-profile")}
+            onClick={() => navigate(`../${"hospital-profile".replace(/['"]/g, '')}`)}
             style={{ flexShrink: 0 }}
           >
             View Profile <ArrowRight size={13} />

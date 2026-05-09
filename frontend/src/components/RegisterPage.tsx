@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Activity,
   Building2,
@@ -26,7 +27,6 @@ import { cn } from "../lib/utils";
 
 interface RegisterPageProps {
   onRegister: () => void;
-  onNavigateToLogin: () => void;
 }
 
 type Role = "doctor" | "admin";
@@ -70,7 +70,8 @@ type HospitalNameCheck = {
   existingHospitalName?: string | null;
 };
 
-export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProps) {
+export function RegisterPage({ onRegister }: RegisterPageProps) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterForm>({
     fullName: "",
     email: "",
@@ -745,7 +746,7 @@ export function RegisterPage({ onRegister, onNavigateToLogin }: RegisterPageProp
               Already have an account?{" "}
               <button
                 type="button"
-                onClick={onNavigateToLogin}
+                onClick={() => navigate('/login')}
                 disabled={isLoading}
                 className="font-medium hover:underline"
                 style={{ color: "#2563EB" }}
