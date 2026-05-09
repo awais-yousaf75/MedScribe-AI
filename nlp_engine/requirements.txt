@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-multipart
+langchain
+langchain-community
+langchain-groq
+faiss-cpu
+sentence-transformers
+groq
+python-dotenv
+pydantic
+httpx
+tiktoken
+pydub
