@@ -435,7 +435,10 @@ export default function App() {
                 doctorEmail={currentUser?.email || ""}
               >
                 <Routes>
-                  <Route path="dashboard" element={<DoctorDashboard onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
+                  <Route path="dashboard" element={<DoctorDashboard activeTab="overview" onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
+                  <Route path="patients" element={<DoctorDashboard activeTab="patients" onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
+                  <Route path="appointments" element={<DoctorDashboard activeTab="appointments" onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
+                  <Route path="availability" element={<DoctorDashboard activeTab="availability" onLogout={handleLogout} onStartConsultation={handleStartConsultation} />} />
                   <Route path="recording" element={<LiveRecording patientProfileId={currentPatientId} patientName={currentPatient} onComplete={handleRecordingComplete} onLogout={handleLogout} />} />
                   <Route path="transcript" element={<TranscriptPage data={transcriptData} onLogout={handleLogout} onPipelineComplete={handlePipelineComplete} />} />
                   <Route path="extraction" element={<AIExtraction patientName={currentPatient} recordingData={recordingData} onLogout={handleLogout} onExtractionComplete={(data: any) => { setExtractedData(data); setPrescriptionData(null); }} />} />
@@ -443,7 +446,6 @@ export default function App() {
                   <Route path="prescription" element={<PrescriptionPreview patientName={currentPatient} recordingData={recordingData} extractedData={extractedData} pregeneratedData={prescriptionData} patientInfo={{ full_name: currentPatient }} onLogout={handleLogout} />} />
                   <Route path="history" element={<ConsultationHistory onLogout={handleLogout} />} />
                   <Route path="settings" element={<ComingSoon insideLayout title="Settings" description="Account and application settings are coming soon." onBack={() => navigate("/doctor/dashboard")} onLogout={handleLogout} />} />
-                  <Route path="patients" element={<ComingSoon insideLayout title="Patients" description="Your patient list and management tools are coming soon." onBack={() => navigate("/doctor/dashboard")} onLogout={handleLogout} />} />
                   <Route path="*" element={<Navigate to="/doctor/dashboard" replace />} />
                 </Routes>
               </DoctorLayout>

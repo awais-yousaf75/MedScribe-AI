@@ -7819,6 +7819,220 @@
   margin: 0 0 4px;
 }
 
+.ch-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--ms-bg-card);
+  border: 1px solid var(--ms-border);
+  border-radius: var(--ms-radius-xl);
+  box-shadow: var(--ms-shadow-sm);
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+/* Stats mini */
+.dl-stats-mini {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 16px;
+  padding: 6px 16px;
+  background: var(--ms-bg-muted);
+  border-radius: var(--ms-radius-lg);
+  border: 1px solid var(--ms-border);
+}
+
+.dl-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dl-stat-val {
+  font-size: var(--ms-text-sm);
+  font-weight: var(--ms-weight-bold);
+  color: var(--ms-teal);
+  line-height: 1;
+}
+
+.dl-stat-lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--ms-text-muted);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.dl-stat-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--ms-border-separator);
+}
+
+.ch-avatar-active-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border: 2px solid var(--ms-bg-card);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+}
+
+.ch-summary-avatar-wrap {
+  position: relative;
+}
+
+.ch-summary-badge {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10b981;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ch-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+/* Enhanced Cards */
+.ch-consult-card {
+  background: var(--ms-bg-card);
+  border: 1px solid var(--ms-border);
+  border-radius: var(--ms-radius-lg);
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 12px;
+}
+
+.ch-consult-card:hover {
+  border-color: var(--ms-teal-ring);
+  transform: translateY(-2px);
+  box-shadow: var(--ms-shadow-md);
+}
+
+.ch-transcript-content-new {
+  padding: 16px;
+  background: var(--ms-bg-muted);
+  border: 1px solid var(--ms-border);
+  border-radius: var(--ms-radius-md);
+  font-size: var(--ms-text-sm);
+  line-height: 1.6;
+  color: var(--ms-text);
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: var(--ms-font-mono);
+  margin-bottom: 20px;
+}
+
+.ch-consult-date-mark {
+  width: 48px;
+  height: 48px;
+  background: var(--ms-bg-muted);
+  border: 1.5px solid var(--ms-border);
+  border-radius: var(--ms-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.ch-consult-card:hover .ch-consult-date-mark {
+  background: var(--ms-teal-subtle);
+  border-color: var(--ms-teal);
+}
+
+.ch-date-day {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ms-teal);
+  line-height: 1;
+}
+
+.ch-date-month {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ms-text-muted);
+  margin-top: 2px;
+}
+
+.ch-consult-main-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ch-consult-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ch-consult-date-full {
+  font-size: var(--ms-text-sm);
+  font-weight: var(--ms-weight-semibold);
+  color: var(--ms-text);
+  display: flex;
+  align-items: center;
+}
+
+.ch-consult-dot {
+  width: 3px;
+  height: 3px;
+  background: var(--ms-text-muted);
+  border-radius: 50%;
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+.ch-consult-time-label {
+  color: var(--ms-text-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.ch-status-pill {
+  padding: 2px 8px;
+  background: var(--ms-teal-subtle);
+  color: var(--ms-teal);
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--ms-radius-full);
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ch-consult-meta-sub {
+  font-size: var(--ms-text-xs);
+  color: var(--ms-text-muted);
+}
+
 .rx-followup-text-new {
   font-size: var(--ms-text-sm);
   color: var(--ms-text);

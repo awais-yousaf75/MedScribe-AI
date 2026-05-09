@@ -360,24 +360,35 @@ export default function ConsultationHistory({
                 <div className="page-header-top">
                     <div className="page-header-left">
                         <div className="icon-wrap icon-wrap-md icon-wrap-teal">
-                            <HistoryIcon size={18} color="#fff" />
+                            <HistoryIcon size={18} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="page-header-title">Consultation History</h1>
+                            <h1 className="page-header-title">Clinical Archives</h1>
                             <p className="page-header-sub">
-                                Browse past consultations, transcripts and prescriptions
+                                Complete consultation history and patient records
                             </p>
                         </div>
                     </div>
                     <div className="page-header-actions">
+                        <div className="dl-stats-mini">
+                            <div className="dl-stat-item">
+                                <span className="dl-stat-val">{patients.length}</span>
+                                <span className="dl-stat-lbl">Patients</span>
+                            </div>
+                            <div className="dl-stat-sep" />
+                            <div className="dl-stat-item">
+                                <span className="dl-stat-val">{consultations.length || "—"}</span>
+                                <span className="dl-stat-lbl">Visits</span>
+                            </div>
+                        </div>
                         <button
                             type="button"
-                            className="btn btn-icon"
+                            className="btn btn-secondary btn-sm"
                             onClick={fetchPatients}
                             disabled={loadingPatients}
-                            title="Refresh"
                         >
-                            <RefreshCw size={14} className={loadingPatients ? "ms-spinner" : ""} />
+                            <RefreshCw size={14} className={loadingPatients ? "ms-spinner mr-2" : "mr-2"} />
+                            Refresh
                         </button>
                     </div>
                 </div>
@@ -435,18 +446,24 @@ export default function ConsultationHistory({
                         <div className="ch-panel-header">
                             <div className="ch-panel-header-left">
                                 <Users size={15} className="ch-panel-icon" />
-                                <span className="ch-panel-title">Patients</span>
+                                <span className="ch-panel-title">Patient Directory</span>
                             </div>
                             <span className="ch-count-pill">{filteredPatients.length}</span>
                         </div>
 
                         {loadingPatients ? (
-                            <div className="ch-empty-small">Loading patients…</div>
+                            <div className="dl-loading-box" style={{ padding: 40 }}>
+                                <RefreshCw className="ms-spinner mb-2 text-teal-500" size={24} />
+                                <p>Loading directory...</p>
+                            </div>
                         ) : filteredPatients.length === 0 ? (
                             <div className="ch-empty-small">
-                                {patients.length === 0
-                                    ? "No patients yet"
-                                    : "No patients match your search"}
+                                <Users size={24} className="mb-2 opacity-20" />
+                                <p>
+                                    {patients.length === 0
+                                        ? "No patients yet"
+                                        : "No matching patients"}
+                                </p>
                             </div>
                         ) : (
                             <div className="ch-patient-list">
@@ -454,6 +471,7 @@ export default function ConsultationHistory({
                                     const isActive = selectedPatientId === p.id;
                                     const initials = p.full_name
                                         .split(" ")
+                                        .filter(Boolean)
                                         .map((n) => n[0])
                                         .join("")
                                         .toUpperCase()
@@ -465,12 +483,18 @@ export default function ConsultationHistory({
                                             onClick={() => setSelectedPatientId(p.id)}
                                             className={`ch-patient-item${isActive ? " ch-patient-item-active" : ""}`}
                                         >
-                                            <div className="ch-patient-avatar">{initials}</div>
+                                            <div className="ch-patient-avatar">
+                                                {initials}
+                                                {isActive && <div className="ch-avatar-active-dot" />}
+                                            </div>
                                             <div className="ch-patient-info">
                                                 <div className="ch-patient-name">{p.full_name}</div>
                                                 <div className="ch-patient-meta-row">
                                                     {p.cnic && (
-                                                        <span className="ch-patient-meta">CNIC: {p.cnic}</span>
+                                                        <span className="ch-patient-meta">
+                                                            <Hash size={10} style={{ display: 'inline', marginRight: 2 }} />
+                                                            {p.cnic}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
@@ -505,24 +529,39 @@ export default function ConsultationHistory({
                             <>
                                 {/* Patient summary header */}
                                 <div className="ch-patient-summary">
-                                    <div className="ch-summary-avatar">
-                                        {selectedPatient.full_name
-                                            .split(" ")
-                                            .map((n) => n[0])
-                                            .join("")
-                                            .toUpperCase()
-                                            .slice(0, 2)}
+                                    <div className="ch-summary-avatar-wrap">
+                                        <div className="ch-summary-avatar">
+                                            {selectedPatient.full_name
+                                                .split(" ")
+                                                .filter(Boolean)
+                                                .map((n) => n[0])
+                                                .join("")
+                                                .toUpperCase()
+                                                .slice(0, 2)}
+                                        </div>
+                                        <div className="ch-summary-badge">
+                                            <CheckCircle size={10} /> Verified
+                                        </div>
                                     </div>
                                     <div className="ch-summary-info">
-                                        <h2 className="ch-summary-name">{selectedPatient.full_name}</h2>
+                                        <div className="ch-summary-top">
+                                            <h2 className="ch-summary-name">{selectedPatient.full_name}</h2>
+                                            <div className="ch-summary-actions">
+                                                <button className="btn btn-secondary btn-xs">
+                                                    <FileText size={12} className="mr-1" /> Profile
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div className="ch-summary-meta">
                                             {selectedPatient.cnic && (
                                                 <span className="ch-summary-chip">
-                                                    <Hash size={11} /> {selectedPatient.cnic}
+                                                    <Hash size={11} className="mr-1" /> {selectedPatient.cnic}
                                                 </span>
                                             )}
                                             {selectedPatient.phone && (
-                                                <span className="ch-summary-chip">📞 {selectedPatient.phone}</span>
+                                                <span className="ch-summary-chip">
+                                                    <Clock size={11} className="mr-1" /> {selectedPatient.phone}
+                                                </span>
                                             )}
                                             {selectedPatient.gender && (
                                                 <span className="ch-summary-chip rx-cap">
@@ -530,8 +569,8 @@ export default function ConsultationHistory({
                                                 </span>
                                             )}
                                             <span className="ch-summary-chip ch-summary-chip-teal">
-                                                {filteredConsultations.length} consultation
-                                                {filteredConsultations.length !== 1 ? "s" : ""}
+                                                <Activity size={11} className="mr-1" />
+                                                {filteredConsultations.length} Visit{filteredConsultations.length !== 1 ? "s" : ""}
                                             </span>
                                         </div>
                                     </div>
@@ -574,45 +613,47 @@ export default function ConsultationHistory({
                                                         onClick={() => toggleExpand(c.id)}
                                                     >
                                                         <div className="ch-consult-header-left">
-                                                            <div className="ch-consult-date-block">
-                                                                <Calendar size={13} />
-                                                                <div>
-                                                                    <div className="ch-consult-date">
+                                                            <div className="ch-consult-date-mark">
+                                                                <span className="ch-date-day">{new Date(c.created_at).getDate()}</span>
+                                                                <span className="ch-date-month">{new Date(c.created_at).toLocaleDateString("en-US", { month: 'short' })}</span>
+                                                            </div>
+                                                            <div className="ch-consult-main-info">
+                                                                <div className="ch-consult-title-row">
+                                                                    <div className="ch-consult-date-full">
                                                                         {formatDate(c.created_at)}
+                                                                        <span className="ch-consult-dot" />
+                                                                        <span className="ch-consult-time-label">
+                                                                            <Clock size={10} className="mr-1" />
+                                                                            {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </span>
                                                                     </div>
-                                                                    <div className="ch-consult-time">
-                                                                        {formatRelative(c.created_at)} ·{" "}
-                                                                        {formatDuration(c.duration_seconds)}
+                                                                    <div className="ch-status-pill">
+                                                                        <CheckCircle size={10} className="mr-1" /> Completed
                                                                     </div>
                                                                 </div>
-                                                            </div>
-
-                                                            <div className="ch-consult-badges">
-                                                                {dx.length > 0 && (
-                                                                    <span className="ch-badge ch-badge-dx">
-                                                                        <Stethoscope size={10} />
-                                                                        {dx[0]?.name || dx[0] || "Diagnosis"}
-                                                                        {dx.length > 1 && ` +${dx.length - 1}`}
-                                                                    </span>
-                                                                )}
-                                                                {meds.length > 0 && (
-                                                                    <span className="ch-badge ch-badge-med">
-                                                                        <Pill size={10} />
-                                                                        {meds.length} med{meds.length !== 1 ? "s" : ""}
-                                                                    </span>
-                                                                )}
-                                                                {inv.length > 0 && (
-                                                                    <span className="ch-badge ch-badge-inv">
-                                                                        <FileText size={10} />
-                                                                        {inv.length} test{inv.length !== 1 ? "s" : ""}
-                                                                    </span>
-                                                                )}
-                                                                {allergies.length > 0 && (
-                                                                    <span className="ch-badge ch-badge-allergy">
-                                                                        <ShieldAlert size={10} />
-                                                                        Allergy
-                                                                    </span>
-                                                                )}
+                                                                <div className="ch-consult-meta-sub">
+                                                                    {formatRelative(c.created_at)} · {formatDuration(c.duration_seconds)} session
+                                                                </div>
+                                                                <div className="ch-consult-badges">
+                                                                    {dx.length > 0 && (
+                                                                        <span className="ch-badge ch-badge-dx">
+                                                                            <Stethoscope size={11} />
+                                                                            {dx[0]?.name || dx[0] || "Diagnosis"}
+                                                                        </span>
+                                                                    )}
+                                                                    {meds.length > 0 && (
+                                                                        <span className="ch-badge ch-badge-med">
+                                                                            <Pill size={11} />
+                                                                            {meds.length} Med{meds.length !== 1 ? "s" : ""}
+                                                                        </span>
+                                                                    )}
+                                                                    {allergies.length > 0 && (
+                                                                        <span className="ch-badge ch-badge-allergy">
+                                                                            <ShieldAlert size={11} />
+                                                                            Risk
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -790,8 +831,6 @@ export default function ConsultationHistory({
                                                                 </div>
                                                             )}
 
-
-
                                                             {/* Action buttons */}
                                                             <div className="ch-actions">
                                                                 <button
@@ -833,86 +872,90 @@ export default function ConsultationHistory({
                         )}
                     </section>
                 </div>
-            </div>
 
-            {/* ════════ Transcript modal ════════ */}
-            {transcriptModal && (
-                <div
-                    className="ch-modal-backdrop"
-                    onClick={() => setTranscriptModal(null)}
-                >
+                {/* Modals placed inside page-content or dl-page to avoid sibling error */}
+                {transcriptModal && (
                     <div
-                        className="ch-modal ch-modal-md"
-                        onClick={(e) => e.stopPropagation()}
+                        className="ch-modal-backdrop"
+                        onClick={() => setTranscriptModal(null)}
                     >
-                        <div className="ch-modal-header">
-                            <div>
-                                <h3 className="ch-modal-title">Consultation Transcript</h3>
-                                <p className="ch-modal-sub">
-                                    {selectedPatient?.full_name} ·{" "}
-                                    {formatDateTime(transcriptModal.created_at)}
-                                </p>
+                        <div
+                            className="ch-modal ch-modal-md dl-glass-card"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="ch-modal-header">
+                                <div className="flex items-center gap-3">
+                                    <div className="icon-wrap icon-wrap-sm icon-wrap-teal">
+                                        <FileText size={14} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="ch-modal-title">Clinical Transcript</h3>
+                                        <p className="ch-modal-sub">
+                                            {selectedPatient?.full_name} · {formatDate(transcriptModal.created_at)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="ch-modal-close"
+                                    onClick={() => setTranscriptModal(null)}
+                                >
+                                    <X size={16} />
+                                </button>
                             </div>
-                            <button
-                                type="button"
-                                className="ch-modal-close"
-                                onClick={() => setTranscriptModal(null)}
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-                        <div className="ch-modal-body">
-                            <div className="ch-transcript-meta">
-                                <span className="ch-transcript-chip">
-                                    <Clock size={11} />{" "}
-                                    {formatDuration(transcriptModal.duration_seconds)}
-                                </span>
-                                {transcriptModal.language && (
-                                    <span className="ch-transcript-chip rx-cap">
-                                        {transcriptModal.language}
+                            <div className="ch-modal-body">
+                                <div className="ch-transcript-meta">
+                                    <span className="ch-transcript-chip">
+                                        <Clock size={11} className="mr-1" />{" "}
+                                        {formatDuration(transcriptModal.duration_seconds)}
                                     </span>
-                                )}
-                                <span className="ch-transcript-chip">
-                                    {transcriptModal.transcript.split(/\s+/).length} words
-                                </span>
+                                    {transcriptModal.language && (
+                                        <span className="ch-transcript-chip rx-cap">
+                                            <Sparkles size={11} className="mr-1" />
+                                            {transcriptModal.language}
+                                        </span>
+                                    )}
+                                    <span className="ch-transcript-chip">
+                                        {transcriptModal.transcript.split(/\s+/).length} words
+                                    </span>
+                                </div>
+                                <div className="ch-transcript-content-new">
+                                    {transcriptModal.transcript || "(No transcript available)"}
+                                </div>
                             </div>
-                            <div className="ch-transcript-content">
-                                {transcriptModal.transcript || "(No transcript available)"}
+                            <div className="ch-modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(transcriptModal.transcript);
+                                        toast.success("Transcript copied");
+                                    }}
+                                >
+                                    <FileText size={14} className="mr-2" /> Copy Text
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary btn-sm"
+                                    onClick={() => setTranscriptModal(null)}
+                                >
+                                    Close
+                                </button>
                             </div>
-                        </div>
-                        <div className="ch-modal-footer">
-                            <button
-                                type="button"
-                                className="ch-action-btn"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(transcriptModal.transcript);
-                                    toast.success("Transcript copied to clipboard");
-                                }}
-                            >
-                                Copy to Clipboard
-                            </button>
-                            <button
-                                type="button"
-                                className="ch-action-btn ch-action-btn-primary"
-                                onClick={() => setTranscriptModal(null)}
-                            >
-                                Close
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* ════════ Prescription modal ════════ */}
-            {prescriptionModal && (
-                <PrescriptionModal
-                    consultation={prescriptionModal}
-                    patient={selectedPatient}
-                    doctorInfo={doctorInfo}
-                    hospitalInfo={hospitalInfo}
-                    onClose={() => setPrescriptionModal(null)}
-                />
-            )}
+                {prescriptionModal && (
+                    <PrescriptionModal
+                        consultation={prescriptionModal}
+                        patient={selectedPatient}
+                        doctorInfo={doctorInfo}
+                        hospitalInfo={hospitalInfo}
+                        onClose={() => setPrescriptionModal(null)}
+                    />
+                )}
+            </div>
         </div>
     );
 }

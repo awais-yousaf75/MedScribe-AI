@@ -64,6 +64,13 @@ export default function LiveRecording({
   );
   const [mimeType, setMimeType] = useState<string>("");
 
+  useEffect(() => {
+    if (!patientProfileId) {
+      toast.error("Please select a patient before starting a consultation.");
+      navigate("/doctor/patients");
+    }
+  }, [patientProfileId, navigate]);
+
   // Upload state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploadMode, setIsUploadMode] = useState(false);

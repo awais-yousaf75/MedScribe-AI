@@ -10,6 +10,8 @@ import {
   Settings,
   Users,
   LogOut,
+  Calendar,
+  CalendarDays,
 } from "lucide-react";
 
 interface DoctorLayoutProps {
@@ -42,14 +44,19 @@ export default function DoctorLayout({
       icon: LayoutDashboard,
     },
     {
-      id: "recording",
-      label: "New Consultation",
-      icon: Mic,
-    },
-    {
       id: "patients",
       label: "Patients",
       icon: Users,
+    },
+    {
+      id: "appointments",
+      label: "Appointments",
+      icon: Calendar,
+    },
+    {
+      id: "availability",
+      label: "Availability",
+      icon: CalendarDays,
     },
   ];
 

@@ -1681,3 +1681,220 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5732
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "difficulties with breathing for the past 8-9 months",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "shortness of breath",
+      "duration": "8-9 months",
+      "severity": null,
+      "location": null,
+      "onset": "gradual"
+    },
+    {
+      "name": "dry cough",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fast, shallow breaths",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "heart attack",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "high blood pressure",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "aspirin",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "Pril",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "Rasulastatin",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "heart attack",
+    "high blood pressure"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5252
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "sore throat",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "sore throat",
+      "duration": "four days",
+      "severity": "very sore",
+      "location": null,
+      "onset": "sudden"
+    },
+    {
+      "name": "difficulty swallowing food",
+      "duration": "four days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "difficulty breathing",
+      "duration": "one day",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "reduced taste",
+      "duration": "two days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "muscle aches",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": "immediately after sore throat"
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [
+    {
+      "name": "mono",
+      "icd10_code": null,
+      "type": "past diagnosis",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "COPD",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "long-acting beta agonist",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "painkillers",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "tried"
+    },
+    {
+      "name": "vitamins",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "mono"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

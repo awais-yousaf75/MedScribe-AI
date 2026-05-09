@@ -96,6 +96,7 @@ interface DoctorDashboardProps {
     profile_id: string;
     full_name: string;
   }) => void;
+  activeTab?: "overview" | "patients" | "availability" | "appointments" | "dashboard";
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -124,10 +125,21 @@ function timeToMinutes(time: string): number {
 export function DoctorDashboard({
   onLogout,
   onStartConsultation,
+  activeTab: controlledTab,
 }: DoctorDashboardProps) {
   const navigate = useNavigate();
   type Tab = "overview" | "patients" | "availability" | "appointments";
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  
+  // Map "dashboard" route to "overview" tab
+  const initialTab = (controlledTab === "dashboard" ? "overview" : controlledTab) as Tab;
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab || "overview");
+
+  useEffect(() => {
+    if (controlledTab) {
+      const target = (controlledTab === "dashboard" ? "overview" : controlledTab) as Tab;
+      setActiveTab(target);
+    }
+  }, [controlledTab]);
 
   const [doctorInfo,   setDoctorInfo]   = useState<DoctorMeResponse | null>(null);
   const [assistants,   setAssistants]   = useState<Assistant[]>([]);
@@ -431,25 +443,27 @@ export function DoctorDashboard({
             </div>
           </div>
 
-          <div className="tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`tab${activeTab === tab.id ? " tab-active" : ""}`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  <Icon size={14} />
-                  {tab.label}
-                  {tab.id === "appointments" && approvedAppointments.length > 0 && (
-                    <span className="tab-badge">{approvedAppointments.length}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {!controlledTab && (
+            <div className="tabs">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`tab${activeTab === tab.id ? " tab-active" : ""}`}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    <Icon size={14} />
+                    {tab.label}
+                    {tab.id === "appointments" && approvedAppointments.length > 0 && (
+                      <span className="tab-badge">{approvedAppointments.length}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── CONTENT ── */}
