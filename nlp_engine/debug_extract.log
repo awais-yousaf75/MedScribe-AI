@@ -1898,3 +1898,97 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5909
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "feeling really sick over the last three or four days",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "headache",
+      "duration": "four days",
+      "severity": "7/10",
+      "location": "forehead and the top of the head on both sides",
+      "onset": "sudden"
+    },
+    {
+      "name": "cough",
+      "duration": "four days",
+      "severity": null,
+      "location": null,
+      "onset": "sudden"
+    },
+    {
+      "name": "nausea",
+      "duration": "a few days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "vomiting",
+      "duration": "one day",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "diarrhea",
+      "duration": "two days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "loss of smell",
+      "duration": "one day",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": "a few days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "new"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

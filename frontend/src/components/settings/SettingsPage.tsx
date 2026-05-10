@@ -258,7 +258,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                     </div>
                     <Switch
                       checked={notifications.email}
-                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                      onCheckedChange={(checked: boolean) => handleNotificationChange('email', checked)}
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -268,7 +268,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                     </div>
                     <Switch
                       checked={notifications.sms}
-                      onCheckedChange={(checked) => handleNotificationChange('sms', checked)}
+                      onCheckedChange={(checked: boolean) => handleNotificationChange('sms', checked)}
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -278,7 +278,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                     </div>
                     <Switch
                       checked={notifications.consultationReminders}
-                      onCheckedChange={(checked) => handleNotificationChange('consultationReminders', checked)}
+                      onCheckedChange={(checked: boolean) => handleNotificationChange('consultationReminders', checked)}
                     />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -288,7 +288,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                     </div>
                     <Switch
                       checked={notifications.aiUpdates}
-                      onCheckedChange={(checked) => handleNotificationChange('aiUpdates', checked)}
+                      onCheckedChange={(checked: boolean) => handleNotificationChange('aiUpdates', checked)}
                     />
                   </div>
                 </div>
