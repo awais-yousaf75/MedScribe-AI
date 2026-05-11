@@ -1,4 +1,4 @@
-import React from "react";
+// src/components/layout/HospitalAdminSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Activity,
@@ -7,21 +7,21 @@ import {
   UserCog,
   Building2,
   LogOut,
-  Settings,
+  User,
+  Key,
 } from "lucide-react";
 
-type Item = {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-};
+const mainNav = [
+  { id: "overview",          label: "Overview",          icon: LayoutDashboard },
+  { id: "doctors",           label: "Doctors",           icon: Stethoscope     },
+  { id: "assistants",        label: "Assistants",        icon: UserCog         },
+  { id: "hospital-profile",  label: "Hospital Profile",  icon: Building2       },
+];
 
-const items: Item[] = [
-  { id: "overview",          label: "Overview",         icon: LayoutDashboard },
-  { id: "doctors",           label: "Doctors",          icon: Stethoscope     },
-  { id: "assistants",        label: "Assistants",       icon: UserCog         },
-  { id: "hospital-profile",  label: "Hospital Profile", icon: Building2       },
-  { id: "settings",          label: "Settings",         icon: Settings        },
+const settingsNav = [
+  { id: "my-profile",        label: "My Profile",        icon: User            },
+  { id: "hospital-details",  label: "Hospital Details",   icon: Building2       },
+  { id: "change-password",   label: "Change Password",    icon: Key             },
 ];
 
 export function HospitalAdminSidebar({
@@ -36,6 +36,7 @@ export function HospitalAdminSidebar({
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = location.pathname.split("/").pop() || "overview";
+
   const initials = userName
     ?.split(" ")
     .map((n) => n[0])
@@ -43,10 +44,25 @@ export function HospitalAdminSidebar({
     .toUpperCase()
     .substring(0, 2) || "A";
 
+  const renderNavItem = (item: { id: string; label: string; icon: React.ElementType }) => {
+    const Icon     = item.icon;
+    const isActive = currentPage === item.id;
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => navigate(`/hospital-admin/${item.id}`)}
+        className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
+      >
+        <Icon className="sidebar-nav-icon" />
+        <span className="sidebar-nav-label">{item.label}</span>
+        {isActive && <div className="sidebar-nav-indicator" />}
+      </button>
+    );
+  };
+
   return (
     <aside className="sidebar">
-
-      {/* ── Logo ── */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
           <Activity size={18} color="#fff" />
@@ -57,7 +73,6 @@ export function HospitalAdminSidebar({
         </div>
       </div>
 
-      {/* ── User ── */}
       <div className="sidebar-user">
         <div className="sidebar-avatar">{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -66,33 +81,19 @@ export function HospitalAdminSidebar({
         </div>
       </div>
 
-      {/* ── Navigation ── */}
       <nav className="sidebar-nav">
-        {items.map((item) => {
-          const Icon     = item.icon;
-          const isActive = currentPage === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => navigate(`/hospital-admin/${item.id}`)}
-              className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
-            >
-              <Icon className="sidebar-nav-icon" />
-              <span className="sidebar-nav-label">{item.label}</span>
-              {isActive && <div className="sidebar-nav-indicator" />}
-            </button>
-          );
-        })}
+        <div className="sidebar-section-label">Management</div>
+        {mainNav.map(renderNavItem)}
+
+        <div className="sidebar-section-label" style={{ marginTop: 8 }}>Settings</div>
+        {settingsNav.map(renderNavItem)}
       </nav>
 
-      {/* ── Footer ── */}
       <div className="sidebar-footer">
         <button type="button" className="sidebar-logout" onClick={onLogout}>
           <LogOut className="sidebar-logout-icon" />
           <span>Sign Out</span>
         </button>
-
         <div className="sidebar-ornament" aria-hidden="true">
           <span className="sidebar-ornament-line" />
           <span className="sidebar-ornament-dot" />

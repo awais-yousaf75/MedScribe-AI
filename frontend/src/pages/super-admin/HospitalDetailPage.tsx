@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -47,7 +47,7 @@ interface Hospital {
 
 interface HospitalDetailPageProps {}
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "@/lib/constants";
 
 export function HospitalDetailPage({}: HospitalDetailPageProps) {
   const { id: hospitalId } = useParams<{ id: string }>();

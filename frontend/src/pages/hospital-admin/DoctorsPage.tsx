@@ -1,27 +1,28 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  UserCog, RefreshCw, Search, Plus, Trash2, Copy, X,
-  Edit3, KeyRound, Link2, Unlink, ShieldOff, ShieldCheck,
-  AlertTriangle, User, Phone, Mail, Stethoscope, CalendarDays,
+  Stethoscope, RefreshCw, Search, Plus, Trash2, Copy, X,
+  Edit3, KeyRound, ShieldOff, ShieldCheck, Activity,
+  User, Phone, Mail, Hash, BadgeCheck, CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "@/lib/constants";
 
-type StatusFilter = "all" | "active" | "inactive";
-type DoctorOption = { profile_id: string; full_name: string };
-
-type Assistant = {
+type Doctor = {
   profile_id: string;
   full_name: string;
   email: string | null;
   phone: string | null;
   gender?: string | null;
   dob?: string | null;
+  specialization: string;
+  license_number: string;
+  cnic: string;
   approval_status: "approved" | "rejected" | "pending" | string;
-  doctor: { id: string; full_name: string } | null;
   created_at?: string | null;
 };
+
+type StatusFilter = "all" | "active" | "inactive";
 
 const isActive = (s?: string | null) => s === "approved";
 
@@ -29,7 +30,9 @@ const fmtDate = (v?: string | null) => {
   if (!v) return "—";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  return d.toLocaleDateString(undefined, {
+    year: "numeric", month: "short", day: "numeric",
+  });
 };
 
 /* ─────────────────────────────────────────────────────────────
@@ -42,24 +45,22 @@ function CredentialsModal({
   email: string; password: string | null; generated: boolean;
 }) {
   if (!open) return null;
-
   const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
-
   return (
     <div className="hd-modal-backdrop" onClick={onClose}>
       <div className="hd-modal ap-creds-modal" onClick={(e) => e.stopPropagation()}>
         <div className="hd-modal-header">
-          <div className="hd-modal-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <KeyRound size={16} /> Credentials
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <KeyRound size={16} color="var(--ms-text-inverse)" />
+            <span className="hd-modal-title">Credentials</span>
           </div>
           <button type="button" className="btn btn-icon hd-modal-close" onClick={onClose}>
             <X size={16} />
           </button>
         </div>
-
         <div className="hd-modal-body">
           <div className="info-item">
             <div className="info-label">Email</div>
@@ -70,7 +71,6 @@ function CredentialsModal({
               </button>
             </div>
           </div>
-
           <div className="info-item">
             <div className="info-label">Password</div>
             {generated ? (
@@ -91,11 +91,8 @@ function CredentialsModal({
               </div>
             )}
           </div>
-
           <div className="hd-modal-actions">
-            <button type="button" className="btn btn-primary btn-sm" onClick={onClose}>
-              Done
-            </button>
+            <button type="button" className="btn btn-primary btn-sm" onClick={onClose}>Done</button>
           </div>
         </div>
       </div>
@@ -131,9 +128,7 @@ function ModalShell({
             <X size={16} />
           </button>
         </div>
-        <div className="hd-modal-body ap-modal-body">
-          {children}
-        </div>
+        <div className="hd-modal-body ap-modal-body">{children}</div>
       </div>
     </div>
   );
@@ -142,33 +137,33 @@ function ModalShell({
 /* ─────────────────────────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────────────────────────── */
-export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: () => void }) {
+export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () => void }) {
   const token = localStorage.getItem("accessToken");
 
-  const [loading,        setLoading]        = useState(false);
-  const [assistants,     setAssistants]     = useState<Assistant[]>([]);
-  const [doctorOptions,  setDoctorOptions]  = useState<DoctorOption[]>([]);
-  const [q,              setQ]              = useState("");
-  const [statusFilter,   setStatusFilter]   = useState<StatusFilter>("all");
+  const [loading,      setLoading]      = useState(false);
+  const [doctors,      setDoctors]      = useState<Doctor[]>([]);
+  const [q,            setQ]            = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const [showCreate, setShowCreate] = useState(false);
   const [creating,   setCreating]   = useState(false);
   const [createForm, setCreateForm] = useState({
     full_name: "", email: "", phone: "", gender: "", dob: "",
-    doctor_profile_id: "", generate_password: true, password: "",
+    specialization: "", license_number: "", cnic: "",
+    generate_password: true, password: "",
   });
 
   const [showEdit,   setShowEdit]   = useState(false);
   const [editing,    setEditing]    = useState(false);
-  const [editTarget, setEditTarget] = useState<Assistant | null>(null);
-  const [editForm,   setEditForm]   = useState({ full_name: "", phone: "", gender: "", dob: "" });
-
-  const [linkModal, setLinkModal] = useState<{ open: boolean; assistant: Assistant | null; doctorId: string }>
-    ({ open: false, assistant: null, doctorId: "" });
+  const [editTarget, setEditTarget] = useState<Doctor | null>(null);
+  const [editForm,   setEditForm]   = useState({
+    full_name: "", phone: "", gender: "", dob: "",
+    specialization: "", license_number: "", cnic: "",
+  });
 
   const [showReset,   setShowReset]   = useState(false);
   const [resetting,   setResetting]   = useState(false);
-  const [resetTarget, setResetTarget] = useState<Assistant | null>(null);
+  const [resetTarget, setResetTarget] = useState<Doctor | null>(null);
   const [resetForm,   setResetForm]   = useState({ generate_password: true, password: "" });
 
   const [credOpen, setCredOpen] = useState(false);
@@ -176,96 +171,79 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
     ({ email: "", password: null, generated: false });
 
   /* ── Fetch ── */
-  const fetchAssistants = async () => {
+  const fetchDoctors = async () => {
     if (!token) return toast.error("Not authenticated");
     try {
       setLoading(true);
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants`, { headers: { Authorization: `Bearer ${token}` } });
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load assistants");
-      setAssistants(data.assistants || []);
-    } catch (e: any) { toast.error(e.message || "Failed to load assistants"); }
+      if (!res.ok) throw new Error(data.error || "Failed to load doctors");
+      setDoctors(data.doctors || []);
+    } catch (e: any) { toast.error(e.message || "Failed to load doctors"); }
     finally { setLoading(false); }
   };
 
-  const fetchDoctorOptions = async () => {
-    if (!token) return;
-    try {
-      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load doctors");
-      setDoctorOptions(
-        (data.doctors || [])
-          .filter((d: any) => d.approval_status === "approved")
-          .map((d: any) => ({ profile_id: d.profile_id, full_name: d.full_name }))
-      );
-    } catch (e: any) { toast.error(e.message || "Failed to load doctor options"); }
-  };
-
   useEffect(() => {
-    fetchAssistants();
-    fetchDoctorOptions();
+    fetchDoctors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ── Derived ── */
-  const activeCount   = assistants.filter((a) => isActive(a.approval_status)).length;
-  const inactiveCount = assistants.length - activeCount;
-  const unlinkedCount = useMemo(
-    () => assistants.filter((a) => isActive(a.approval_status) && !a.doctor).length,
-    [assistants]
-  );
-
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    let list = assistants;
-    if (statusFilter === "active")   list = list.filter((a) => isActive(a.approval_status));
-    if (statusFilter === "inactive") list = list.filter((a) => !isActive(a.approval_status));
+    let list = doctors;
+    if (statusFilter === "active")   list = list.filter((d) => isActive(d.approval_status));
+    if (statusFilter === "inactive") list = list.filter((d) => !isActive(d.approval_status));
     if (!s) return list;
-    return list.filter((a) =>
-      `${a.full_name} ${a.email || ""} ${a.phone || ""} ${a.doctor?.full_name || ""}`.toLowerCase().includes(s)
+    return list.filter((d) =>
+      `${d.full_name} ${d.email || ""} ${d.phone || ""} ${d.specialization} ${d.license_number} ${d.cnic}`
+        .toLowerCase().includes(s)
     );
-  }, [q, assistants, statusFilter]);
+  }, [q, doctors, statusFilter]);
 
   const copy = async (text: string) => { await navigator.clipboard.writeText(text); toast.success("Copied"); };
 
   /* ── Create ── */
-  const createAssistant = async () => {
+  const createDoctor = async () => {
     if (!token) return;
     const f = createForm;
-    if (!f.full_name || !f.email) { toast.error("Please fill required fields"); return; }
-    if (!f.generate_password && f.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (!f.full_name || !f.email || !f.specialization || !f.license_number || !f.cnic) {
+      toast.error("Please fill required fields"); return;
+    }
+    if (!f.generate_password && f.password.length < 6) {
+      toast.error("Password must be at least 6 characters"); return;
+    }
     try {
       setCreating(true);
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants`, {
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: f.full_name, email: f.email, phone: f.phone || null,
           gender: f.gender || null, dob: f.dob || null,
-          doctor_profile_id: f.doctor_profile_id || null,
+          specialization: f.specialization, license_number: f.license_number, cnic: f.cnic,
           generate_password: f.generate_password,
           password: f.generate_password ? undefined : f.password,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Failed to create");
-      toast.success("Assistant created");
+      toast.success("Doctor created");
       setShowCreate(false);
-      setCreateForm({ full_name: "", email: "", phone: "", gender: "", dob: "", doctor_profile_id: "", generate_password: true, password: "" });
+      setCreateForm({ full_name: "", email: "", phone: "", gender: "", dob: "", specialization: "", license_number: "", cnic: "", generate_password: true, password: "" });
       setCred({ email: data?.credentials?.email || f.email, password: data?.credentials?.password ?? null, generated: !!data?.credentials?.generated });
       setCredOpen(true);
-      await fetchAssistants();
-      await fetchDoctorOptions();
+      await fetchDoctors();
       onRefreshGlobal();
     } catch (e: any) { toast.error(e.message || "Failed to create"); }
     finally { setCreating(false); }
   };
 
   /* ── Edit ── */
-  const openEdit = (a: Assistant) => {
-    setEditTarget(a);
-    setEditForm({ full_name: a.full_name || "", phone: a.phone || "", gender: a.gender || "", dob: a.dob || "" });
+  const openEdit = (d: Doctor) => {
+    setEditTarget(d);
+    setEditForm({ full_name: d.full_name || "", phone: d.phone || "", gender: d.gender || "", dob: d.dob || "", specialization: d.specialization || "", license_number: d.license_number || "", cnic: d.cnic || "" });
     setShowEdit(true);
   };
 
@@ -273,68 +251,52 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
     if (!token || !editTarget) return;
     try {
       setEditing(true);
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${editTarget.profile_id}`, {
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${editTarget.profile_id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name: editForm.full_name, phone: editForm.phone || null, gender: editForm.gender || null, dob: editForm.dob || null }),
+        body: JSON.stringify({ full_name: editForm.full_name, phone: editForm.phone || null, gender: editForm.gender || null, dob: editForm.dob || null, specialization: editForm.specialization, license_number: editForm.license_number, cnic: editForm.cnic }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Failed");
-      toast.success("Assistant updated");
+      toast.success("Doctor updated");
       setShowEdit(false); setEditTarget(null);
-      await fetchAssistants();
-    } catch (e: any) { toast.error(e.message || "Failed"); }
+      await fetchDoctors();
+    } catch (e: any) { toast.error(e.message || "Failed to update"); }
     finally { setEditing(false); }
   };
 
-  /* ── Link ── */
-  const updateLink = async (assistantId: string, doctorId: string | null) => {
-    if (!token) return;
-    try {
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${assistantId}/link-doctor`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ doctor_profile_id: doctorId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || data.error || "Failed");
-      toast.success("Link updated");
-      await fetchAssistants(); onRefreshGlobal();
-    } catch (e: any) { toast.error(e.message || "Failed"); }
-  };
-
   /* ── Activate / Deactivate ── */
-  const deactivate = async (a: Assistant) => {
+  const deactivate = async (d: Doctor) => {
     if (!token) return;
     try {
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${a.profile_id}/deactivate`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${d.profile_id}/deactivate`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Failed");
-      toast.success("Assistant deactivated");
-      await fetchAssistants(); onRefreshGlobal();
+      toast.success("Doctor deactivated");
+      await fetchDoctors(); onRefreshGlobal();
     } catch (e: any) { toast.error(e.message || "Failed"); }
   };
 
-  const activate = async (a: Assistant) => {
+  const activate = async (d: Doctor) => {
     if (!token) return;
     try {
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${a.profile_id}/activate`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${d.profile_id}/activate`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Failed");
-      toast.success("Assistant activated");
-      await fetchAssistants(); onRefreshGlobal();
+      toast.success("Doctor activated");
+      await fetchDoctors(); onRefreshGlobal();
     } catch (e: any) { toast.error(e.message || "Failed"); }
   };
 
   /* ── Reset ── */
-  const openReset = (a: Assistant) => { setResetTarget(a); setResetForm({ generate_password: true, password: "" }); setShowReset(true); };
+  const openReset = (d: Doctor) => { setResetTarget(d); setResetForm({ generate_password: true, password: "" }); setShowReset(true); };
 
   const doReset = async () => {
     if (!token || !resetTarget) return;
     if (!resetForm.generate_password && resetForm.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     try {
       setResetting(true);
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${resetTarget.profile_id}/reset-password`, {
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${resetTarget.profile_id}/reset-password`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ generate_password: resetForm.generate_password, password: resetForm.generate_password ? undefined : resetForm.password }),
@@ -350,21 +312,24 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
   };
 
   /* ── Delete ── */
-  const deleteAssistant = async (a: Assistant) => {
+  const deleteDoctor = async (d: Doctor) => {
     if (!token) return;
-    if (!window.confirm("Delete this assistant permanently? This cannot be undone.")) return;
+    if (!window.confirm("Delete this doctor permanently? This cannot be undone.")) return;
     try {
-      const res  = await fetch(`${API_URL}/api/hospital-admin/assistants/${a.profile_id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${d.profile_id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Failed");
-      toast.success("Assistant deleted");
-      await fetchAssistants(); onRefreshGlobal();
+      toast.success("Doctor deleted");
+      await fetchDoctors(); onRefreshGlobal();
     } catch (e: any) { toast.error(e.message || "Failed"); }
   };
 
-  /* ═══════════════════════════════════════════════════════
+  const activeCount   = doctors.filter((d) => isActive(d.approval_status)).length;
+  const inactiveCount = doctors.length - activeCount;
+
+  /* ─────────────────────────────────────────────────────────
      RENDER
-  ═══════════════════════════════════════════════════════ */
+  ───────────────────────────────────────────────────────── */
   return (
     <div className="page-main">
 
@@ -373,12 +338,12 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
         <div className="page-header-top">
           <div className="page-header-left">
             <div className="icon-wrap icon-wrap-md icon-wrap-teal">
-              <UserCog size={18} color="#fff" />
+              <Stethoscope size={18} color="#fff" />
             </div>
             <div>
-              <div className="page-header-title">Assistants</div>
+              <div className="page-header-title">Doctors</div>
               <div className="page-header-sub">
-                Create, link, deactivate and manage assistant credentials
+                Create, edit, deactivate and reset doctor credentials
               </div>
             </div>
           </div>
@@ -388,12 +353,12 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
               className="btn btn-primary btn-sm"
               onClick={() => setShowCreate(true)}
             >
-              <Plus size={14} /> Add Assistant
+              <Plus size={14} /> Add Doctor
             </button>
             <button
               type="button"
               className="btn btn-icon btn-icon-lg"
-              onClick={async () => { await fetchAssistants(); await fetchDoctorOptions(); }}
+              onClick={fetchDoctors}
               disabled={loading}
               title="Refresh"
             >
@@ -409,10 +374,9 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
         {/* Stats */}
         <div className="stat-grid">
           {[
-            { label: "Total",    value: assistants.length },
-            { label: "Active",   value: activeCount       },
-            { label: "Inactive", value: inactiveCount     },
-            { label: "Unlinked", value: unlinkedCount     },
+            { label: "Total",    value: doctors.length },
+            { label: "Active",   value: activeCount    },
+            { label: "Inactive", value: inactiveCount  },
           ].map((s) => (
             <div key={s.label} className="stat-card">
               <div className="stat-value">{s.value}</div>
@@ -420,23 +384,6 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
             </div>
           ))}
         </div>
-
-        {/* Unlinked Alert */}
-        {unlinkedCount > 0 && (
-          <div className="appt-history" style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-            <div className="icon-wrap icon-wrap-sm icon-wrap-muted" style={{ flexShrink: 0 }}>
-              <AlertTriangle size={15} color="var(--ms-warning)" />
-            </div>
-            <div>
-              <div style={{ fontSize: "var(--ms-text-sm)", fontWeight: "var(--ms-weight-semibold)", color: "var(--ms-text)" }}>
-                {unlinkedCount} active assistant{unlinkedCount !== 1 ? "s" : ""} not linked to a doctor
-              </div>
-              <div style={{ fontSize: "var(--ms-text-xs)", color: "var(--ms-text-soft)", marginTop: 3 }}>
-                Link them so they can receive appointment requests. Use the <strong>Link</strong> button on each card.
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Controls */}
         <div className="card card-sm">
@@ -447,10 +394,9 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
                 className="search-input"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search name, email, phone, doctor…"
+                placeholder="Search name, email, phone, specialization…"
               />
             </div>
-
             <div className="ap-filter-tabs">
               {(["all", "active", "inactive"] as StatusFilter[]).map((f) => (
                 <button
@@ -463,70 +409,59 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
                 </button>
               ))}
             </div>
-
             <div className="list-item-sub">
               {filtered.length} result{filtered.length !== 1 ? "s" : ""}
             </div>
           </div>
         </div>
 
-        {/* Assistant Cards */}
+        {/* Doctor Cards */}
         {loading ? (
-          <div className="loading-text">Loading assistants…</div>
+          <div className="loading-text">Loading doctors…</div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <UserCog size={40} className="empty-icon" />
-            <div className="empty-title">No assistants found</div>
+            <Stethoscope size={40} className="empty-icon" />
+            <div className="empty-title">No doctors found</div>
             <div className="empty-sub">
-              {assistants.length === 0
-                ? "Click 'Add Assistant' to create the first one."
+              {doctors.length === 0
+                ? "Click 'Add Doctor' to create the first one."
                 : "Try adjusting your search or filter."}
             </div>
           </div>
         ) : (
           <div className="ap-list">
-            {filtered.map((a) => {
-              const active   = isActive(a.approval_status);
-              const unlinked = active && !a.doctor;
-
+            {filtered.map((d) => {
+              const active = isActive(d.approval_status);
               return (
                 <div
-                  key={a.profile_id}
-                  className={`ap-card${unlinked ? " ap-card-warn" : active ? "" : " ap-card-inactive"}`}
+                  key={d.profile_id}
+                  className={`ap-card${active ? "" : " ap-card-inactive"}`}
                 >
-                  {/* Accent bar */}
-                  <div className={`ap-accent-bar${unlinked ? " ap-bar-warn" : active ? " ap-bar-active" : " ap-bar-inactive"}`} />
+                  <div className={`ap-accent-bar${active ? " ap-bar-active" : " ap-bar-inactive"}`} />
 
                   <div className="ap-card-inner">
                     {/* Left: info */}
                     <div className="ap-info">
                       <div className={`ap-avatar${active ? "" : " ap-avatar-inactive"}`}>
-                        {a.full_name?.charAt(0)?.toUpperCase() || "A"}
+                        {d.full_name?.charAt(0)?.toUpperCase() || "D"}
                       </div>
 
                       <div className="ap-info-body">
-                        {/* Name + badges */}
                         <div className="ap-name-row">
-                          <div className="list-item-title">{a.full_name}</div>
+                          <div className="list-item-title">{d.full_name}</div>
                           <span className={`badge${active ? " badge-success" : " badge-error"}`}>
                             {active ? "Active" : "Inactive"}
                           </span>
-                          {unlinked && (
-                            <span className="badge badge-warning">
-                              <AlertTriangle size={10} /> Unlinked
-                            </span>
-                          )}
                         </div>
 
-                        {/* Email */}
-                        {a.email && (
+                        {d.email && (
                           <div className="ap-email-row">
-                            <span className="ap-email">{a.email}</span>
+                            <span className="ap-email">{d.email}</span>
                             <button
                               type="button"
                               className="btn btn-icon"
                               style={{ width: 24, height: 24 }}
-                              onClick={() => copy(a.email!)}
+                              onClick={() => copy(d.email!)}
                               title="Copy email"
                             >
                               <Copy size={11} />
@@ -534,20 +469,24 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
                           </div>
                         )}
 
-                        {/* Chips */}
                         <div className="ap-chips">
-                          <span className={`ap-chip${a.doctor ? " ap-chip-linked" : ""}`}>
-                            <Stethoscope size={11} />
-                            {a.doctor ? `Dr. ${a.doctor.full_name}` : "Not linked"}
+                          <span className="ap-chip ap-chip-linked">
+                            <Activity size={11} /> {d.specialization}
                           </span>
-                          {a.phone && (
+                          <span className="ap-chip">
+                            <BadgeCheck size={11} /> {d.license_number}
+                          </span>
+                          <span className="ap-chip">
+                            <Hash size={11} /> {d.cnic}
+                          </span>
+                          {d.phone && (
                             <span className="ap-chip">
-                              <Phone size={11} /> {a.phone}
+                              <Phone size={11} /> {d.phone}
                             </span>
                           )}
-                          {a.created_at && (
+                          {d.created_at && (
                             <span className="ap-chip">
-                              <CalendarDays size={11} /> {fmtDate(a.created_at)}
+                              <CalendarDays size={11} /> {fmtDate(d.created_at)}
                             </span>
                           )}
                         </div>
@@ -556,34 +495,22 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
 
                     {/* Right: actions */}
                     <div className="ap-actions">
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => openEdit(a)}>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => openEdit(d)}>
                         <Edit3 size={13} /> Edit
                       </button>
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => openReset(a)}>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => openReset(d)}>
                         <KeyRound size={13} /> Reset
                       </button>
-                      <button
-                        type="button"
-                        className="btn btn-sm ap-btn-link"
-                        onClick={() => setLinkModal({ open: true, assistant: a, doctorId: a.doctor?.id || "" })}
-                      >
-                        <Link2 size={13} /> Link
-                      </button>
-                      {a.doctor && (
-                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => updateLink(a.profile_id, null)}>
-                          <Unlink size={13} /> Unlink
-                        </button>
-                      )}
                       {active ? (
-                        <button type="button" className="btn btn-sm ap-btn-warn" onClick={() => deactivate(a)}>
+                        <button type="button" className="btn btn-sm ap-btn-warn" onClick={() => deactivate(d)}>
                           <ShieldOff size={13} /> Deactivate
                         </button>
                       ) : (
-                        <button type="button" className="btn btn-sm ap-btn-success" onClick={() => activate(a)}>
+                        <button type="button" className="btn btn-sm ap-btn-success" onClick={() => activate(d)}>
                           <ShieldCheck size={13} /> Activate
                         </button>
                       )}
-                      <button type="button" className="btn btn-sm um-delete-btn" onClick={() => deleteAssistant(a)}>
+                      <button type="button" className="btn btn-sm um-delete-btn" onClick={() => deleteDoctor(d)}>
                         <Trash2 size={13} /> Delete
                       </button>
                     </div>
@@ -595,23 +522,23 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
         )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════
           MODALS
-      ═══════════════════════════════════════════════════ */}
+      ══════════════════════════════════════════════════ */}
 
       {/* Create */}
       {showCreate && (
-        <ModalShell title="Add New Assistant" icon={UserCog} onClose={() => setShowCreate(false)} wide>
-          <div className="form-grid-2">
+        <ModalShell title="Add New Doctor" icon={Stethoscope} onClose={() => setShowCreate(false)} wide>
+          <div className="form-grid-2" style={{ marginBottom: 20 }}>
             <div className="field">
               <label className="field-label">Full Name *</label>
-              <input className="field-input" placeholder="Full name"
+              <input className="field-input" placeholder="Dr. John Doe"
                 value={createForm.full_name}
                 onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} />
             </div>
             <div className="field">
               <label className="field-label">Email *</label>
-              <input type="email" className="field-input" placeholder="assistant@hospital.com"
+              <input type="email" className="field-input" placeholder="doctor@hospital.com"
                 value={createForm.email}
                 onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} />
             </div>
@@ -633,23 +560,30 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
             </div>
             <div className="field">
               <label className="field-label">Date of Birth</label>
-              <input type="date" className="field-input"
-                value={createForm.dob}
+              <input type="date" className="field-input" value={createForm.dob}
                 onChange={(e) => setCreateForm({ ...createForm, dob: e.target.value })} />
             </div>
             <div className="field">
-              <label className="field-label">Link Doctor (optional)</label>
-              <select className="field-select" value={createForm.doctor_profile_id}
-                onChange={(e) => setCreateForm({ ...createForm, doctor_profile_id: e.target.value })}>
-                <option value="">No link</option>
-                {doctorOptions.map((d) => (
-                  <option key={d.profile_id} value={d.profile_id}>Dr. {d.full_name}</option>
-                ))}
-              </select>
+              <label className="field-label">Specialization *</label>
+              <input className="field-input" placeholder="Cardiology"
+                value={createForm.specialization}
+                onChange={(e) => setCreateForm({ ...createForm, specialization: e.target.value })} />
+            </div>
+            <div className="field">
+              <label className="field-label">License # *</label>
+              <input className="field-input" placeholder="PMC-12345"
+                value={createForm.license_number}
+                onChange={(e) => setCreateForm({ ...createForm, license_number: e.target.value })} />
+            </div>
+            <div className="field">
+              <label className="field-label">CNIC *</label>
+              <input className="field-input" placeholder="42301-1234567-1"
+                value={createForm.cnic}
+                onChange={(e) => setCreateForm({ ...createForm, cnic: e.target.value })} />
             </div>
           </div>
 
-          <div className="ap-password-box">
+          <div className="ap-password-box" style={{ marginBottom: 20 }}>
             <div className="ap-password-top">
               <div>
                 <div className="form-section-title" style={{ marginBottom: 2 }}>Password</div>
@@ -674,8 +608,8 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
 
           <div className="hd-modal-actions">
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowCreate(false)} disabled={creating}>Cancel</button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={createAssistant} disabled={creating}>
-              {creating ? "Creating…" : "Create Assistant"}
+            <button type="button" className="btn btn-primary btn-sm" onClick={createDoctor} disabled={creating}>
+              {creating ? "Creating…" : "Create Doctor"}
             </button>
           </div>
         </ModalShell>
@@ -683,12 +617,12 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
 
       {/* Edit */}
       {showEdit && editTarget && (
-        <ModalShell title="Edit Assistant" icon={Edit3} onClose={() => setShowEdit(false)} wide>
+        <ModalShell title="Edit Doctor" icon={Edit3} onClose={() => setShowEdit(false)} wide>
           <div className="info-item" style={{ marginBottom: 16 }}>
             <div className="info-label">Email (read-only)</div>
             <div className="ap-creds-mono">{editTarget.email || "—"}</div>
           </div>
-          <div className="form-grid-2">
+          <div className="form-grid-2" style={{ marginBottom: 20 }}>
             <div className="field">
               <label className="field-label">Full Name</label>
               <input className="field-input" value={editForm.full_name}
@@ -714,6 +648,21 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
               <input type="date" className="field-input" value={editForm.dob}
                 onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })} />
             </div>
+            <div className="field">
+              <label className="field-label">Specialization</label>
+              <input className="field-input" value={editForm.specialization}
+                onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })} />
+            </div>
+            <div className="field">
+              <label className="field-label">License #</label>
+              <input className="field-input" value={editForm.license_number}
+                onChange={(e) => setEditForm({ ...editForm, license_number: e.target.value })} />
+            </div>
+            <div className="field">
+              <label className="field-label">CNIC</label>
+              <input className="field-input" value={editForm.cnic}
+                onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })} />
+            </div>
           </div>
           <div className="hd-modal-actions">
             <button type="button" className="btn btn-ghost btn-sm" onClick={() => setShowEdit(false)} disabled={editing}>Cancel</button>
@@ -724,47 +673,15 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
         </ModalShell>
       )}
 
-      {/* Link */}
-      {linkModal.open && linkModal.assistant && (
-        <ModalShell title="Link to Doctor" icon={Link2} onClose={() => setLinkModal({ open: false, assistant: null, doctorId: "" })}>
-          <div className="info-item" style={{ marginBottom: 16 }}>
-            <div className="info-label">Assistant</div>
-            <div className="list-item-title">{linkModal.assistant.full_name}</div>
-            <div className="ap-creds-mono">{linkModal.assistant.email || "—"}</div>
-          </div>
-          <div className="field" style={{ marginBottom: 20 }}>
-            <label className="field-label">Select Doctor</label>
-            <select className="field-select" value={linkModal.doctorId}
-              onChange={(e) => setLinkModal((p) => ({ ...p, doctorId: e.target.value }))}>
-              <option value="">No link (unlink)</option>
-              {doctorOptions.map((d) => (
-                <option key={d.profile_id} value={d.profile_id}>Dr. {d.full_name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="hd-modal-actions">
-            <button type="button" className="btn btn-ghost btn-sm"
-              onClick={() => setLinkModal({ open: false, assistant: null, doctorId: "" })}>Cancel</button>
-            <button type="button" className="btn btn-primary btn-sm"
-              onClick={async () => {
-                await updateLink(linkModal.assistant!.profile_id, linkModal.doctorId || null);
-                setLinkModal({ open: false, assistant: null, doctorId: "" });
-              }}>
-              Save Link
-            </button>
-          </div>
-        </ModalShell>
-      )}
-
       {/* Reset Password */}
       {showReset && resetTarget && (
         <ModalShell title="Reset Password" icon={KeyRound} onClose={() => setShowReset(false)}>
           <div className="info-item" style={{ marginBottom: 16 }}>
-            <div className="info-label">Assistant</div>
+            <div className="info-label">Doctor</div>
             <div className="list-item-title">{resetTarget.full_name}</div>
             <div className="ap-creds-mono">{resetTarget.email || "—"}</div>
           </div>
-          <div className="ap-password-box">
+          <div className="ap-password-box" style={{ marginBottom: 20 }}>
             <div className="ap-password-top">
               <div>
                 <div className="form-section-title" style={{ marginBottom: 2 }}>Password Mode</div>

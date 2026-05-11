@@ -1,6 +1,6 @@
 import { UserCog, Stethoscope, Building2 } from "lucide-react";
 import { CheckCircle, Clock, XCircle } from "lucide-react";
-import type { AssistantMeResponse } from "../../components/AssistantDashboard";
+import type { AssistantMeResponse } from "@/types";
 
 interface Props {
   assistantInfo: AssistantMeResponse | null;

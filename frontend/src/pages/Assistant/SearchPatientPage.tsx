@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Search, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import type { ExistingPatientSearchResult } from "../../components/AssistantDashboard";
-import { API_URL, getToken } from "../../components/AssistantDashboard";
+import { API_URL, getToken } from "@/lib/constants";
+import type { ExistingPatientSearchResult } from "@/types";
 
 interface Props {
   onRefreshPatients: () => void;

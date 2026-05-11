@@ -1,12 +1,13 @@
+// src/components/layout/AssistantSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Activity,
-  Users,
   Calendar,
   LogOut,
   UserPlus,
   Search,
   Building2,
+  UserCog,
 } from "lucide-react";
 
 interface AssistantSidebarProps {
@@ -17,7 +18,7 @@ interface AssistantSidebarProps {
   pendingCount?: number;
 }
 
-const menuItems = [
+const mainNav = [
   {
     id: "assistant-search-patient",
     label: "Search Patient",
@@ -41,6 +42,14 @@ const menuItems = [
   },
 ];
 
+const bottomNav = [
+  {
+    id: "assistant-my-profile",
+    label: "My Profile",
+    icon: UserCog,
+  },
+];
+
 export function AssistantSidebar({
   onLogout,
   userName = "Assistant",
@@ -51,12 +60,37 @@ export function AssistantSidebar({
   const location = useLocation();
   const rawPage = location.pathname.split("/").pop() || "search-patient";
   const currentPage = rawPage === "assistant" ? "assistant-search-patient" : `assistant-${rawPage}`;
+
   const initials = userName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .substring(0, 2);
+
+  const renderNavItem = (item: (typeof mainNav)[0]) => {
+    const Icon     = item.icon;
+    const isActive = currentPage === item.id;
+    const badge    = item.hasBadge && pendingCount > 0 ? pendingCount : null;
+
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => navigate(`/assistant/${item.id.replace("assistant-", "")}`)}
+        className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
+      >
+        <Icon className="sidebar-nav-icon" />
+        <span className="sidebar-nav-label">{item.label}</span>
+        {badge && (
+          <span className="tab-badge" style={{ marginLeft: "auto" }}>
+            {badge}
+          </span>
+        )}
+        {isActive && <div className="sidebar-nav-indicator" />}
+      </button>
+    );
+  };
 
   return (
     <aside className="sidebar">
@@ -81,31 +115,15 @@ export function AssistantSidebar({
         </div>
       </div>
 
-      {/* ── Navigation ── */}
+      {/* ── Main Navigation ── */}
       <nav className="sidebar-nav">
-        {menuItems.map((item) => {
-          const Icon     = item.icon;
-          const isActive = currentPage === item.id;
-          const badge    = item.hasBadge && pendingCount > 0 ? pendingCount : null;
+        <div className="sidebar-section-label">Patients</div>
+        {mainNav.map(renderNavItem)}
 
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => navigate(`/assistant/${item.id.replace('assistant-', '')}`)}
-              className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
-            >
-              <Icon className="sidebar-nav-icon" />
-              <span className="sidebar-nav-label">{item.label}</span>
-              {badge && (
-                <span className="tab-badge" style={{ marginLeft: "auto" }}>
-                  {badge}
-                </span>
-              )}
-              {isActive && <div className="sidebar-nav-indicator" />}
-            </button>
-          );
-        })}
+        <div className="sidebar-section-label" style={{ marginTop: 8 }}>
+          General
+        </div>
+        {bottomNav.map(renderNavItem)}
       </nav>
 
       {/* ── Footer ── */}

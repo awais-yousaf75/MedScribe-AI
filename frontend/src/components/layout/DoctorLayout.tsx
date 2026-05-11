@@ -1,3 +1,4 @@
+// src/components/layout/DoctorLayout.tsx
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -12,6 +13,7 @@ import {
   LogOut,
   Calendar,
   CalendarDays,
+  UserPlus,
 } from "lucide-react";
 
 interface DoctorLayoutProps {
@@ -38,75 +40,28 @@ export default function DoctorLayout({
     .join("");
 
   const mainNav = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      id: "patients",
-      label: "Patients",
-      icon: Users,
-    },
-    {
-      id: "appointments",
-      label: "Appointments",
-      icon: Calendar,
-    },
-    {
-      id: "availability",
-      label: "Availability",
-      icon: CalendarDays,
-    },
+    { id: "dashboard",    label: "Dashboard",      icon: LayoutDashboard },
+    { id: "patients",     label: "Patients",        icon: Users           },
+    { id: "assistants",   label: "My Assistants",   icon: UserPlus        },
+    { id: "appointments", label: "Appointments",    icon: Calendar        },
+    { id: "availability", label: "Availability",    icon: CalendarDays    },
   ];
 
   const consultationNav = [
-    {
-      id: "recording",
-      label: "Recording",
-      icon: Mic,
-    },
-    {
-      id: "transcript",
-      label: "Transcript",
-      icon: FileText,
-    },
-    {
-      id: "extraction",
-      label: "AI Extraction",
-      icon: Brain,
-    },
-    {
-      id: "notes",
-      label: "SOAP Notes",
-      icon: ClipboardList,
-    },
-    {
-      id: "prescription",
-      label: "Prescription",
-      icon: FileText,
-    },
+    { id: "recording",    label: "Recording",    icon: Mic          },
+    { id: "transcript",   label: "Transcript",   icon: FileText     },
+    { id: "extraction",   label: "AI Extraction",icon: Brain        },
+    { id: "notes",        label: "SOAP Notes",   icon: ClipboardList},
+    { id: "prescription", label: "Prescription", icon: FileText     },
   ];
 
   const bottomNav = [
-    {
-      id: "history",
-      label: "History",
-      icon: History,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-    },
+    { id: "history",  label: "History",  icon: History  },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const consultationPages = [
-    "recording",
-    "transcript",
-    "extraction",
-    "notes",
-    "prescription",
+    "recording", "transcript", "extraction", "notes", "prescription",
   ];
   const isInConsultation = consultationPages.includes(activePage);
 
@@ -114,6 +69,7 @@ export default function DoctorLayout({
     <div className="page-root">
       {/* ── Sidebar ── */}
       <aside className="sidebar">
+
         {/* Logo */}
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
@@ -136,7 +92,6 @@ export default function DoctorLayout({
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {/* Main section */}
           <div className="sidebar-section-label">Main</div>
 
           {mainNav.map((item) => (
@@ -146,86 +101,60 @@ export default function DoctorLayout({
               className={`sidebar-nav-item ${
                 activePage === item.id && !isInConsultation
                   ? "sidebar-nav-item-active"
-                  : activePage === item.id && item.id === "recording" && isInConsultation
-                  ? "sidebar-nav-item-active"
                   : ""
               }`}
             >
               <item.icon className="sidebar-nav-icon" />
               <span className="sidebar-nav-label">{item.label}</span>
-              {((activePage === item.id && !isInConsultation) ||
-                (activePage === item.id &&
-                  item.id === "recording" &&
-                  isInConsultation)) && (
+              {activePage === item.id && !isInConsultation && (
                 <span className="sidebar-nav-indicator" />
               )}
             </button>
           ))}
 
-          {/* Consultation flow — only when in a consultation */}
+          {/* Consultation flow */}
           {isInConsultation && (
             <>
               <div className="sidebar-section-label" style={{ marginTop: 8 }}>
                 Consultation Flow
               </div>
-
               {consultationNav.map((item) => {
-                const isActive = activePage === item.id;
-                const stepIndex = consultationPages.indexOf(item.id);
+                const isActive    = activePage === item.id;
+                const stepIndex   = consultationPages.indexOf(item.id);
                 const currentIndex = consultationPages.indexOf(activePage);
                 const isCompleted = stepIndex < currentIndex;
-                const isUpcoming = stepIndex > currentIndex;
+                const isUpcoming  = stepIndex > currentIndex;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      if (!isUpcoming) navigate(`/doctor/${item.id}`);
-                    }}
+                    onClick={() => { if (!isUpcoming) navigate(`/doctor/${item.id}`); }}
                     disabled={isUpcoming}
-                    className={`sidebar-nav-item ${
-                      isActive ? "sidebar-nav-item-active" : ""
-                    } ${isUpcoming ? "dl-nav-upcoming" : ""}`}
+                    className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""} ${isUpcoming ? "dl-nav-upcoming" : ""}`}
                   >
-                    <item.icon
-                      className={`sidebar-nav-icon ${
-                        isCompleted ? "dl-icon-completed" : ""
-                      }`}
-                    />
+                    <item.icon className={`sidebar-nav-icon ${isCompleted ? "dl-icon-completed" : ""}`} />
                     <span className="sidebar-nav-label">{item.label}</span>
-                    {isActive && (
-                      <span className="sidebar-nav-indicator" />
-                    )}
-                    {isCompleted && !isActive && (
-                      <span className="dl-check">✓</span>
-                    )}
+                    {isActive    && <span className="sidebar-nav-indicator" />}
+                    {isCompleted && !isActive && <span className="dl-check">✓</span>}
                   </button>
                 );
               })}
             </>
           )}
 
-          {/* General section */}
-          <div
-            className="sidebar-section-label"
-            style={{ marginTop: 8 }}
-          >
+          {/* General */}
+          <div className="sidebar-section-label" style={{ marginTop: 8 }}>
             General
           </div>
-
           {bottomNav.map((item) => (
             <button
               key={item.id}
               onClick={() => navigate(`/doctor/${item.id}`)}
-              className={`sidebar-nav-item ${
-                activePage === item.id ? "sidebar-nav-item-active" : ""
-              }`}
+              className={`sidebar-nav-item ${activePage === item.id ? "sidebar-nav-item-active" : ""}`}
             >
               <item.icon className="sidebar-nav-icon" />
               <span className="sidebar-nav-label">{item.label}</span>
-              {activePage === item.id && (
-                <span className="sidebar-nav-indicator" />
-              )}
+              {activePage === item.id && <span className="sidebar-nav-indicator" />}
             </button>
           ))}
         </nav>
@@ -244,7 +173,7 @@ export default function DoctorLayout({
         </div>
       </aside>
 
-      {/* ── Main content area ── */}
+      {/* ── Main content ── */}
       <main className="page-main">{children}</main>
     </div>
   );

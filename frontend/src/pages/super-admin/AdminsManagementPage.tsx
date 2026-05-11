@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Shield,
@@ -26,7 +26,7 @@ type HospitalAdmin = {
   hospital_name?: string | null;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "@/lib/constants";
 
 export function AdminsManagementPage({}: AdminsManagementPageProps) {
   const navigate = useNavigate();

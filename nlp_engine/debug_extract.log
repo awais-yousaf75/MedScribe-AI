@@ -1992,3 +1992,558 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 6906
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "short of breath and increased cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "shortness of breath",
+      "duration": "last few days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "worsened over the last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "coughing fits",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "discomfort in the chest",
+      "duration": null,
+      "severity": null,
+      "location": "chest",
+      "onset": null
+    },
+    {
+      "name": "chills",
+      "duration": "last couple of days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": "steady"
+  },
+  "diagnoses": [
+    {
+      "name": "COPD",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    },
+    {
+      "name": "high cholesterol",
+      "icd10_code": null,
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "Ventolin",
+      "generic_name": "Salbutamol",
+      "dose": null,
+      "frequency": "almost 10 times this past week",
+      "duration": null,
+      "route": "inhalation",
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "Spireva",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "diuretic",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "stopped"
+    }
+  ],
+  "investigations": [
+    {
+      "name": "temperature measurement",
+      "type": "lab",
+      "status": "ordered",
+      "result": null
+    }
+  ],
+  "allergies": [],
+  "past_medical_history": ["high blood pressure"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 4890
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "runny nose",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "runny nose",
+      "duration": "5 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "nasal obstruction",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "headache",
+      "duration": null,
+      "severity": "slight",
+      "location": "sides of the head",
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "last week",
+      "severity": "slight",
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "diarrhea",
+      "duration": "last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": "a little bit",
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "new"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["appendix removal"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 4890
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "runny nose",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "runny nose",
+      "duration": "5 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "nasal obstruction",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "headache",
+      "duration": null,
+      "severity": "slight",
+      "location": "sides of the head",
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "last week",
+      "severity": "slight",
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "diarrhea",
+      "duration": "last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": "a little bit",
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "new"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["appendix removal"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 4890
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "runny nose",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "runny nose",
+      "duration": "5 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "nasal obstruction",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "headache",
+      "duration": null,
+      "severity": "slight",
+      "location": "sides of the head",
+      "onset": null
+    },
+    {
+      "name": "cough",
+      "duration": "last week",
+      "severity": "slight",
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "diarrhea",
+      "duration": "last week",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fatigue",
+      "duration": null,
+      "severity": "a little bit",
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "new"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": ["appendix removal"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5914
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "cough, runny nose, and congestion",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "5-6 days",
+      "severity": null,
+      "location": null,
+      "onset": "gradual"
+    },
+    {
+      "name": "runny nose",
+      "duration": "5-6 days",
+      "severity": null,
+      "location": null,
+      "onset": "gradual"
+    },
+    {
+      "name": "congestion",
+      "duration": "5-6 days",
+      "severity": null,
+      "location": "nose",
+      "onset": "gradual"
+    },
+    {
+      "name": "nasal discharge",
+      "duration": "5-6 days",
+      "severity": null,
+      "location": "nose",
+      "onset": "gradual"
+    },
+    {
+      "name": "scratchy throat",
+      "duration": null,
+      "severity": "mild",
+      "location": "throat",
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": "no changes"
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5757
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "almost a week",
+      "severity": null,
+      "location": null,
+      "onset": "Sunday"
+    },
+    {
+      "name": "fever",
+      "duration": "since Monday",
+      "severity": null,
+      "location": null,
+      "onset": "Monday"
+    },
+    {
+      "name": "chills",
+      "duration": "last two days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "sore throat",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "runny nose",
+      "duration": "about a week ago",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "chest pain",
+      "duration": "especially notice over the last day",
+      "severity": "dull",
+      "location": "right side",
+      "onset": null
+    },
+    {
+      "name": "shortness of breath",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

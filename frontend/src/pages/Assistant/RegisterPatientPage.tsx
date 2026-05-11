@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { API_URL, getToken } from "../../components/AssistantDashboard";
+import { API_URL, getToken } from "@/lib/constants";
 
 interface Props {
   onRefreshPatients: () => void;

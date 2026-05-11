@@ -1,6 +1,6 @@
 import { Search, Users as UsersIcon, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import type { Patient } from "../../components/AssistantDashboard";
+import type { Patient } from "@/types";
 
 interface Props {
   patients:         Patient[];

@@ -1,11 +1,12 @@
+// src/pages/Assistant/AssistantAppointmentsPage.tsx
 import { useState } from "react";
 import {
   CheckCircle, XCircle, Clock,
   Calendar, RefreshCw, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { AppointmentFromAPI } from "../../components/AssistantDashboard";
-import { API_URL, getToken } from "../../components/AssistantDashboard";
+import { API_URL, getToken } from "@/lib/constants";
+import type { AppointmentFromAPI } from "@/types";
 
 type ApptFilter = "all" | "pending" | "approved" | "rejected" | "cancelled";
 
