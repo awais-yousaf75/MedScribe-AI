@@ -14,6 +14,8 @@ import nlpRoutes from "./routes/nlp.route";
 import patientAuthRoutes from "./routes/patientAuth.route";
 import appointmentsRoutes from "./routes/appointments.route";
 import patientPrescriptionsRoutes from "./routes/patientPrescriptions.route";
+import patientProfileRoutes from "./routes/patientProfile.route";
+import userProfileRoutes from "./routes/userProfile.route";
 
 dotenv.config();
 
@@ -39,6 +41,8 @@ app.use("/api/nlp", nlpRoutes);
 app.use("/api/patient-auth", patientAuthRoutes);
 app.use("/api/appointments", appointmentsRoutes);
 app.use("/api/patient", patientPrescriptionsRoutes);
+app.use("/api/patient", patientProfileRoutes);
+app.use("/api/profile", userProfileRoutes);
 
 // app.get("/", (_req, res) => {
 //   res.send("Backend is running");
