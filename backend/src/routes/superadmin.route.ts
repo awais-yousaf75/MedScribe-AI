@@ -67,7 +67,6 @@ router.post("/register-hospital-admin", async (req, res) => {
   }
 
   try {
-    // Validate registration number format
     const registrationNumberRegex = /^[A-Z0-9\-]{5,}$/;
     if (!registrationNumberRegex.test(hospital_registration_number)) {
       return res.status(400).json({
@@ -77,7 +76,6 @@ router.post("/register-hospital-admin", async (req, res) => {
       });
     }
 
-    // Check if registration number already exists
     const { data: existingReg, error: regCheckError } = await supabase
       .from("hospitals")
       .select("id, registration_number")
@@ -98,7 +96,6 @@ router.post("/register-hospital-admin", async (req, res) => {
       });
     }
 
-    // Check if hospital name already exists
     const { data: existingHospital } = await supabase
       .from("hospitals")
       .select("id, name, status")
@@ -113,7 +110,6 @@ router.post("/register-hospital-admin", async (req, res) => {
       });
     }
 
-    // Create auth user
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
         email: admin_email,
@@ -130,7 +126,6 @@ router.post("/register-hospital-admin", async (req, res) => {
 
     const adminProfileId = authData.user.id;
 
-    // Create profile
     const { error: profileError } = await supabase.from("profiles").insert({
       id: adminProfileId,
       full_name: admin_full_name,
@@ -147,7 +142,6 @@ router.post("/register-hospital-admin", async (req, res) => {
       return res.status(500).json({ error: "Failed to create admin profile" });
     }
 
-    // Create hospital
     const { data: hospitalData, error: hospitalError } = await supabase
       .from("hospitals")
       .insert({
@@ -171,7 +165,6 @@ router.post("/register-hospital-admin", async (req, res) => {
       return res.status(500).json({ error: "Failed to create hospital" });
     }
 
-    // Create hospital_admin_profiles entry
     const { error: adminProfileError } = await supabase
       .from("hospital_admin_profiles")
       .insert({
@@ -545,7 +538,6 @@ router.post("/hospitals/:hospitalId/approve", async (req, res) => {
       return res.status(404).json({ error: "Hospital not found" });
     }
 
-    // Check for duplicate registration number
     const { data: registrationDuplicate, error: regDupError } = await supabase
       .from("hospitals")
       .select("id, name, registration_number")
@@ -567,7 +559,6 @@ router.post("/hospitals/:hospitalId/approve", async (req, res) => {
       });
     }
 
-    // Check for duplicate name
     const { data: nameDuplicate, error: nameDupError } = await supabase
       .from("hospitals")
       .select("id, name")
@@ -589,7 +580,6 @@ router.post("/hospitals/:hospitalId/approve", async (req, res) => {
       });
     }
 
-    // Check if admin already has an approved hospital
     const { data: adminHospital, error: adminCheckError } = await supabase
       .from("hospitals")
       .select("id, name")
@@ -611,7 +601,6 @@ router.post("/hospitals/:hospitalId/approve", async (req, res) => {
       });
     }
 
-    // Approve the hospital
     const { error } = await supabase
       .from("hospitals")
       .update({ status: "approved" })
@@ -760,13 +749,11 @@ router.get("/users", async (req, res) => {
 
 /**
  * DELETE /api/superadmin/users/:userId
- * Hard delete user (safe: unlinks FK references first)
  */
 router.delete("/users/:userId", async (req, res) => {
   const { userId } = req.params;
 
   try {
-    // 0) Safety: never delete super_admin via this route
     const { data: prof, error: profFetchErr } = await supabase
       .from("profiles")
       .select("id, role")
@@ -784,7 +771,6 @@ router.delete("/users/:userId", async (req, res) => {
       return res.status(403).json({ error: "Cannot delete super_admin" });
     }
 
-    // 1) Unlink hospitals where this user is admin (FK: hospitals.admin_profile_id -> profiles.id)
     const { error: unlinkHospErr } = await supabase
       .from("hospitals")
       .update({ admin_profile_id: null })
@@ -795,7 +781,6 @@ router.delete("/users/:userId", async (req, res) => {
       return res.status(500).json({ error: "Failed to unlink hospital admin" });
     }
 
-    // 2) Unlink assistants linked to this doctor (FK: doctor_assistant_profiles.doctor_profile_id -> profiles.id)
     const { error: unlinkAssistErr } = await supabase
       .from("doctor_assistant_profiles")
       .update({ doctor_profile_id: null })
@@ -806,7 +791,6 @@ router.delete("/users/:userId", async (req, res) => {
       return res.status(500).json({ error: "Failed to unlink assistants" });
     }
 
-    // 3) Unlink patient_profiles.created_by (FK: patient_profiles.created_by -> profiles.id)
     const { error: unlinkCreatedByErr } = await supabase
       .from("patient_profiles")
       .update({ created_by: null })
@@ -820,7 +804,6 @@ router.delete("/users/:userId", async (req, res) => {
       return res.status(500).json({ error: "Failed to unlink created_by" });
     }
 
-    // 4) Delete consultations first (FKs depend on doctor_profiles/patient_profiles)
     const { error: delDocConsultErr } = await supabase
       .from("consultations")
       .delete()
@@ -851,7 +834,6 @@ router.delete("/users/:userId", async (req, res) => {
         .json({ error: "Failed to delete patient consultations" });
     }
 
-    // 5) Delete role tables
     const { error: delHospAdminErr } = await supabase
       .from("hospital_admin_profiles")
       .delete()
@@ -894,7 +876,6 @@ router.delete("/users/:userId", async (req, res) => {
         .json({ error: "Failed to delete patient profile" });
     }
 
-    // 6) Delete main profile row (FK: profiles.id -> auth.users.id)
     const { error: delProfileErr } = await supabase
       .from("profiles")
       .delete()
@@ -908,7 +889,6 @@ router.delete("/users/:userId", async (req, res) => {
       });
     }
 
-    // 7) Finally delete auth user
     const { error: delAuthErr } = await supabase.auth.admin.deleteUser(userId);
 
     if (delAuthErr) {
@@ -977,11 +957,11 @@ router.get("/hospitals", async (req, res) => {
       console.error("Fetch doctor counts error:", docCountError);
     }
 
+    // ── FIXED: removed approval_status filter so ALL assistants are counted ──
     const { data: assistantCounts, error: assistCountError } = await supabase
       .from("doctor_assistant_profiles")
       .select("hospital_id")
-      .in("hospital_id", hospitalIds)
-      .eq("approval_status", "approved");
+      .in("hospital_id", hospitalIds);
 
     if (assistCountError) {
       console.error("Fetch assistant counts error:", assistCountError);
@@ -1039,7 +1019,8 @@ router.get("/hospitals", async (req, res) => {
 
 /**
  * GET /api/superadmin/hospitals/:hospitalId
- * Returns full details for a specific hospital including admin info and stats
+ * ── FIXED: patients_count includes legacy patients linked via appointments
+ * ── FIXED: assistants_count removed approval_status filter
  */
 router.get("/hospitals/:hospitalId", async (req, res) => {
   const { hospitalId } = req.params;
@@ -1068,7 +1049,7 @@ router.get("/hospitals/:hospitalId", async (req, res) => {
       return res.status(404).json({ error: "Hospital not found" });
     }
 
-    // 2. Fetch the Admin's Email from Supabase Auth (since it's not in the profiles table)
+    // 2. Fetch the Admin's Email from Supabase Auth
     let adminEmail = null;
     if (hospital.admin_profile_id) {
       const { data: authUser, error: authError } =
@@ -1078,29 +1059,51 @@ router.get("/hospitals/:hospitalId", async (req, res) => {
       }
     }
 
-    // 3. Get Aggregated Stats for this specific hospital
-
-    // Count Approved Doctors
+    // 3. Count Approved Doctors
     const { count: doctorsCount } = await supabase
       .from("doctor_profiles")
       .select("*", { count: "exact", head: true })
       .eq("hospital_id", hospitalId)
       .eq("approval_status", "approved");
 
-    // Count Approved Assistants
+    // 4. Count ALL Assistants (removed approval_status filter)
     const { count: assistantsCount } = await supabase
       .from("doctor_assistant_profiles")
       .select("*", { count: "exact", head: true })
-      .eq("hospital_id", hospitalId)
-      .eq("approval_status", "approved");
-
-    // Count Total Patients
-    const { count: patientsCount } = await supabase
-      .from("patient_profiles")
-      .select("*", { count: "exact", head: true })
       .eq("hospital_id", hospitalId);
 
-    // 4. Construct the final response matching your frontend interface
+    // 5. Count Total Patients
+    //    — direct: patient_profiles.hospital_id = hospitalId
+    //    — legacy: patients linked via appointments but hospital_id may be null
+    const { data: directPatientRows } = await supabase
+      .from("patient_profiles")
+      .select("profile_id")
+      .eq("hospital_id", hospitalId);
+
+    const directIds = new Set(
+      (directPatientRows || []).map((p: any) => p.profile_id),
+    );
+
+    const { data: apptPatients } = await supabase
+      .from("appointments")
+      .select("patient_profile_id")
+      .eq("hospital_id", hospitalId);
+
+    const apptPatientIds = [
+      ...new Set(
+        (apptPatients || [])
+          .map((a: any) => a.patient_profile_id)
+          .filter(Boolean),
+      ),
+    ];
+
+    const extraFromAppts = apptPatientIds.filter(
+      (id: string) => !directIds.has(id),
+    ).length;
+
+    const patientsCount = directIds.size + extraFromAppts;
+
+    // 6. Construct the final response
     const response = {
       hospital: {
         ...hospital,
@@ -1113,7 +1116,7 @@ router.get("/hospitals/:hospitalId", async (req, res) => {
         doctors_count: doctorsCount || 0,
         assistants_count: assistantsCount || 0,
       },
-      patients_count: patientsCount || 0,
+      patients_count: patientsCount,
     };
 
     return res.json(response);
@@ -1168,7 +1171,6 @@ router.get("/stats", async (req, res) => {
 
 /**
  * PATCH /api/superadmin/hospital-admins/:profileId/email
- * Body: { email: string }
  */
 router.patch("/hospital-admins/:profileId/email", async (req, res) => {
   const { profileId } = req.params;
@@ -1179,7 +1181,6 @@ router.patch("/hospital-admins/:profileId/email", async (req, res) => {
   }
 
   try {
-    // ensure user exists + is hospital_admin
     const { data: profile, error: profErr } = await supabase
       .from("profiles")
       .select("id, role")
@@ -1202,12 +1203,11 @@ router.patch("/hospital-admins/:profileId/email", async (req, res) => {
       });
     }
 
-    // update auth email
     const { data, error: updErr } = await supabase.auth.admin.updateUserById(
       profileId,
       {
         email,
-        email_confirm: true, // keeps it usable immediately
+        email_confirm: true,
       },
     );
 
@@ -1231,8 +1231,6 @@ router.patch("/hospital-admins/:profileId/email", async (req, res) => {
 
 /**
  * DELETE /api/superadmin/users?confirm=DELETE_ALL_USERS
- * Deletes ALL non-super_admin users + related rows safely.
- * Leaves hospitals in place, but unlinks admin_profile_id where needed.
  */
 router.delete("/users", async (req, res) => {
   const confirm =
@@ -1261,7 +1259,6 @@ router.delete("/users", async (req, res) => {
       return res.json({ success: true, deleted: 0 });
     }
 
-    // 1) Unlink hospitals that point to these admins (FK safety)
     const { error: unlinkHospErr } = await supabase
       .from("hospitals")
       .update({ admin_profile_id: null })
@@ -1272,8 +1269,6 @@ router.delete("/users", async (req, res) => {
       return res.status(500).json({ error: "Failed to unlink hospitals" });
     }
 
-    // 2) Delete consultations first (FK safety)
-    // chunk to avoid huge IN lists
     for (const chunk of chunkArray(ids, 500)) {
       await supabase
         .from("consultations")
@@ -1285,7 +1280,6 @@ router.delete("/users", async (req, res) => {
         .in("patient_profile_id", chunk);
     }
 
-    // 3) Delete role tables
     for (const chunk of chunkArray(ids, 500)) {
       await supabase
         .from("hospital_admin_profiles")
@@ -1299,12 +1293,10 @@ router.delete("/users", async (req, res) => {
       await supabase.from("patient_profiles").delete().in("profile_id", chunk);
     }
 
-    // 4) Delete profiles
     for (const chunk of chunkArray(ids, 500)) {
       await supabase.from("profiles").delete().in("id", chunk);
     }
 
-    // 5) Delete auth users (must be done per-user)
     let authDeleted = 0;
     const authErrors: Array<{ id: string; message: string }> = [];
 
@@ -1330,7 +1322,7 @@ router.delete("/users", async (req, res) => {
       success: true,
       deleted_profiles: ids.length,
       deleted_auth_users: authDeleted,
-      auth_errors: authErrors, // if any
+      auth_errors: authErrors,
     });
   } catch (err) {
     console.error("DELETE /api/superadmin/users error:", err);
@@ -1340,34 +1332,14 @@ router.delete("/users", async (req, res) => {
 
 /**
  * POST /api/superadmin/hospitals/:hospitalId/admin
- * Create + assign a NEW hospital admin for an existing hospital.
- *
- * Query: ?replace=true  (optional) -> allows replacing existing admin
- * Body:
- * {
- *   full_name: string,
- *   email: string,
- *   password?: string,
- *   generate_password?: boolean,
- *   phone?: string,
- *   gender?: string,
- *   dob?: string
- * }
  */
 router.post("/hospitals/:hospitalId/admin", async (req, res) => {
   const { hospitalId } = req.params;
   const replace =
     req.query.replace === "true" || (req.body?.replace as boolean) === true;
 
-  const {
-    full_name,
-    email,
-    password,
-    generate_password,
-    phone,
-    gender,
-    dob,
-  } = req.body || {};
+  const { full_name, email, password, generate_password, phone, gender, dob } =
+    req.body || {};
 
   if (!full_name || !email) {
     return res.status(400).json({
@@ -1377,7 +1349,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
   }
 
   try {
-    // 1) hospital check
     const { data: hospital, error: hospErr } = await supabase
       .from("hospitals")
       .select("id, name, admin_profile_id")
@@ -1399,7 +1370,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
       });
     }
 
-    // 2) if replacing: unlink old admin mapping for consistency
     if (hospital.admin_profile_id && replace) {
       const oldAdminId = hospital.admin_profile_id;
 
@@ -1414,7 +1384,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
         .eq("id", hospitalId);
     }
 
-    // 3) create auth user
     const shouldGenerate = generate_password === true || !password;
     const finalPassword = shouldGenerate ? genPassword(12) : password;
 
@@ -1434,7 +1403,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
 
     const adminId = authData.user.id;
 
-    // 4) create profile
     const { error: profErr } = await supabase.from("profiles").insert({
       id: adminId,
       full_name,
@@ -1451,7 +1419,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
       return res.status(500).json({ error: "Failed to create profile" });
     }
 
-    // 5) create hospital_admin_profiles
     const { error: hapErr } = await supabase
       .from("hospital_admin_profiles")
       .insert({
@@ -1468,7 +1435,6 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
         .json({ error: "Failed to create hospital admin link" });
     }
 
-    // 6) assign as hospital admin_profile_id
     const { error: assignErr } = await supabase
       .from("hospitals")
       .update({ admin_profile_id: adminId })
@@ -1476,10 +1442,15 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
 
     if (assignErr) {
       console.error("Assign hospital admin error:", assignErr);
-      await supabase.from("hospital_admin_profiles").delete().eq("profile_id", adminId);
+      await supabase
+        .from("hospital_admin_profiles")
+        .delete()
+        .eq("profile_id", adminId);
       await supabase.from("profiles").delete().eq("id", adminId);
       await supabase.auth.admin.deleteUser(adminId);
-      return res.status(500).json({ error: "Failed to assign admin to hospital" });
+      return res
+        .status(500)
+        .json({ error: "Failed to assign admin to hospital" });
     }
 
     return res.status(201).json({
@@ -1498,6 +1469,5 @@ router.post("/hospitals/:hospitalId/admin", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 export default router;
