@@ -1,4 +1,4 @@
-// src/pages/doctor/DoctorDashboard.tsx
+// src/components/DoctorDashboard.tsx
 import { useEffect, useState, useCallback } from "react";
 import {
   Routes,
@@ -13,9 +13,6 @@ import OverviewPage from "@/pages/doctor/OverviewPage";
 import PatientsPage from "@/pages/doctor/PatientsPage";
 import AvailabilityPage from "@/pages/doctor/AvailabilityPage";
 import AppointmentsPage from "@/pages/doctor/AppointmentsPage";
-import AssistantsPage from "@/pages/doctor/AssistantsPage";
-import DoctorMyProfilePage from "@/pages/doctor/MyProfilePage";
-import DoctorChangePasswordPage from "@/pages/doctor/ChangePasswordPage";
 import LiveRecording from "@/components/consultation/LiveRecording";
 import TranscriptPage, {
   type TranscriptData,
@@ -26,6 +23,7 @@ import PrescriptionPreview from "@/components/common/PrescriptionPreview";
 import ConsultationHistory from "@/components/consultation/ConsultationHistory";
 import { API_URL, getToken } from "@/lib/constants";
 import type { Assistant, DoctorMeResponse, Patient } from "@/types";
+import AssistantsPage from "@/pages/doctor/AssistantsPage";
 
 // ── Coming Soon ───────────────────────────────────────────────
 
@@ -100,6 +98,7 @@ interface DoctorDashboardProps {
 // ─────────────────────────────────────────────────────────────
 
 export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
+  // REPLACE with:
   const location = useLocation();
   const navigate = useNavigate();
   const activePage = location.pathname.split("/").pop() || "dashboard";
@@ -183,6 +182,7 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
 
   // ── Consultation handlers ─────────────────────────────────
 
+  // REPLACE with:
   const handleStartConsultation = (patient: {
     profile_id: string;
     full_name: string;
@@ -201,6 +201,7 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
     setTranscriptData(data as TranscriptData);
   };
 
+  // REPLACE with:
   const handlePipelineComplete = useCallback(
     (result: any) => {
       setExtractedData(result.extracted_data ?? null);
@@ -215,7 +216,6 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
   const doctorName =
     doctorInfo?.profile.full_name || doctorInfo?.user.email || "Doctor";
   const doctorEmail = doctorInfo?.user.email || "";
-  const avatarUrl = (doctorInfo?.profile as any)?.avatar_url || null;
 
   // ─────────────────────────────────────────────────────────
   // RENDER
@@ -227,7 +227,6 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
       onLogout={onLogout}
       doctorName={doctorName}
       doctorEmail={doctorEmail}
-      avatarUrl={avatarUrl}
     >
       <Routes>
         <Route index element={<Navigate to="dashboard" replace />} />
@@ -330,19 +329,13 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
           path="history"
           element={<ConsultationHistory onLogout={onLogout} />}
         />
-
-        {/* ── Profile & Security ── */}
-        <Route path="my-profile"      element={<DoctorMyProfilePage />} />
-        <Route path="change-password" element={<DoctorChangePasswordPage />} />
-
-        {/* ── Old settings route — keep for backward compat ── */}
         <Route
           path="settings"
           element={
             <ComingSoonInsideLayout
               title="Settings"
-              description="Use the My Profile and Change Password options in the sidebar."
-              onBack={() => navigate("/doctor/my-profile")}
+              description="Account and application settings are coming soon."
+              onBack={() => window.history.back()}
               onLogout={onLogout}
             />
           }
@@ -353,5 +346,3 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
     </DoctorLayout>
   );
 }
-
-export default DoctorDashboard;
