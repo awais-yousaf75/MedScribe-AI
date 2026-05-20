@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 
 import { API_URL } from "@/lib/constants";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 type Doctor = {
   profile_id: string;
@@ -15,6 +16,7 @@ type Doctor = {
   phone: string | null;
   gender?: string | null;
   dob?: string | null;
+  avatar_url?: string | null; // ✅ AVATAR
   specialization: string;
   license_number: string;
   cnic: string;
@@ -442,9 +444,8 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
                   <div className="ap-card-inner">
                     {/* Left: info */}
                     <div className="ap-info">
-                      <div className={`ap-avatar${active ? "" : " ap-avatar-inactive"}`}>
-                        {d.full_name?.charAt(0)?.toUpperCase() || "D"}
-                      </div>
+                      {/* ✅ AVATAR — replaced letter div with AvatarDisplay */}
+                      <AvatarDisplay url={d.avatar_url} name={d.full_name} size={42} />
 
                       <div className="ap-info-body">
                         <div className="ap-name-row">

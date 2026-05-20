@@ -264,7 +264,7 @@ router.get("/doctors", async (req, res) => {
     const { data: profiles, error: profError } = await supabase
       .from("profiles")
       .select(
-        "id, full_name, phone, gender, dob, role, approval_status, created_at",
+        "id, full_name, phone, gender, dob, role, approval_status, created_at, avatar_url", // ✅ AVATAR
       )
       .in("id", ids)
       .eq("role", "doctor");
@@ -289,6 +289,7 @@ router.get("/doctors", async (req, res) => {
         phone: p?.phone || null,
         gender: p?.gender || null,
         dob: p?.dob || null,
+        avatar_url: p?.avatar_url || null, // ✅ AVATAR
         specialization: dp.specialization,
         license_number: dp.license_number,
         cnic: dp.cnic,
@@ -581,13 +582,13 @@ router.get("/assistants", async (req, res) => {
 
     const { data: assistantProfiles } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, gender, dob, role, created_at")
+      .select("id, full_name, phone, gender, dob, role, created_at, avatar_url") // ✅ AVATAR
       .in("id", assistantIds)
       .eq("role", "doctor_assistant");
 
     const { data: doctorProfiles } = await supabase
       .from("profiles")
-      .select("id, full_name, role")
+      .select("id, full_name, role, avatar_url") // ✅ AVATAR
       .in("id", doctorIds)
       .eq("role", "doctor");
 
@@ -611,8 +612,15 @@ router.get("/assistants", async (req, res) => {
         phone: ap?.phone || null,
         gender: ap?.gender || null,
         dob: ap?.dob || null,
+        avatar_url: ap?.avatar_url || null, // ✅ AVATAR
         approval_status: l.approval_status, // ✅ active/inactive
-        doctor: doctor ? { id: doctor.id, full_name: doctor.full_name } : null,
+        doctor: doctor
+          ? {
+              id: doctor.id,
+              full_name: doctor.full_name,
+              avatar_url: doctor.avatar_url || null, // ✅ AVATAR
+            }
+          : null,
         created_at: l.created_at || ap?.created_at || null,
       };
     });

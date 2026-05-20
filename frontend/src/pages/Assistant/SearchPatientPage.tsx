@@ -3,6 +3,7 @@ import { Search, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL, getToken } from "@/lib/constants";
 import type { ExistingPatientSearchResult } from "@/types";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 interface Props {
   onRefreshPatients: () => void;
@@ -106,6 +107,20 @@ export function SearchPatientPage({ onRefreshPatients }: Props) {
           <div className="ad-found-title">
             <CheckCircle size={15} color="var(--ms-success)" /> Patient Found
           </div>
+
+          {/* ✅ AVATAR — small header row showing avatar + name */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <AvatarDisplay
+              url={(existingResult.patient as any).avatar_url}
+              name={existingResult.patient.full_name}
+              size={48}
+            />
+            <div>
+              <div className="list-item-title">{existingResult.patient.full_name}</div>
+              <div className="list-item-sub">{existingResult.patient.cnic}</div>
+            </div>
+          </div>
+
           <div className="info-grid info-grid-4" style={{ marginBottom: 16 }}>
             {[
               { label: "Full Name", value: existingResult.patient.full_name        },

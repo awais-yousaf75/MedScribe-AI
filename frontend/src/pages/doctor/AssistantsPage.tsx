@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { API_URL, getToken } from "@/lib/constants";
 import type { Assistant } from "@/types";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -125,9 +126,17 @@ export default function AssistantsPage({
             <div className="list-grid-2" style={{ marginBottom: 24 }}>
               {assistants.map((a) => (
                 <div key={a.profile_id} className="list-item">
-                  <div>
-                    <div className="list-item-title">{a.full_name}</div>
-                    <div className="list-item-sub">{a.phone || "No phone"}</div>
+                  {/* ✅ AVATAR — added avatar before name */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+                    <AvatarDisplay
+                      url={(a as any).avatar_url}
+                      name={a.full_name}
+                      size={36}
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <div className="list-item-title">{a.full_name}</div>
+                      <div className="list-item-sub">{a.phone || "No phone"}</div>
+                    </div>
                   </div>
                   {getStatusBadge(a.approval_status)}
                 </div>

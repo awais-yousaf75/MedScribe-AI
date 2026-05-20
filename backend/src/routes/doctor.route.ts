@@ -53,7 +53,7 @@ router.get("/me", async (req, res) => {
 
     return res.json({
       user,
-      profile,
+      profile, // ✅ AVATAR — already includes avatar_url via authMiddleware (SELECT *)
       doctor_profile: doctorProfile || null,
       hospital,
     });
@@ -97,7 +97,7 @@ router.get("/assistants", async (req, res) => {
 
     const { data: profiles, error: profError } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, approval_status, role")
+      .select("id, full_name, phone, approval_status, role, avatar_url") // ✅ AVATAR
       .in("id", assistantIds)
       .eq("role", "doctor_assistant");
 
@@ -112,6 +112,7 @@ router.get("/assistants", async (req, res) => {
         profile_id: link.profile_id,
         full_name: p?.full_name || "Unknown assistant",
         phone: p?.phone || null,
+        avatar_url: p?.avatar_url || null, // ✅ AVATAR
         approval_status: link.approval_status as
           | "pending"
           | "approved"
@@ -292,7 +293,7 @@ router.get("/patients", async (req, res) => {
     // 3. Fetch profile details (name, phone, etc.)
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, phone, dob, gender")
+      .select("id, full_name, phone, dob, gender, avatar_url") // ✅ AVATAR
       .in("id", allPatientIds);
 
     // Fetch patient_profiles for those who might not be in directPatientIds
@@ -311,6 +312,7 @@ router.get("/patients", async (req, res) => {
         phone: p?.phone,
         gender: p?.gender,
         dob: p?.dob,
+        avatar_url: p?.avatar_url || null, // ✅ AVATAR
         cnic: pp?.cnic || "—",
         created_at: pp?.created_at || new Date().toISOString(),
       };

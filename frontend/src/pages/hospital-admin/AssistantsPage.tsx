@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 
 import { API_URL } from "@/lib/constants";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 type StatusFilter = "all" | "active" | "inactive";
 type DoctorOption = { profile_id: string; full_name: string };
@@ -18,8 +19,9 @@ type Assistant = {
   phone: string | null;
   gender?: string | null;
   dob?: string | null;
+  avatar_url?: string | null; // ✅ AVATAR
   approval_status: "approved" | "rejected" | "pending" | string;
-  doctor: { id: string; full_name: string } | null;
+  doctor: { id: string; full_name: string; avatar_url?: string | null } | null; // ✅ AVATAR
   created_at?: string | null;
 };
 
@@ -500,9 +502,8 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
                   <div className="ap-card-inner">
                     {/* Left: info */}
                     <div className="ap-info">
-                      <div className={`ap-avatar${active ? "" : " ap-avatar-inactive"}`}>
-                        {a.full_name?.charAt(0)?.toUpperCase() || "A"}
-                      </div>
+                      {/* ✅ AVATAR — replaced letter div with AvatarDisplay */}
+                      <AvatarDisplay url={a.avatar_url} name={a.full_name} size={42} />
 
                       <div className="ap-info-body">
                         {/* Name + badges */}
@@ -536,9 +537,20 @@ export default function AssistantsPage({ onRefreshGlobal }: { onRefreshGlobal: (
 
                         {/* Chips */}
                         <div className="ap-chips">
-                          <span className={`ap-chip${a.doctor ? " ap-chip-linked" : ""}`}>
-                            <Stethoscope size={11} />
-                            {a.doctor ? `Dr. ${a.doctor.full_name}` : "Not linked"}
+                          <span className={`ap-chip${a.doctor ? " ap-chip-linked" : ""}`}
+                            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            {a.doctor ? (
+                              <>
+                                {/* ✅ AVATAR — small doctor avatar inside chip */}
+                                <AvatarDisplay url={a.doctor.avatar_url} name={a.doctor.full_name} size={18} />
+                                Dr. {a.doctor.full_name}
+                              </>
+                            ) : (
+                              <>
+                                <Stethoscope size={11} />
+                                Not linked
+                              </>
+                            )}
                           </span>
                           {a.phone && (
                             <span className="ap-chip">

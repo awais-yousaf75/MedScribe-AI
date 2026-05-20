@@ -2,6 +2,7 @@
 import { RefreshCw, Search, Users } from "lucide-react";
 import { useState } from "react";
 import type { Patient } from "@/types";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -119,24 +120,32 @@ export default function PatientsPage({
             <div className="scroll-list">
               {visiblePatients.map((patient) => (
                 <div key={patient.id} className="list-item">
-                  <div style={{ flex: 1 }}>
-                    <div className="list-item-title">{patient.full_name}</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "4px 16px", marginTop: 6 }}>
-                      {[
-                        { label: "CNIC",   value: patient.cnic                  },
-                        { label: "Phone",  value: patient.phone   || "—"        },
-                        { label: "Gender", value: formatGender(patient.gender)  },
-                        { label: "DOB",    value: formatDate(patient.dob)       },
-                      ].map((m) => (
-                        <div key={m.label} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                          <span className="info-label" style={{ textTransform: "none", letterSpacing: 0 }}>
-                            {m.label}:
-                          </span>
-                          <span className="list-item-sub" style={{ color: "var(--ms-text)", fontWeight: 500 }}>
-                            {m.value}
-                          </span>
-                        </div>
-                      ))}
+                  {/* ✅ AVATAR — added avatar at start of row */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, minWidth: 0 }}>
+                    <AvatarDisplay
+                      url={(patient as any).avatar_url}
+                      name={patient.full_name}
+                      size={44}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="list-item-title">{patient.full_name}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "4px 16px", marginTop: 6 }}>
+                        {[
+                          { label: "CNIC",   value: patient.cnic                  },
+                          { label: "Phone",  value: patient.phone   || "—"        },
+                          { label: "Gender", value: formatGender(patient.gender)  },
+                          { label: "DOB",    value: formatDate(patient.dob)       },
+                        ].map((m) => (
+                          <div key={m.label} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <span className="info-label" style={{ textTransform: "none", letterSpacing: 0 }}>
+                              {m.label}:
+                            </span>
+                            <span className="list-item-sub" style={{ color: "var(--ms-text)", fontWeight: 500 }}>
+                              {m.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <button

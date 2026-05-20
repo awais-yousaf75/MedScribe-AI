@@ -1,6 +1,7 @@
 import { Search, Users as UsersIcon, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import type { Patient } from "@/types";
+import { AvatarDisplay } from "@/components/common/AvatarUpload"; // ✅ AVATAR
 
 interface Props {
   patients:         Patient[];
@@ -77,6 +78,7 @@ export function HospitalPatientsPage({ patients, loadingPatients, onRefreshPatie
           <table className="table">
             <thead>
               <tr>
+                <th style={{ width: 56 }}></th>{/* ✅ AVATAR column header */}
                 <th>Patient Name</th>
                 <th>CNIC</th>
                 <th>Phone</th>
@@ -88,6 +90,14 @@ export function HospitalPatientsPage({ patients, loadingPatients, onRefreshPatie
             <tbody>
               {visible.map((patient) => (
                 <tr key={patient.id}>
+                  {/* ✅ AVATAR cell */}
+                  <td>
+                    <AvatarDisplay
+                      url={(patient as any).avatar_url}
+                      name={patient.full_name}
+                      size={36}
+                    />
+                  </td>
                   <td>
                     <div className="list-item-title">{patient.full_name}</div>
                   </td>
