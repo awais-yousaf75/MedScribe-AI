@@ -1,5 +1,6 @@
-import { Activity, LayoutDashboard, History, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, History, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ProductLogo from "../common/ProductLogo";
 
 interface ConsultationTopNavProps {
   onLogout: () => void;
@@ -26,9 +27,7 @@ export default function ConsultationTopNav({
 
         {/* Brand */}
         <div className="ctn-brand">
-          <div className="ctn-brand-icon">
-            <Activity className="ctn-brand-activity" />
-          </div>
+          <ProductLogo className="ctn-brand-icon" />
           <div className="ctn-brand-text">
             <h1 className="ctn-brand-name">MedScribe AI</h1>
             <p className="ctn-brand-sub">Clinical Intelligence Platform</p>

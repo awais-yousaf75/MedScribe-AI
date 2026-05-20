@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Activity,
   Shield,
   Building2,
   Users,
   LogOut,
   BarChart3,
 } from "lucide-react";
+import ProductLogo from "../common/ProductLogo";
 
 interface EnhancedSidebarProps {
   onLogout: () => void;
@@ -60,9 +60,7 @@ export function EnhancedSidebar({
 
       {/* ── Logo ── */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <Activity size={18} color="#fff" />
-        </div>
+        <ProductLogo className="sidebar-logo-icon" />
         <div>
           <div className="sidebar-logo-text">MedScribe AI</div>
           <div className="sidebar-logo-sub">Administration</div>

@@ -1,7 +1,6 @@
 // src/components/layout/HospitalAdminSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Activity,
   LayoutDashboard,
   Stethoscope,
   UserCog,
@@ -10,6 +9,7 @@ import {
   User,
   Key,
 } from "lucide-react";
+import ProductLogo from "../common/ProductLogo";
 
 const mainNav = [
   { id: "overview",          label: "Overview",          icon: LayoutDashboard },
@@ -64,9 +64,7 @@ export function HospitalAdminSidebar({
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <Activity size={18} color="#fff" />
-        </div>
+        <ProductLogo className="sidebar-logo-icon" />
         <div>
           <div className="sidebar-logo-text">MedScribe AI</div>
           <div className="sidebar-logo-sub">Hospital Admin</div>

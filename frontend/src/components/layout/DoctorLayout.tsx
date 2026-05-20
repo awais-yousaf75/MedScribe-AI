@@ -1,7 +1,6 @@
 // src/components/layout/DoctorLayout.tsx
 import { useNavigate } from "react-router-dom";
 import {
-  Activity,
   LayoutDashboard,
   Mic,
   FileText,
@@ -15,6 +14,7 @@ import {
   CalendarDays,
   UserPlus,
 } from "lucide-react";
+import ProductLogo from "../common/ProductLogo";
 
 interface DoctorLayoutProps {
   children: React.ReactNode;
@@ -72,9 +72,7 @@ export default function DoctorLayout({
 
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">
-            <Activity className="w-5 h-5 text-white" />
-          </div>
+          <ProductLogo className="sidebar-logo-icon" />
           <div>
             <div className="sidebar-logo-text">MedScribe AI</div>
             <div className="sidebar-logo-sub">Clinical Platform</div>

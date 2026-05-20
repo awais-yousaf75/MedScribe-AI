@@ -1,7 +1,6 @@
 // src/components/layout/AssistantSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Activity,
   Calendar,
   LogOut,
   UserPlus,
@@ -9,6 +8,7 @@ import {
   Building2,
   UserCog,
 } from "lucide-react";
+import ProductLogo from "../common/ProductLogo";
 
 interface AssistantSidebarProps {
   onLogout: () => void;
@@ -97,9 +97,7 @@ export function AssistantSidebar({
 
       {/* ── Logo ── */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <Activity size={18} color="#fff" />
-        </div>
+        <ProductLogo className="sidebar-logo-icon" />
         <div>
           <div className="sidebar-logo-text">MedScribe AI</div>
           <div className="sidebar-logo-sub">Assistant Portal</div>
