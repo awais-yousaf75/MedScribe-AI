@@ -1,6 +1,7 @@
-import React from "react";
+// src/components/layout/EnhancedSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
+<<<<<<< HEAD
   Shield,
   Building2,
   Users,
@@ -8,57 +9,61 @@ import {
   BarChart3,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
+=======
+  Activity, Shield, Building2, Users, LogOut, BarChart3, User,
+} from "lucide-react";
+import { AvatarDisplay } from "@/components/common/AvatarUpload";
+>>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
 
 interface EnhancedSidebarProps {
   onLogout: () => void;
   userRole?: string;
   userName?: string;
   userSubtitle?: string;
+  avatarUrl?: string | null;
 }
 
 const menuItems = [
-  {
-    id: "dashboard",
-    label: "Dashboard Overview",
-    icon: BarChart3,
-  },
-  {
-    id: "hospitals-management",
-    label: "Hospitals Management",
-    icon: Building2,
-  },
-  {
-    id: "admins-management",
-    label: "Hospital Admins",
-    icon: Shield,
-  },
-  {
-    id: "users-management",
-    label: "All Users",
-    icon: Users,
-  },
+  { id: "dashboard",             label: "Dashboard Overview",  icon: BarChart3 },
+  { id: "hospitals-management",  label: "Hospitals Management", icon: Building2 },
+  { id: "admins-management",     label: "Hospital Admins",      icon: Shield    },
+  { id: "users-management",      label: "All Users",            icon: Users     },
+];
+
+const settingsItems = [
+  { id: "my-profile", label: "My Profile", icon: User },
 ];
 
 export function EnhancedSidebar({
   onLogout,
-  userRole = "super_admin",
   userName = "Admin",
   userSubtitle = "System Administrator",
+  avatarUrl,
 }: EnhancedSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = location.pathname.split("/").pop() || "dashboard";
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
+
+  const renderItem = (item: { id: string; label: string; icon: React.ElementType }) => {
+    const Icon = item.icon;
+    const isActive = currentPage === item.id;
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => navigate(`/super-admin/${item.id}`)}
+        className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
+      >
+        <Icon className="sidebar-nav-icon" />
+        <span className="sidebar-nav-label">{item.label}</span>
+        {isActive && <div className="sidebar-nav-indicator" />}
+      </button>
+    );
+  };
 
   return (
     <aside className="sidebar">
 
-      {/* ── Logo ── */}
       <div className="sidebar-logo">
         <ProductLogo className="sidebar-logo-icon" />
         <div>
@@ -67,36 +72,22 @@ export function EnhancedSidebar({
         </div>
       </div>
 
-      {/* ── User ── */}
       <div className="sidebar-user">
-        <div className="sidebar-avatar">{initials}</div>
+        <AvatarDisplay url={avatarUrl} name={userName} size={38} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="sidebar-user-name">{userName}</div>
           <div className="sidebar-user-role">{userSubtitle}</div>
         </div>
       </div>
 
-      {/* ── Navigation ── */}
       <nav className="sidebar-nav">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentPage === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => navigate(`/super-admin/${item.id}`)}
-              className={`sidebar-nav-item${isActive ? " sidebar-nav-item-active" : ""}`}
-            >
-              <Icon className="sidebar-nav-icon" />
-              <span className="sidebar-nav-label">{item.label}</span>
-              {isActive && <div className="sidebar-nav-indicator" />}
-            </button>
-          );
-        })}
+        <div className="sidebar-section-label">Management</div>
+        {menuItems.map(renderItem)}
+
+        <div className="sidebar-section-label" style={{ marginTop: 8 }}>Settings</div>
+        {settingsItems.map(renderItem)}
       </nav>
 
-      {/* ── Footer ── */}
       <div className="sidebar-footer">
         <button type="button" className="sidebar-logout" onClick={onLogout}>
           <LogOut className="sidebar-logout-icon" />

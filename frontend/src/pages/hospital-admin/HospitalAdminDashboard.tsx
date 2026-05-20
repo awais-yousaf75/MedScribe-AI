@@ -10,7 +10,7 @@ import DoctorsPage          from "@/pages/hospital-admin/DoctorsPage";
 import MyProfilePage        from "@/pages/hospital-admin/MyProfilePage";
 import HospitalDetailsPage  from "@/pages/hospital-admin/HospitalDetailsPage";
 import ChangePasswordPage   from "@/pages/hospital-admin/ChangePasswordPage";
-import { API_URL }          from "@/lib/constants";
+import { API_URL, getToken } from "@/lib/constants";
 
 type DashboardData = {
   admin: { id: string; full_name: string; phone: string | null; email: string | null };
@@ -29,9 +29,10 @@ interface HospitalAdminDashboardProps {
 export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps) {
   const [dashboard,   setDashboard]   = useState<DashboardData | null>(null);
   const [loadingDash, setLoadingDash] = useState(false);
+  const [avatarUrl,   setAvatarUrl]   = useState<string | null>(null);
 
   const fetchDashboard = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = getToken();
     if (!token) return;
     try {
       setLoadingDash(true);
@@ -48,14 +49,34 @@ export function HospitalAdminDashboard({ onLogout }: HospitalAdminDashboardProps
     }
   };
 
-  useEffect(() => { fetchDashboard(); }, []);
+  const fetchAvatar = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data?.profile?.avatar_url) setAvatarUrl(data.profile.avatar_url);
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+    fetchAvatar();
+  }, []);
 
   const userName = dashboard?.admin?.full_name || "Hospital Admin";
   const subtitle = dashboard?.hospital?.name   || "No hospital assigned";
 
   return (
     <div className="page-root">
-      <HospitalAdminSidebar onLogout={onLogout} userName={userName} subtitle={subtitle} />
+      <HospitalAdminSidebar
+        onLogout={onLogout}
+        userName={userName}
+        subtitle={subtitle}
+        avatarUrl={avatarUrl}
+      />
 
       <main className="page-main">
         <Routes>

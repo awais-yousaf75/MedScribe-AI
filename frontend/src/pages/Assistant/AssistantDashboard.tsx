@@ -5,6 +5,7 @@ import { UserCog } from "lucide-react";
 import { toast } from "sonner";
 import AssistantSidebar from "@/components/layout/AssistantSidebar";
 import { MyProfilePage } from "@/pages/assistant/MyProfilePage";
+import AssistantChangePasswordPage from "@/pages/assistant/ChangePasswordPage";
 import { SearchPatientPage } from "@/pages/assistant/SearchPatientPage";
 import { RegisterPatientPage } from "@/pages/assistant/RegisterPatientPage";
 import { HospitalPatientsPage } from "@/pages/assistant/HospitalPatientsPage";
@@ -92,6 +93,7 @@ export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
   // ── Derived ───────────────────────────────────────────────
 
   const assistantName = assistantInfo?.profile.full_name || "Assistant";
+  const avatarUrl = (assistantInfo?.profile as any)?.avatar_url || null;
   const pendingCount = appointments.filter(
     (a) => a.status === "pending",
   ).length;
@@ -102,6 +104,10 @@ export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
     "my-profile": {
       title: "My Profile",
       sub: "Your profile and assigned doctor",
+    },
+    "change-password": {
+      title: "Change Password",
+      sub: "Update your account security",
     },
     "search-patient": {
       title: "Search Patient",
@@ -135,6 +141,7 @@ export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
         userName={assistantName}
         userSubtitle="Doctor Assistant"
         pendingCount={pendingCount}
+        avatarUrl={avatarUrl}
       />
 
       <div className="page-main">
@@ -165,6 +172,10 @@ export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
             <Route
               path="my-profile"
               element={<MyProfilePage assistantInfo={assistantInfo} />}
+            />
+            <Route
+              path="change-password"
+              element={<AssistantChangePasswordPage />}
             />
             <Route
               path="search-patient"
@@ -208,3 +219,5 @@ export function AssistantDashboard({ onLogout }: AssistantDashboardProps) {
     </div>
   );
 }
+
+export default AssistantDashboard;

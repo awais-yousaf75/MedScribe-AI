@@ -25,6 +25,7 @@ export interface Profile {
   phone?: string;
   gender?: string;
   dob?: string;
+  avatar_url?: string | null;
   role: UserRole;
   approval_status: "pending" | "approved" | "rejected";
   [key: string]: any;
@@ -44,6 +45,7 @@ export type DoctorMeResponse = {
     phone?: string;
     gender?: string;
     dob?: string;
+    avatar_url?: string | null;
     role: string;
     approval_status: "pending" | "approved" | "rejected";
   };
@@ -68,6 +70,7 @@ export type Assistant = {
   profile_id: string;
   full_name: string;
   phone?: string | null;
+  avatar_url?: string | null;
   approval_status: "pending" | "approved" | "rejected";
 };
 
@@ -77,6 +80,7 @@ export type Patient = {
   phone?: string | null;
   gender?: string | null;
   dob?: string | null;
+  avatar_url?: string | null;
   cnic: string;
   created_at: string;
 };
@@ -105,6 +109,7 @@ export type AssistantMeResponse = {
     id: string;
     full_name: string;
     phone?: string;
+    avatar_url?: string | null;
     role: string;
     approval_status: "pending" | "approved" | "rejected";
   };
@@ -113,7 +118,12 @@ export type AssistantMeResponse = {
     hospital_id: string;
     approval_status: "pending" | "approved" | "rejected";
   } | null;
-  doctor: { id: string; full_name: string; phone?: string } | null;
+  doctor: {
+    id: string;
+    full_name: string;
+    phone?: string;
+    avatar_url?: string | null;
+  } | null;
   hospital: {
     id: string;
     name: string;
@@ -138,12 +148,16 @@ export type AppointmentFromAPI = {
       phone: string | null;
       gender: string | null;
       dob: string | null;
+      avatar_url?: string | null;
     };
   };
   doctor_profiles: {
     profile_id: string;
     specialization: string;
-    profiles: { full_name: string };
+    profiles: {
+      full_name: string;
+      avatar_url?: string | null;
+    };
   };
   hospitals: { id: string; name: string };
 };
@@ -156,6 +170,7 @@ export type ExistingPatientSearchResult = {
     phone?: string | null;
     gender?: string | null;
     dob?: string | null;
+    avatar_url?: string | null;
     cnic: string;
   };
   hospitals?: { id: string; name: string }[];
