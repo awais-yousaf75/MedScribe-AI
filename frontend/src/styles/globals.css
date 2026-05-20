@@ -9614,3 +9614,324 @@
 .sp-profile-banner-avatar {
   flex-shrink: 0;
 }
+
+/* ──────────────────────────────────────────────────────────
+   48. MEDICAL NOTES EDITOR
+────────────────────────────────────────────────────────── */
+
+/* ── Editor card with letterhead accent ── */
+
+.mn-editor-card {
+  position: relative;
+  background: var(--ms-bg-card);
+  border: 1px solid var(--ms-border);
+  border-radius: var(--ms-radius-2xl);
+  box-shadow: var(--ms-shadow-md);
+  overflow: hidden;
+}
+
+.mn-editor-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--ms-teal) 0%,
+    var(--ms-teal-dark) 100%
+  );
+}
+
+/* ── Editor header (teal-tinted) ── */
+
+.mn-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: linear-gradient(
+    180deg,
+    var(--ms-info-bg) 0%,
+    var(--ms-bg-card) 100%
+  );
+  border-bottom: 1px solid var(--ms-border-separator);
+  flex-wrap: wrap;
+}
+
+.mn-editor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mn-editor-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--ms-radius-full);
+  background: var(--ms-teal-subtle);
+  border: 1px solid var(--ms-teal-ring);
+  font-size: 10px;
+  font-weight: var(--ms-weight-bold);
+  color: var(--ms-teal-dark);
+  letter-spacing: var(--ms-tracking-widest);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Editor body (paper feel) ── */
+
+.mn-editor-body {
+  position: relative;
+  padding: 28px 32px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--ms-bg-card) 0%,
+      var(--ms-bg-card) 100%
+    );
+}
+
+.mn-editor-body::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  bottom: 28px;
+  left: 18px;
+  width: 1px;
+  background: var(--ms-error-border);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.mn-textarea {
+  width: 100%;
+  min-height: 520px;
+  padding: 8px 14px 8px 28px;
+  border: none;
+  background: transparent;
+  color: var(--ms-text);
+  font-family: var(--ms-font-mono);
+  font-size: var(--ms-text-sm);
+  line-height: 2;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.mn-textarea::placeholder {
+  color: var(--ms-text-placeholder);
+  font-style: italic;
+}
+
+.mn-textarea:focus {
+  outline: none;
+}
+
+/* ── Editor footer (meta) ── */
+
+.mn-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 24px;
+  background: var(--ms-bg-muted);
+  border-top: 1px solid var(--ms-border-separator);
+  flex-wrap: wrap;
+}
+
+.mn-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mn-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--ms-text-xs);
+  color: var(--ms-text-soft);
+  font-weight: var(--ms-weight-medium);
+}
+
+.mn-meta-chip svg {
+  color: var(--ms-teal);
+  flex-shrink: 0;
+}
+
+.mn-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ms-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ms-tracking-widest);
+  font-weight: var(--ms-weight-semibold);
+}
+
+.mn-meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ms-border);
+  flex-shrink: 0;
+}
+
+/* ── Suggestions grid ── */
+
+.mn-sugg-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .mn-sugg-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mn-sugg-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--ms-radius-lg);
+  border: 1px solid var(--ms-border);
+  background: var(--ms-bg);
+  font-family: var(--ms-font-sans);
+  font-size: var(--ms-text-sm);
+  font-weight: var(--ms-weight-medium);
+  color: var(--ms-text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--ms-ease-fast),
+    background var(--ms-ease-fast),
+    color var(--ms-ease-fast),
+    transform var(--ms-ease-fast);
+}
+
+.mn-sugg-chip:hover {
+  border-color: var(--ms-teal-ring);
+  background: var(--ms-teal-subtle);
+  color: var(--ms-teal-dark);
+  transform: translateX(2px);
+}
+
+.mn-sugg-chip:active {
+  transform: translateX(2px) scale(0.99);
+}
+
+.mn-sugg-bullet {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ms-bg-muted);
+  border: 1px solid var(--ms-border);
+  color: var(--ms-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    background var(--ms-ease-fast),
+    border-color var(--ms-ease-fast);
+}
+
+.mn-sugg-chip:hover .mn-sugg-bullet {
+  background: var(--ms-teal);
+  border-color: var(--ms-teal);
+  color: var(--ms-text-inverse);
+}
+
+/* ── Pro tip banner ── */
+
+.mn-protip {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: var(--ms-radius-xl);
+  background: linear-gradient(
+    135deg,
+    var(--ms-info-bg) 0%,
+    var(--ms-bg-muted) 100%
+  );
+  border: 1px solid var(--ms-teal-ring);
+}
+
+.mn-protip-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ms-radius-lg);
+  background: var(--ms-teal);
+  color: var(--ms-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(26, 124, 109, 0.22);
+}
+
+.mn-protip-title {
+  font-size: var(--ms-text-sm);
+  font-weight: var(--ms-weight-bold);
+  color: var(--ms-teal-dark);
+  letter-spacing: var(--ms-tracking-tight);
+  margin-bottom: 3px;
+}
+
+.mn-protip-text {
+  font-size: var(--ms-text-xs);
+  color: var(--ms-text-soft);
+  line-height: var(--ms-leading-relaxed);
+}
+
+/* ── Bottom actions ── */
+
+.mn-bottom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px;
+  border-radius: var(--ms-radius-2xl);
+  background: var(--ms-bg-card);
+  border: 1px solid var(--ms-border);
+  flex-wrap: wrap;
+}
+
+.mn-bottom-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--ms-text-xs);
+  font-weight: var(--ms-weight-medium);
+  color: var(--ms-text-soft);
+}
+
+.mn-bottom-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ms-success);
+  box-shadow: 0 0 0 3px var(--ms-success-bg);
+  flex-shrink: 0;
+}
+
+.mn-bottom-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

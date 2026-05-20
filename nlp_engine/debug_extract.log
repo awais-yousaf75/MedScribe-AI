@@ -2876,3 +2876,99 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5397
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "congestion in nose, pressure in head, jaws, and face",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "nasal congestion",
+      "duration": "2 weeks",
+      "severity": null,
+      "location": "nose",
+      "onset": "2 weeks ago"
+    },
+    {
+      "name": "pressure in head, jaws, and face",
+      "duration": "2 weeks",
+      "severity": null,
+      "location": "head, jaws, and face",
+      "onset": "2 weeks ago"
+    },
+    {
+      "name": "stuffy nose",
+      "duration": null,
+      "severity": null,
+      "location": "nose",
+      "onset": null
+    },
+    {
+      "name": "runny nose",
+      "duration": null,
+      "severity": null,
+      "location": "nose",
+      "onset": null
+    },
+    {
+      "name": "clear nasal discharge",
+      "duration": null,
+      "severity": null,
+      "location": "nose",
+      "onset": null
+    },
+    {
+      "name": "loss of sense of smell",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "altered sense of taste",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "Tylenol cold",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "C-section with both children"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
