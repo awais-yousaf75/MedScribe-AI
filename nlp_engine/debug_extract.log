@@ -2547,3 +2547,332 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5433
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "new cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "cough",
+      "duration": "3-4 days",
+      "severity": null,
+      "location": null,
+      "onset": "sudden"
+    },
+    {
+      "name": "headache",
+      "duration": "3-4 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "loss of smell",
+      "duration": "2 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "loss of taste",
+      "duration": "2 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "feverish",
+      "duration": "1 day",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "muscle aches",
+      "duration": "3 days",
+      "severity": null,
+      "location": "whole body",
+      "onset": null
+    },
+    {
+      "name": "appetite loss",
+      "duration": "2 days",
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [
+    {
+      "name": "multivitamin",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    },
+    {
+      "name": "greens supplement",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": null,
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "knee injury"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 4886
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "daughter is getting really sick",
+    "age_mentioned": "2 years old",
+    "gender_mentioned": "female"
+  },
+  "symptoms": [
+    {
+      "name": "fever",
+      "duration": "2 days",
+      "severity": "38.5",
+      "location": "null",
+      "onset": "2 days ago"
+    },
+    {
+      "name": "trouble swallowing",
+      "duration": "1 day",
+      "severity": "null",
+      "location": "throat",
+      "onset": "yesterday"
+    },
+    {
+      "name": "drooling",
+      "duration": "1 day",
+      "severity": "null",
+      "location": "null",
+      "onset": "yesterday"
+    },
+    {
+      "name": "shortness of breath",
+      "duration": "1 day",
+      "severity": "null",
+      "location": "null",
+      "onset": "yesterday"
+    },
+    {
+      "name": "irritability",
+      "duration": "null",
+      "severity": "null",
+      "location": "null",
+      "onset": "null"
+    },
+    {
+      "name": "pale skin",
+      "duration": "null",
+      "severity": "null",
+      "location": "null",
+      "onset": "null"
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": "null",
+    "heart_rate": "null",
+    "temperature": "38.5",
+    "spo2": "null",
+    "weight": "null"
+  },
+  "diagnoses": [
+    {
+      "name": "H flu",
+      "icd10_code": "null",
+      "type": "differential",
+      "confidence": "suspected"
+    }
+  ],
+  "medications": [
+    {
+      "name": "Tylenol",
+      "generic_name": "null",
+      "dose": "null",
+      "frequency": "null",
+      "duration": "null",
+      "route": "null",
+      "instructions": "null",
+      "status": "continue"
+    }
+  ],
+  "investigations": [
+    {
+      "name": "H flu test",
+      "type": "lab",
+      "status": "ordered",
+      "result": "null"
+    },
+    {
+      "name": "COVID swab",
+      "type": "lab",
+      "status": "ordered",
+      "result": "null"
+    },
+    {
+      "name": "neck x-ray",
+      "type": "imaging",
+      "status": "ordered",
+      "result": "null"
+    }
+  ],
+  "allergies": [],
+  "past_medical_history": [],
+  "follow_up": {
+    "timing": "immediately",
+    "instructions": "go to emergency department",
+    "red_flags": ["swelling of epiglottis", "obstruction of throat"]
+  }
+}
+```
+==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 9178
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "difficulties breathing and cough",
+    "age_mentioned": null,
+    "gender_mentioned": null
+  },
+  "symptoms": [
+    {
+      "name": "difficulty breathing",
+      "duration": "2 months",
+      "severity": null,
+      "location": null,
+      "onset": "2 months ago"
+    },
+    {
+      "name": "cough",
+      "duration": "2 years, worsened over 2 months",
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "shortness of breath",
+      "duration": "2 months",
+      "severity": null,
+      "location": null,
+      "onset": "2 months ago"
+    },
+    {
+      "name": "sputum production",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "hemoptysis (coughing up blood)",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "headache",
+      "duration": null,
+      "severity": "not severe",
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "fever",
+      "duration": null,
+      "severity": "mild",
+      "location": null,
+      "onset": "noticed 1 month ago"
+    },
+    {
+      "name": "night sweats",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": "mild fever, exact value not specified",
+    "spo2": null,
+    "weight": "no significant change"
+  },
+  "diagnoses": [
+    {
+      "name": "COPD",
+      "icd10_code": "J44.0",
+      "type": "primary",
+      "confidence": "confirmed"
+    }
+  ],
+  "medications": [
+    {
+      "name": "inhaler",
+      "generic_name": null,
+      "dose": null,
+      "frequency": null,
+      "duration": null,
+      "route": "inhalation",
+      "instructions": null,
+      "status": "continue"
+    }
+  ],
+  "investigations": [],
+  "allergies": [],
+  "past_medical_history": [
+    "COPD (diagnosed 15 years ago)"
+  ],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================
