@@ -1,7 +1,6 @@
 // src/components/layout/DoctorLayout.tsx
 import { useNavigate } from "react-router-dom";
 import {
-<<<<<<< HEAD
   LayoutDashboard,
   Mic,
   FileText,
@@ -14,14 +13,11 @@ import {
   Calendar,
   CalendarDays,
   UserPlus,
+  User,
+  Key,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
-=======
-  Activity, LayoutDashboard, Mic, FileText, Brain, ClipboardList,
-  History, Users, LogOut, Calendar, CalendarDays, UserPlus, User, Key,
-} from "lucide-react";
-import { AvatarDisplay } from "@/components/common/AvatarUpload";
->>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
+import { AvatarDisplay } from "../common/AvatarUpload";
 
 interface DoctorLayoutProps {
   children: React.ReactNode;

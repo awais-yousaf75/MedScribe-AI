@@ -1,7 +1,6 @@
 // src/components/layout/HospitalAdminSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-<<<<<<< HEAD
   LayoutDashboard,
   Stethoscope,
   UserCog,
@@ -11,12 +10,7 @@ import {
   Key,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
-=======
-  Activity, LayoutDashboard, Stethoscope, UserCog,
-  Building2, LogOut, User, Key,
-} from "lucide-react";
-import { AvatarDisplay } from "@/components/common/AvatarUpload";
->>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
+import { AvatarDisplay } from "../common/AvatarUpload";
 
 const mainNav = [
   { id: "overview",          label: "Overview",          icon: LayoutDashboard },

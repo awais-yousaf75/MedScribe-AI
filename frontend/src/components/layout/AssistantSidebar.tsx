@@ -1,20 +1,16 @@
 // src/components/layout/AssistantSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-<<<<<<< HEAD
   Calendar,
   LogOut,
   UserPlus,
   Search,
   Building2,
   UserCog,
+  Key,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
-=======
-  Activity, Calendar, LogOut, UserPlus, Search, Building2, UserCog, Key,
-} from "lucide-react";
-import { AvatarDisplay } from "@/components/common/AvatarUpload";
->>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
+import { AvatarDisplay } from "../common/AvatarUpload";
 
 interface AssistantSidebarProps {
   onLogout: () => void;
