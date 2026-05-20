@@ -1,6 +1,7 @@
 // src/components/layout/AssistantSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
+<<<<<<< HEAD
   Calendar,
   LogOut,
   UserPlus,
@@ -9,6 +10,11 @@ import {
   UserCog,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
+=======
+  Activity, Calendar, LogOut, UserPlus, Search, Building2, UserCog, Key,
+} from "lucide-react";
+import { AvatarDisplay } from "@/components/common/AvatarUpload";
+>>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
 
 interface AssistantSidebarProps {
   onLogout: () => void;
@@ -16,38 +22,19 @@ interface AssistantSidebarProps {
   userName?: string;
   userSubtitle?: string;
   pendingCount?: number;
+  avatarUrl?: string | null;
 }
 
 const mainNav = [
-  {
-    id: "assistant-search-patient",
-    label: "Search Patient",
-    icon: Search,
-  },
-  {
-    id: "assistant-register-patient",
-    label: "Register New Patient",
-    icon: UserPlus,
-  },
-  {
-    id: "assistant-hospital-patients",
-    label: "Hospital Patients",
-    icon: Building2,
-  },
-  {
-    id: "assistant-appointments",
-    label: "Appointments",
-    icon: Calendar,
-    hasBadge: true,
-  },
+  { id: "assistant-search-patient",     label: "Search Patient",       icon: Search    },
+  { id: "assistant-register-patient",   label: "Register New Patient", icon: UserPlus  },
+  { id: "assistant-hospital-patients",  label: "Hospital Patients",    icon: Building2 },
+  { id: "assistant-appointments",       label: "Appointments",         icon: Calendar, hasBadge: true },
 ];
 
 const bottomNav = [
-  {
-    id: "assistant-my-profile",
-    label: "My Profile",
-    icon: UserCog,
-  },
+  { id: "assistant-my-profile",      label: "My Profile",      icon: UserCog },
+  { id: "assistant-change-password", label: "Change Password", icon: Key     },
 ];
 
 export function AssistantSidebar({
@@ -55,20 +42,14 @@ export function AssistantSidebar({
   userName = "Assistant",
   userSubtitle = "Doctor Assistant",
   pendingCount = 0,
+  avatarUrl,
 }: AssistantSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const rawPage = location.pathname.split("/").pop() || "search-patient";
   const currentPage = rawPage === "assistant" ? "assistant-search-patient" : `assistant-${rawPage}`;
 
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
-
-  const renderNavItem = (item: (typeof mainNav)[0]) => {
+  const renderNavItem = (item: any) => {
     const Icon     = item.icon;
     const isActive = currentPage === item.id;
     const badge    = item.hasBadge && pendingCount > 0 ? pendingCount : null;
@@ -95,7 +76,6 @@ export function AssistantSidebar({
   return (
     <aside className="sidebar">
 
-      {/* ── Logo ── */}
       <div className="sidebar-logo">
         <ProductLogo className="sidebar-logo-icon" />
         <div>
@@ -104,27 +84,22 @@ export function AssistantSidebar({
         </div>
       </div>
 
-      {/* ── User ── */}
       <div className="sidebar-user">
-        <div className="sidebar-avatar">{initials}</div>
+        <AvatarDisplay url={avatarUrl} name={userName} size={38} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="sidebar-user-name">{userName}</div>
           <div className="sidebar-user-role">{userSubtitle}</div>
         </div>
       </div>
 
-      {/* ── Main Navigation ── */}
       <nav className="sidebar-nav">
         <div className="sidebar-section-label">Patients</div>
         {mainNav.map(renderNavItem)}
 
-        <div className="sidebar-section-label" style={{ marginTop: 8 }}>
-          General
-        </div>
+        <div className="sidebar-section-label" style={{ marginTop: 8 }}>General</div>
         {bottomNav.map(renderNavItem)}
       </nav>
 
-      {/* ── Footer ── */}
       <div className="sidebar-footer">
         <button type="button" className="sidebar-logout" onClick={onLogout}>
           <LogOut className="sidebar-logout-icon" />

@@ -2,14 +2,16 @@
 import { useEffect, useState } from "react";
 import {
   User, Shield, Mail, Lock, Save, RefreshCw,
-  CheckCircle, AlertCircle, BadgeCheck,
+  CheckCircle, AlertCircle, BadgeCheck, Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "@/lib/constants";
+import AvatarUpload from "@/components/common/AvatarUpload";
 
 interface AdminProfile {
   id: string; full_name: string; phone: string;
   gender: string; dob: string; email: string;
+  avatar_url: string | null;
 }
 
 function SectionCard({
@@ -98,7 +100,10 @@ function SaveBar({
 
 export default function MyProfilePage() {
   const token = localStorage.getItem("accessToken");
-  const [profile,  setProfile]  = useState<AdminProfile>({ id: "", full_name: "", phone: "", gender: "", dob: "", email: "" });
+  const [profile,  setProfile]  = useState<AdminProfile>({
+    id: "", full_name: "", phone: "", gender: "", dob: "", email: "",
+    avatar_url: null,
+  });
   const [original, setOriginal] = useState<AdminProfile | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
@@ -106,22 +111,43 @@ export default function MyProfilePage() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const res  = await fetch(`${API_URL}/api/hospital-admin/my-profile`, { headers: { Authorization: `Bearer ${token}` } });
+
+      // Fetch admin profile
+      const res  = await fetch(`${API_URL}/api/hospital-admin/my-profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch profile");
+
+      // Fetch /me to get avatar_url (shared profile)
+      const meRes = await fetch(`${API_URL}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const meData = await meRes.json();
+      const avatarUrl = meData?.profile?.avatar_url || null;
+
       const p: AdminProfile = {
-        id: data.profile.id, full_name: data.profile.full_name || "",
-        phone: data.profile.phone || "", gender: data.profile.gender || "",
-        dob: data.profile.dob || "", email: data.profile.email || "",
+        id: data.profile.id,
+        full_name: data.profile.full_name || "",
+        phone: data.profile.phone || "",
+        gender: data.profile.gender || "",
+        dob: data.profile.dob || "",
+        email: data.profile.email || "",
+        avatar_url: avatarUrl,
       };
-      setProfile(p); setOriginal(p);
+      setProfile(p);
+      setOriginal(p);
     } catch (e: any) { toast.error(e.message || "Failed to load profile"); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchProfile(); }, []);
 
-  const dirty = original !== null && JSON.stringify(profile) !== JSON.stringify(original);
+  // Note: avatar changes are NOT counted as 'dirty'
+  // because they save immediately via the API
+  const dirty = original !== null &&
+    JSON.stringify({ ...profile, avatar_url: null }) !==
+    JSON.stringify({ ...original, avatar_url: null });
 
   const handleSave = async () => {
     if (!profile.full_name.trim()) { toast.error("Full name is required"); return; }
@@ -130,7 +156,12 @@ export default function MyProfilePage() {
       const res = await fetch(`${API_URL}/api/hospital-admin/my-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ full_name: profile.full_name.trim(), phone: profile.phone || null, gender: profile.gender || null, dob: profile.dob || null }),
+        body: JSON.stringify({
+          full_name: profile.full_name.trim(),
+          phone: profile.phone || null,
+          gender: profile.gender || null,
+          dob: profile.dob || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save profile");
@@ -138,6 +169,11 @@ export default function MyProfilePage() {
       toast.success("Profile updated successfully");
     } catch (e: any) { toast.error(e.message || "Failed to save"); }
     finally { setSaving(false); }
+  };
+
+  const handleAvatarChange = (newUrl: string | null) => {
+    setProfile((p) => ({ ...p, avatar_url: newUrl }));
+    setOriginal((o) => (o ? { ...o, avatar_url: newUrl } : o));
   };
 
   if (loading) {
@@ -168,6 +204,22 @@ export default function MyProfilePage() {
 
       <div className="page-content">
         <div className="sp-section">
+
+          {/* ── AVATAR CARD ── */}
+          <SectionCard
+            title="Profile Picture"
+            description="Personalize your account with a profile picture"
+            icon={Camera}
+          >
+            <AvatarUpload
+              currentAvatarUrl={profile.avatar_url}
+              userName={profile.full_name || "Admin"}
+              onChange={handleAvatarChange}
+              size="lg"
+            />
+          </SectionCard>
+
+          {/* ── BANNER ── */}
           <div className="sp-profile-banner">
             <div className="sp-avatar-lg">
               {profile.full_name?.charAt(0)?.toUpperCase() || "A"}
