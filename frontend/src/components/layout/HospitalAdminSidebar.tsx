@@ -1,7 +1,6 @@
 // src/components/layout/HospitalAdminSidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-<<<<<<< HEAD
   LayoutDashboard,
   Stethoscope,
   UserCog,
@@ -11,12 +10,6 @@ import {
   Key,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
-=======
-  Activity, LayoutDashboard, Stethoscope, UserCog,
-  Building2, LogOut, User, Key,
-} from "lucide-react";
-import { AvatarDisplay } from "@/components/common/AvatarUpload";
->>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
 
 const mainNav = [
   { id: "overview",          label: "Overview",          icon: LayoutDashboard },
@@ -32,16 +25,24 @@ const settingsNav = [
 ];
 
 export function HospitalAdminSidebar({
-  onLogout, userName, subtitle, avatarUrl,
+  onLogout,
+  userName,
+  subtitle,
 }: {
   onLogout: () => void;
   userName: string;
   subtitle: string;
-  avatarUrl?: string | null;
 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = location.pathname.split("/").pop() || "overview";
+
+  const initials = userName
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2) || "A";
 
   const renderNavItem = (item: { id: string; label: string; icon: React.ElementType }) => {
     const Icon     = item.icon;
@@ -71,7 +72,7 @@ export function HospitalAdminSidebar({
       </div>
 
       <div className="sidebar-user">
-        <AvatarDisplay url={avatarUrl} name={userName} size={38} />
+        <div className="sidebar-avatar">{initials}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="sidebar-user-name">{userName}</div>
           <div className="sidebar-user-role">{subtitle}</div>

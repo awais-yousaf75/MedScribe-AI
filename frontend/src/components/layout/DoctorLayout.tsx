@@ -1,7 +1,6 @@
 // src/components/layout/DoctorLayout.tsx
 import { useNavigate } from "react-router-dom";
 import {
-<<<<<<< HEAD
   LayoutDashboard,
   Mic,
   FileText,
@@ -16,12 +15,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import ProductLogo from "../common/ProductLogo";
-=======
-  Activity, LayoutDashboard, Mic, FileText, Brain, ClipboardList,
-  History, Users, LogOut, Calendar, CalendarDays, UserPlus, User, Key,
-} from "lucide-react";
-import { AvatarDisplay } from "@/components/common/AvatarUpload";
->>>>>>> b3f509de30ee0f1f73ef2a65d338fe3710bc9a25
 
 interface DoctorLayoutProps {
   children: React.ReactNode;
@@ -29,7 +22,6 @@ interface DoctorLayoutProps {
   onLogout: () => void;
   doctorName?: string;
   doctorEmail?: string;
-  avatarUrl?: string | null;
 }
 
 export default function DoctorLayout({
@@ -37,10 +29,15 @@ export default function DoctorLayout({
   activePage,
   onLogout,
   doctorName = "Dr. Ahmed Hassan",
-  doctorEmail: _doctorEmail = "ahmed@hospital.com",
-  avatarUrl,
+  doctorEmail = "ahmed@hospital.com",
 }: DoctorLayoutProps) {
   const navigate = useNavigate();
+  const initials = doctorName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
 
   const mainNav = [
     { id: "dashboard",    label: "Dashboard",      icon: LayoutDashboard },
@@ -59,9 +56,8 @@ export default function DoctorLayout({
   ];
 
   const bottomNav = [
-    { id: "history",         label: "History",         icon: History },
-    { id: "my-profile",      label: "My Profile",      icon: User    },
-    { id: "change-password", label: "Change Password", icon: Key     },
+    { id: "history",  label: "History",  icon: History  },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const consultationPages = [
@@ -74,6 +70,7 @@ export default function DoctorLayout({
       {/* ── Sidebar ── */}
       <aside className="sidebar">
 
+        {/* Logo */}
         <div className="sidebar-logo">
           <ProductLogo className="sidebar-logo-icon" />
           <div>
@@ -82,14 +79,16 @@ export default function DoctorLayout({
           </div>
         </div>
 
+        {/* User */}
         <div className="sidebar-user">
-          <AvatarDisplay url={avatarUrl} name={doctorName} size={38} />
+          <div className="sidebar-avatar">{initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="sidebar-user-name">{doctorName}</div>
             <div className="sidebar-user-role">Doctor</div>
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Main</div>
 
@@ -111,6 +110,7 @@ export default function DoctorLayout({
             </button>
           ))}
 
+          {/* Consultation flow */}
           {isInConsultation && (
             <>
               <div className="sidebar-section-label" style={{ marginTop: 8 }}>
@@ -140,6 +140,7 @@ export default function DoctorLayout({
             </>
           )}
 
+          {/* General */}
           <div className="sidebar-section-label" style={{ marginTop: 8 }}>
             General
           </div>
@@ -156,6 +157,7 @@ export default function DoctorLayout({
           ))}
         </nav>
 
+        {/* Footer */}
         <div className="sidebar-footer">
           <button className="sidebar-logout" onClick={onLogout}>
             <LogOut className="sidebar-logout-icon" />
@@ -169,6 +171,7 @@ export default function DoctorLayout({
         </div>
       </aside>
 
+      {/* ── Main content ── */}
       <main className="page-main">{children}</main>
     </div>
   );
