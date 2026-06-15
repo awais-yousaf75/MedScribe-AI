@@ -470,7 +470,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           .auth-line-right { display: none; }
         }
       `}</style>
-
+    
       <div className="auth-root">
         {/* Background layers */}
         <div className="auth-grain" />

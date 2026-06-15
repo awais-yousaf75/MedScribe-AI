@@ -115,6 +115,14 @@ export function HospitalDetailPage({}: HospitalDetailPageProps) {
     const token = getToken();
     if (!token || !hospital) return;
     if (!adminForm.full_name || !adminForm.email) { toast.error("Full name and email are required"); return; }
+    if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(adminForm.email.trim())) { toast.error("Please enter a valid email address"); return; }
+    if (!/^[a-zA-Z\s.\-']+$/.test(adminForm.full_name.trim())) { toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes"); return; }
+    if (adminForm.phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(adminForm.phone.trim())) { toast.error("Invalid phone number format"); return; }
+    if (adminForm.dob) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(adminForm.dob) >= today) { toast.error("Date of birth cannot be today or in the future"); return; }
+    }
+    if (!adminForm.generate_password && adminForm.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
     const replacing = !!hospital.admin_profile_id;
     const ok = replacing ? window.confirm("This hospital already has an admin. Do you want to replace the admin?") : true;
     if (!ok) return;
@@ -239,7 +247,7 @@ export function HospitalDetailPage({}: HospitalDetailPageProps) {
                   <input
                     className="field-input"
                     value={adminForm.full_name}
-                    onChange={(e) => setAdminForm((p) => ({ ...p, full_name: e.target.value }))}
+                    onChange={(e) => setAdminForm((p) => ({ ...p, full_name: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") }))}
                     disabled={savingAdmin}
                     placeholder="Full name"
                   />
@@ -260,7 +268,7 @@ export function HospitalDetailPage({}: HospitalDetailPageProps) {
                   <input
                     className="field-input"
                     value={adminForm.phone}
-                    onChange={(e) => setAdminForm((p) => ({ ...p, phone: e.target.value }))}
+                    onChange={(e) => setAdminForm((p) => ({ ...p, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") }))}
                     disabled={savingAdmin}
                     placeholder="Phone number"
                   />

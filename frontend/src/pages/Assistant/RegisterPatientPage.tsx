@@ -69,6 +69,35 @@ export function RegisterPatientPage({ onRefreshPatients }: Props) {
       return;
     }
 
+    const nameRegex = /^[a-zA-Z\s.\-']+$/;
+    if (!nameRegex.test(form.fullName.trim())) {
+      toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes");
+      return;
+    }
+
+    const cnicRegex = /^\d{5}-\d{7}-\d{1}$/;
+    if (!cnicRegex.test(form.cnic.trim())) {
+      toast.error("CNIC must be in format: 42301-1234567-1");
+      return;
+    }
+
+    if (form.phone.trim()) {
+      const phoneRegex = /^[\+]?[\d\s\-\(\)]{7,15}$/;
+      if (!phoneRegex.test(form.phone.trim())) {
+        toast.error("Invalid phone number format");
+        return;
+      }
+    }
+
+    if (form.dob) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(form.dob) >= today) {
+        toast.error("Date of birth cannot be today or in the future");
+        return;
+      }
+    }
+
     try {
       setCreating(true);
 
@@ -152,7 +181,7 @@ export function RegisterPatientPage({ onRefreshPatients }: Props) {
               placeholder="Full name"
               value={form.fullName}
               onChange={(e) =>
-                setForm((p) => ({ ...p, fullName: e.target.value }))
+                setForm((p) => ({ ...p, fullName: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") }))
               }
               required
               disabled={creating}
@@ -166,7 +195,7 @@ export function RegisterPatientPage({ onRefreshPatients }: Props) {
               className="field-input"
               placeholder="42301-1234567-1"
               value={form.cnic}
-              onChange={(e) => setForm((p) => ({ ...p, cnic: e.target.value }))}
+              onChange={(e) => setForm((p) => ({ ...p, cnic: e.target.value.replace(/[^0-9\-]/g, "") }))}
               required
               disabled={creating}
             />
@@ -195,7 +224,7 @@ export function RegisterPatientPage({ onRefreshPatients }: Props) {
               placeholder="+92 300 0000000"
               value={form.phone}
               onChange={(e) =>
-                setForm((p) => ({ ...p, phone: e.target.value }))
+                setForm((p) => ({ ...p, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") }))
               }
               disabled={creating}
             />

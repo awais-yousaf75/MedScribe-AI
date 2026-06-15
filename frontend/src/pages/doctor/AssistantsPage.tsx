@@ -48,6 +48,18 @@ export default function AssistantsPage({
     e.preventDefault();
     const token = getToken();
     if (!token) { toast.error("Not authenticated"); return; }
+    if (!assistantForm.fullName.trim() || !/^[a-zA-Z\s.\-']+$/.test(assistantForm.fullName.trim())) {
+      toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes"); return;
+    }
+    if (!assistantForm.email.trim() || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(assistantForm.email.trim())) {
+      toast.error("Please enter a valid email address"); return;
+    }
+    if (assistantForm.phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(assistantForm.phone.trim())) {
+      toast.error("Invalid phone number format"); return;
+    }
+    if (assistantForm.password.length < 8) {
+      toast.error("Password must be at least 8 characters"); return;
+    }
     if (assistantForm.password !== assistantForm.confirmPassword) {
       toast.error("Passwords do not match"); return;
     }
@@ -155,7 +167,7 @@ export default function AssistantsPage({
                   className="field-input"
                   placeholder="Full name"
                   value={assistantForm.fullName}
-                  onChange={(e) => setAssistantForm((p) => ({ ...p, fullName: e.target.value }))}
+                  onChange={(e) => setAssistantForm((p) => ({ ...p, fullName: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") }))}
                   required
                   disabled={creatingAssistant}
                 />
@@ -178,7 +190,7 @@ export default function AssistantsPage({
                   className="field-input"
                   placeholder="Phone number"
                   value={assistantForm.phone}
-                  onChange={(e) => setAssistantForm((p) => ({ ...p, phone: e.target.value }))}
+                  onChange={(e) => setAssistantForm((p) => ({ ...p, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") }))}
                   disabled={creatingAssistant}
                 />
               </div>

@@ -48,6 +48,17 @@ app.use("/api/profile", userProfileRoutes);
 //   res.send("Backend is running");
 // });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `Port ${PORT} is already in use. Stop the other process on that port, then restart.`,
+    );
+    process.exit(1);
+  }
+  console.error("Server failed to start:", err);
+  process.exit(1);
 });

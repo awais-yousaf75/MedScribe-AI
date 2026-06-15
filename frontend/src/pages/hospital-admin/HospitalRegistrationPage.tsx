@@ -86,8 +86,8 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
 
       if (!formData.admin_password) {
         stepErrors.admin_password = "Password is required";
-      } else if (formData.admin_password.length < 6) {
-        stepErrors.admin_password = "Password must be at least 6 characters";
+      } else if (formData.admin_password.length < 8) {
+        stepErrors.admin_password = "Password must be at least 8 characters";
       }
 
       if (formData.admin_password !== formData.admin_password_confirm) {
@@ -96,14 +96,24 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
 
       if (!formData.admin_full_name) {
         stepErrors.admin_full_name = "Full name is required";
+      } else if (!/^[a-zA-Z\s.\-']+$/.test(formData.admin_full_name.trim())) {
+        stepErrors.admin_full_name = "Full name must contain only letters, spaces, hyphens, or apostrophes";
       }
 
       if (!formData.admin_phone) {
         stepErrors.admin_phone = "Phone number is required";
+      } else if (!/^[\+]?[\d\s\-\(\)]{7,15}$/.test(formData.admin_phone.trim())) {
+        stepErrors.admin_phone = "Invalid phone number format";
       }
 
       if (!formData.admin_dob) {
         stepErrors.admin_dob = "Date of birth is required";
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (new Date(formData.admin_dob) >= today) {
+          stepErrors.admin_dob = "Date of birth cannot be today or in the future";
+        }
       }
     }
 
@@ -136,6 +146,8 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
 
       if (!formData.hospital_contact_phone) {
         stepErrors.hospital_contact_phone = "Contact phone is required";
+      } else if (!/^[\+]?[\d\s\-\(\)]{7,15}$/.test(formData.hospital_contact_phone.trim())) {
+        stepErrors.hospital_contact_phone = "Invalid phone number format";
       }
     }
 
@@ -323,7 +335,7 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              admin_full_name: e.target.value,
+                              admin_full_name: e.target.value.replace(/[^a-zA-Z\s.\-']/g, ""),
                             })
                           }
                           className={`hr-input ${
@@ -351,7 +363,7 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              admin_phone: e.target.value,
+                              admin_phone: e.target.value.replace(/[^0-9+\s()\-]/g, ""),
                             })
                           }
                           className={`hr-input ${
@@ -433,7 +445,7 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
                         </label>
                         <input
                           type="password"
-                          placeholder="Min 6 characters"
+                          placeholder="Min 8 characters"
                           value={formData.admin_password}
                           onChange={(e) =>
                             setFormData({
@@ -557,7 +569,7 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
                             setFormData({
                               ...formData,
                               hospital_registration_number:
-                                e.target.value.toUpperCase(),
+                                e.target.value.replace(/[^A-Za-z0-9\-]/g, "").toUpperCase(),
                             })
                           }
                           className={`hr-input hr-mono ${
@@ -702,7 +714,7 @@ export function HospitalRegistrationPage({}: HospitalRegistrationPageProps) {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              hospital_contact_phone: e.target.value,
+                              hospital_contact_phone: e.target.value.replace(/[^0-9+\s()\-]/g, ""),
                             })
                           }
                           className={`hr-input ${

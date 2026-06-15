@@ -213,8 +213,16 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
     if (!f.full_name || !f.email || !f.specialization || !f.license_number || !f.cnic) {
       toast.error("Please fill required fields"); return;
     }
-    if (!f.generate_password && f.password.length < 6) {
-      toast.error("Password must be at least 6 characters"); return;
+    if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(f.email.trim())) { toast.error("Please enter a valid email address"); return; }
+    if (!/^[a-zA-Z\s.\-']+$/.test(f.full_name.trim())) { toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes"); return; }
+    if (f.phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(f.phone.trim())) { toast.error("Invalid phone number format"); return; }
+    if (!/^\d{5}-\d{7}-\d{1}$/.test(f.cnic.trim())) { toast.error("CNIC must be in format: 42301-1234567-1"); return; }
+    if (f.dob) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(f.dob) >= today) { toast.error("Date of birth cannot be today or in the future"); return; }
+    }
+    if (!f.generate_password && f.password.length < 8) {
+      toast.error("Password must be at least 8 characters"); return;
     }
     try {
       setCreating(true);
@@ -251,6 +259,13 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
 
   const saveEdit = async () => {
     if (!token || !editTarget) return;
+    if (editForm.full_name && !/^[a-zA-Z\s.\-']+$/.test(editForm.full_name.trim())) { toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes"); return; }
+    if (editForm.phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(editForm.phone.trim())) { toast.error("Invalid phone number format"); return; }
+    if (editForm.cnic && !/^\d{5}-\d{7}-\d{1}$/.test(editForm.cnic.trim())) { toast.error("CNIC must be in format: 42301-1234567-1"); return; }
+    if (editForm.dob) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(editForm.dob) >= today) { toast.error("Date of birth cannot be today or in the future"); return; }
+    }
     try {
       setEditing(true);
       const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${editTarget.profile_id}`, {
@@ -295,7 +310,7 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
 
   const doReset = async () => {
     if (!token || !resetTarget) return;
-    if (!resetForm.generate_password && resetForm.password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (!resetForm.generate_password && resetForm.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
     try {
       setResetting(true);
       const res  = await fetch(`${API_URL}/api/hospital-admin/doctors/${resetTarget.profile_id}/reset-password`, {
@@ -535,7 +550,7 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
               <label className="field-label">Full Name *</label>
               <input className="field-input" placeholder="Dr. John Doe"
                 value={createForm.full_name}
-                onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })} />
+                onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") })} />
             </div>
             <div className="field">
               <label className="field-label">Email *</label>
@@ -547,7 +562,7 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
               <label className="field-label">Phone</label>
               <input className="field-input" placeholder="+92 300 0000000"
                 value={createForm.phone}
-                onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} />
+                onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") })} />
             </div>
             <div className="field">
               <label className="field-label">Gender</label>
@@ -580,7 +595,7 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
               <label className="field-label">CNIC *</label>
               <input className="field-input" placeholder="42301-1234567-1"
                 value={createForm.cnic}
-                onChange={(e) => setCreateForm({ ...createForm, cnic: e.target.value })} />
+                onChange={(e) => setCreateForm({ ...createForm, cnic: e.target.value.replace(/[^0-9\-]/g, "") })} />
             </div>
           </div>
 
@@ -627,12 +642,12 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
             <div className="field">
               <label className="field-label">Full Name</label>
               <input className="field-input" value={editForm.full_name}
-                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })} />
+                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") })} />
             </div>
             <div className="field">
               <label className="field-label">Phone</label>
               <input className="field-input" value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") })} />
             </div>
             <div className="field">
               <label className="field-label">Gender</label>
@@ -662,7 +677,7 @@ export default function DoctorsPage({ onRefreshGlobal }: { onRefreshGlobal: () =
             <div className="field">
               <label className="field-label">CNIC</label>
               <input className="field-input" value={editForm.cnic}
-                onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value })} />
+                onChange={(e) => setEditForm({ ...editForm, cnic: e.target.value.replace(/[^0-9\-]/g, "") })} />
             </div>
           </div>
           <div className="hd-modal-actions">

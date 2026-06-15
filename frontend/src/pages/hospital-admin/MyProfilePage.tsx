@@ -296,6 +296,18 @@ export default function MyProfilePage() {
   // ── Save personal info ──────────────────────────────────
   const handleSave = async () => {
     if (!profile.full_name.trim()) { toast.error("Full name is required"); return; }
+    if (!/^[a-zA-Z\s.\-']+$/.test(profile.full_name.trim())) {
+      toast.error("Full name must contain only letters, spaces, hyphens, or apostrophes");
+      return;
+    }
+    if (profile.phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(profile.phone.trim())) {
+      toast.error("Invalid phone number format");
+      return;
+    }
+    if (profile.dob) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(profile.dob) >= today) { toast.error("Date of birth cannot be today or in the future"); return; }
+    }
     try {
       setSaving(true);
       const res  = await fetch(`${API_URL}/api/hospital-admin/my-profile`, {
@@ -894,7 +906,7 @@ export default function MyProfilePage() {
                   placeholder="Your full name"
                   value={profile.full_name}
                   onChange={(e) =>
-                    setProfile((p) => ({ ...p, full_name: e.target.value }))
+                    setProfile((p) => ({ ...p, full_name: e.target.value.replace(/[^a-zA-Z\s.\-']/g, "") }))
                   }
                 />
               </div>
@@ -907,7 +919,7 @@ export default function MyProfilePage() {
                     placeholder="+92 XXX XXXXXXX"
                     value={profile.phone}
                     onChange={(e) =>
-                      setProfile((p) => ({ ...p, phone: e.target.value }))
+                      setProfile((p) => ({ ...p, phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") }))
                     }
                   />
                 </div>

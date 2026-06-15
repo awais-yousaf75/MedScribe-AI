@@ -129,6 +129,12 @@ export default function HospitalDetailsPage() {
   const dirty = original !== null && JSON.stringify(hospital) !== JSON.stringify(original);
 
   const handleSave = async () => {
+    if (hospital.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hospital.contact_email.trim())) {
+      toast.error("Invalid contact email format"); return;
+    }
+    if (hospital.contact_phone && !/^[\+]?[\d\s\-\(\)]{7,15}$/.test(hospital.contact_phone.trim())) {
+      toast.error("Invalid contact phone number format"); return;
+    }
     try {
       setSaving(true);
       const res = await fetch(`${API_URL}/api/hospital-admin/hospital-details`, {
@@ -230,7 +236,7 @@ export default function HospitalDetailsPage() {
                 <label className="field-label">Contact Phone</label>
                 <input className="field-input" placeholder="+92 XXX XXXXXXX"
                   value={hospital.contact_phone}
-                  onChange={(e) => setHospital((h) => ({ ...h, contact_phone: e.target.value }))} />
+                  onChange={(e) => setHospital((h) => ({ ...h, contact_phone: e.target.value.replace(/[^0-9+\s()\-]/g, "") }))} />
               </div>
               <div className="field form-full">
                 <label className="field-label">Hospital Type</label>
