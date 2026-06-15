@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Activity } from "lucide-react";
+import { Activity, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface LoginPageProps {
@@ -10,560 +9,323 @@ interface LoginPageProps {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [loading,  setLoading]  = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
+      const res  = await fetch(`${API_URL}/api/auth/login`, {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body:    JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to login");
-      }
-
-      if (data.session?.access_token) {
+      if (!res.ok) throw new Error(data.error || "Failed to login");
+      if (data.session?.access_token)
         localStorage.setItem("accessToken", data.session.access_token);
-      }
-
-      if (data.user?.user_metadata?.role) {
+      if (data.user?.user_metadata?.role)
         localStorage.setItem("role", data.user.user_metadata.role);
-      }
-
       toast.success("Signed in successfully!");
       onLogin();
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
-          --card: #F6F2EA;
-          --card-top: #FBF8F2;
-          --text: #10213D;
-          --text-soft: #5E697A;
-          --line: rgba(16, 33, 61, 0.10);
-          --field: rgba(255, 255, 255, 0.72);
-          --field-border: #D7DDE4;
-          --field-focus: #1A7C6D;
-          --accent: #1A7C6D;
-          --gold: #B99657;
-          --white: #FFFFFF;
-        }
-
-        * { box-sizing: border-box; }
-
-        /* ─────────────────────────────────────────────
-           BACKGROUND — The Premium Canvas
-        ───────────────────────────────────────────── */
-        .auth-root {
+        .lp-root {
           min-height: 100vh;
-          position: relative;
-          overflow: hidden;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 28px 20px;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-
-          /* Deep layered base */
-          background-color: #080D14;
-          background-image:
-            /* Top spotlight — warm, faint, centered */
-            radial-gradient(
-              ellipse 600px 350px at 50% -5%,
-              rgba(185, 150, 87, 0.09) 0%,
-              transparent 100%
-            ),
-            /* Center ambient — barely there cool glow behind card area */
-            radial-gradient(
-              ellipse 500px 500px at 50% 50%,
-              rgba(26, 124, 109, 0.04) 0%,
-              transparent 100%
-            ),
-            /* Bottom edge warmth */
-            radial-gradient(
-              ellipse 800px 250px at 50% 110%,
-              rgba(185, 150, 87, 0.05) 0%,
-              transparent 100%
-            );
+          padding: 40px 20px 60px;
+          font-family: 'Inter', system-ui, sans-serif;
+          background-color: #EDF7F4;
+          position: relative;
+          overflow: hidden;
         }
 
-        /* Film grain — analog texture */
-        .auth-grain {
+        /* ── decorative blobs ── */
+        .lp-blob-tr {
           position: absolute;
-          inset: 0;
+          top: -60px; right: -80px;
+          width: 360px; height: 360px;
+          border-radius: 50% 44% 56% 40% / 46% 52% 48% 54%;
+          background: linear-gradient(140deg, #34D399 0%, #1A7C6D 100%);
+          opacity: 0.85;
           pointer-events: none;
-          opacity: 0.45;
-          mix-blend-mode: overlay;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-          background-repeat: repeat;
-          background-size: 180px 180px;
         }
-
-        /* Vignette — darker edges, eye drawn to center */
-        .auth-vignette {
+        .lp-blob-bl {
           position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background: radial-gradient(
-            ellipse 70% 65% at 50% 48%,
-            transparent 0%,
-            rgba(0, 0, 0, 0.32) 100%
-          );
-        }
-
-        /* Faint vertical line — architectural detail */
-        .auth-line-left {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 15%;
-          width: 1px;
-          background: linear-gradient(
-            180deg,
-            transparent 10%,
-            rgba(185, 150, 87, 0.06) 40%,
-            rgba(185, 150, 87, 0.06) 60%,
-            transparent 90%
-          );
+          bottom: 20px; left: -55px;
+          width: 160px; height: 160px;
+          border-radius: 64% 36% 50% 50% / 48% 42% 58% 52%;
+          background: linear-gradient(140deg, #6EE7B7 0%, #0EC8A0 100%);
+          opacity: 0.75;
           pointer-events: none;
         }
 
-        .auth-line-right {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          right: 15%;
-          width: 1px;
-          background: linear-gradient(
-            180deg,
-            transparent 10%,
-            rgba(185, 150, 87, 0.06) 40%,
-            rgba(185, 150, 87, 0.06) 60%,
-            transparent 90%
-          );
-          pointer-events: none;
-        }
-
-        /* ─────────────────────────────────────────────
-           CARD
-        ───────────────────────────────────────────── */
-        .auth-shell {
+        /* ── logo row ── */
+        .lp-logo {
           position: relative;
           z-index: 2;
-          width: 100%;
-          max-width: 520px;
-        }
-
-        .auth-card {
-          position: relative;
-          width: 100%;
-          padding: 40px 40px 28px;
-          border-radius: 24px;
-          background:
-            linear-gradient(180deg, var(--card-top) 0%, var(--card) 100%);
-          border: 1px solid rgba(185, 150, 87, 0.18);
-          box-shadow:
-            0 0 0 1px rgba(0,0,0,0.04),
-            0 1px 2px rgba(0,0,0,0.06),
-            0 6px 14px rgba(0,0,0,0.10),
-            0 24px 48px rgba(0,0,0,0.18),
-            0 48px 80px rgba(0,0,0,0.28);
-        }
-
-        /* Inner inset frame */
-        .auth-card::before {
-          content: "";
-          position: absolute;
-          inset: 12px;
-          border-radius: 16px;
-          border: 1px solid rgba(16, 33, 61, 0.07);
-          pointer-events: none;
-        }
-
-        /* Gold hairline at top */
-        .auth-card::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 32px;
-          right: 32px;
-          height: 1px;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(185, 150, 87, 0.45) 20%,
-            rgba(185, 150, 87, 0.45) 80%,
-            transparent 100%
-          );
-          pointer-events: none;
-        }
-
-        /* Reflected light on card — top edge glow */
-        .auth-card-glow {
-          position: absolute;
-          top: -1px;
-          left: 60px;
-          right: 60px;
-          height: 60px;
-          border-radius: 24px 24px 0 0;
-          background: radial-gradient(
-            ellipse at 50% 0%,
-            rgba(185, 150, 87, 0.05) 0%,
-            transparent 100%
-          );
-          pointer-events: none;
-        }
-
-        /* ─────────────────────────────────────────────
-           BRAND
-        ───────────────────────────────────────────── */
-        .auth-top {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin-bottom: 34px;
+          margin-bottom: 24px;
         }
-
-        .auth-logo {
-          width: 46px;
-          height: 46px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #10213D;
-          border: 1px solid rgba(185, 150, 87, 0.14);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-          flex-shrink: 0;
+        .lp-logo-icon {
+          width: 46px; height: 46px;
+          border-radius: 13px;
+          background: linear-gradient(135deg, #1A7C6D 0%, #0EC8A0 100%);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 14px rgba(26,124,109,0.30);
         }
-
-        .auth-brand-name {
-          font-size: 16px;
-          font-weight: 600;
-          color: var(--text);
-          letter-spacing: -0.01em;
-          line-height: 1.2;
-        }
-
-        /* ─────────────────────────────────────────────
-           HEADING
-        ───────────────────────────────────────────── */
-        .auth-heading {
-          margin: 0 0 28px;
-          font-family: 'Source Serif 4', Georgia, serif;
-          font-size: 38px;
-          line-height: 1.08;
-          font-weight: 600;
-          color: var(--text);
+        .lp-logo-name {
+          font-size: 24px;
+          font-weight: 800;
+          color: #10213D;
           letter-spacing: -0.03em;
         }
 
-        /* ─────────────────────────────────────────────
-           FORM
-        ───────────────────────────────────────────── */
-        .auth-form { margin: 0; }
-
-        .auth-fields {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-          margin-bottom: 24px;
-        }
-
-        .auth-field {
-          display: flex;
-          flex-direction: column;
-          gap: 7px;
-        }
-
-        .auth-label {
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--text);
-        }
-
-        .auth-input {
-          width: 100%;
-          height: 50px;
-          padding: 0 15px;
-          border-radius: 10px;
-          border: 1px solid var(--field-border);
-          background: var(--field);
-          color: var(--text);
-          font-size: 14px;
-          font-family: 'Inter', sans-serif;
-          outline: none;
-          transition:
-            border-color 180ms ease,
-            box-shadow 180ms ease,
-            background-color 180ms ease;
-        }
-
-        .auth-input::placeholder { color: #99A4B2; }
-
-        .auth-input:focus {
-          border-color: var(--field-focus);
-          box-shadow: 0 0 0 3px rgba(26, 124, 109, 0.11);
-          background: var(--white);
-        }
-
-        .auth-input:disabled {
-          opacity: 0.72;
-          cursor: not-allowed;
-          background: #F0F2F4;
-        }
-
-        /* ─────────────────────────────────────────────
-           SUBMIT
-        ───────────────────────────────────────────── */
-        .auth-submit {
-          width: 100%;
-          height: 50px;
-          border: none;
-          border-radius: 10px;
-          background: linear-gradient(180deg, #1D7F70 0%, #145F54 100%);
-          color: var(--white);
-          font-size: 14px;
-          font-weight: 600;
-          letter-spacing: 0.01em;
-          font-family: 'Inter', sans-serif;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          cursor: pointer;
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.08),
-            0 12px 22px rgba(20, 95, 84, 0.20);
-          transition:
-            transform 180ms ease,
-            box-shadow 180ms ease,
-            filter 180ms ease;
-          margin-bottom: 22px;
-        }
-
-        .auth-submit:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.08),
-            0 16px 28px rgba(20, 95, 84, 0.24);
-          filter: brightness(0.985);
-        }
-
-        .auth-submit:disabled {
-          opacity: 0.72;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .auth-spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid rgba(255,255,255,0.28);
-          border-top-color: #FFFFFF;
-          border-radius: 50%;
-          animation: auth-spin 0.8s linear infinite;
-        }
-
-        @keyframes auth-spin { to { transform: rotate(360deg); } }
-
-        /* ─────────────────────────────────────────────
-           FOOTER
-        ───────────────────────────────────────────── */
-        .auth-footer {
-          padding-top: 18px;
-          border-top: 1px solid var(--line);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-
-        .auth-footer-item {
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.11em;
-          text-transform: uppercase;
-          color: #7B8593;
-        }
-
-        .auth-footer-dot {
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: rgba(185, 150, 87, 0.48);
-          flex-shrink: 0;
-        }
-
-        /* ─────────────────────────────────────────────
-           BOTTOM WATERMARK — below the card
-        ───────────────────────────────────────────── */
-        .auth-watermark {
-          margin-top: 28px;
+        /* ── heading ── */
+        .lp-heading {
+          position: relative;
+          z-index: 2;
+          font-size: clamp(26px, 4vw, 36px);
+          font-weight: 800;
+          color: #10213D;
+          letter-spacing: -0.03em;
           text-align: center;
-          font-size: 11px;
-          font-weight: 500;
-          color: rgba(255, 255, 255, 0.14);
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          user-select: none;
+          margin-bottom: 28px;
+          line-height: 1.15;
         }
 
-        /* ─────────────────────────────────────────────
-           RESPONSIVE
-        ───────────────────────────────────────────── */
-        @media (max-width: 640px) {
-          .auth-root { padding: 18px 14px; }
-
-          .auth-shell { max-width: 100%; }
-
-          .auth-card {
-            padding: 28px 22px 22px;
-            border-radius: 18px;
-          }
-
-          .auth-card::before {
-            inset: 10px;
-            border-radius: 12px;
-          }
-
-          .auth-heading { font-size: 30px; }
-
-          .auth-footer {
-            flex-direction: column;
-            gap: 10px;
-          }
-
-          .auth-footer-dot { display: none; }
-
-          .auth-line-left { left: 5%; }
-          .auth-line-right { right: 5%; }
-
-          .auth-watermark { font-size: 10px; margin-top: 22px; }
+        /* ── card ── */
+        .lp-card {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          max-width: 480px;
+          background: #ffffff;
+          border-radius: 18px;
+          padding: 36px 36px 28px;
+          box-shadow:
+            0 2px 4px rgba(0,0,0,0.04),
+            0 8px 24px rgba(16,33,61,0.08),
+            0 24px 48px rgba(16,33,61,0.06);
         }
 
-        @media (max-width: 380px) {
-          .auth-card { padding: 24px 18px 20px; }
-          .auth-heading { font-size: 26px; }
-          .auth-line-left,
-          .auth-line-right { display: none; }
+        @media (max-width: 480px) {
+          .lp-card { padding: 28px 20px 22px; }
         }
+
+        /* ── field ── */
+        .lp-field { margin-bottom: 18px; }
+
+        .lp-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: #4B5563;
+          margin-bottom: 8px;
+          letter-spacing: -0.01em;
+        }
+
+        .lp-inp-wrap { position: relative; }
+
+        .lp-inp-icon {
+          position: absolute;
+          left: 16px; top: 50%;
+          transform: translateY(-50%);
+          color: #9CA3AF;
+          display: flex; align-items: center;
+          pointer-events: none;
+          transition: color 150ms;
+        }
+        .lp-inp-wrap:focus-within .lp-inp-icon { color: #1A7C6D; }
+
+        .lp-inp {
+          width: 100%;
+          height: 54px;
+          padding: 0 16px 0 46px;
+          border: 1.5px solid #D1D5DB;
+          border-radius: 10px;
+          background: #fff;
+          color: #10213D;
+          font-size: 15px;
+          font-family: 'Inter', system-ui, sans-serif;
+          outline: none;
+          transition: border-color 150ms, box-shadow 150ms;
+          -webkit-appearance: none;
+        }
+        .lp-inp::placeholder { color: #BBC0C9; }
+        .lp-inp:focus {
+          border-color: #1A7C6D;
+          box-shadow: 0 0 0 3px rgba(26,124,109,0.10);
+        }
+        .lp-inp.has-eye { padding-right: 46px; }
+        .lp-inp:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .lp-eye-btn {
+          position: absolute;
+          right: 13px; top: 50%;
+          transform: translateY(-50%);
+          background: none; border: none;
+          padding: 5px; cursor: pointer;
+          color: #9CA3AF;
+          display: flex; align-items: center;
+          border-radius: 6px;
+          transition: color 130ms, background 130ms;
+          line-height: 0;
+        }
+        .lp-eye-btn:hover { color: #4B5563; background: #F3F4F6; }
+
+        /* ── sign in button ── */
+        .lp-btn {
+          width: 100%;
+          height: 54px;
+          margin-top: 6px;
+          border: none;
+          border-radius: 100px;
+          background: linear-gradient(135deg, #1D8F7E 0%, #1A7C6D 100%);
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          font-family: 'Inter', system-ui, sans-serif;
+          letter-spacing: -0.01em;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          box-shadow: 0 4px 14px rgba(26,124,109,0.30);
+          transition: transform 130ms, box-shadow 130ms, filter 130ms;
+          margin-bottom: 20px;
+        }
+        .lp-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(26,124,109,0.38);
+          filter: brightness(1.05);
+        }
+        .lp-btn:active:not(:disabled) { transform: translateY(0); }
+        .lp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .lp-spin {
+          width: 16px; height: 16px;
+          border: 2.5px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: lpspin 0.7s linear infinite;
+        }
+        @keyframes lpspin { to { transform: rotate(360deg); } }
+
+        /* ── footer note ── */
+        .lp-card-footer {
+          text-align: center;
+          font-size: 12.5px;
+          color: #9CA3AF;
+          line-height: 1.6;
+          padding-top: 16px;
+          border-top: 1px solid #F3F4F6;
+        }
+        .lp-card-footer strong { color: #6B7280; font-weight: 500; }
+
       `}</style>
-    
-      <div className="auth-root">
-        {/* Background layers */}
-        <div className="auth-grain" />
-        <div className="auth-vignette" />
-        <div className="auth-line-left" />
-        <div className="auth-line-right" />
 
-        <div className="auth-shell">
-          <div className="auth-card">
-            <div className="auth-card-glow" />
+      <div className="lp-root">
 
-            {/* Brand */}
-            <div className="auth-top">
-              <div className="auth-logo">
-                <Activity size={18} color="#1A7C6D" />
-              </div>
-              <div>
-                <div className="auth-brand-name">MedScribe AI</div>
-              </div>
-            </div>
+        {/* blobs */}
+        <div className="lp-blob-tr" />
+        <div className="lp-blob-bl" />
 
-            {/* Heading */}
-            <h1 className="auth-heading">Welcome back.</h1>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="auth-form">
-              <div className="auth-fields">
-                <div className="auth-field">
-                  <label htmlFor="email" className="auth-label">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="doctor@hospital.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="auth-input"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="auth-field">
-                  <label htmlFor="password" className="auth-label">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="auth-input"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="auth-submit"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <span className="auth-spinner" />
-                    <span>Signing in…</span>
-                  </>
-                ) : (
-                  "Sign in"
-                )}
-              </button>
-            </form>
-
-            {/* Footer */}
-            <div className="auth-footer" aria-hidden="true">
-              <span className="auth-footer-line" />
-              <div className="auth-footer-center">
-                <span className="auth-footer-dot" />
-                <span className="auth-footer-dot auth-footer-dot-large" />
-                <span className="auth-footer-dot" />
-              </div>
-              <span className="auth-footer-line" />
-            </div>
+        {/* logo */}
+        <div className="lp-logo">
+          <div className="lp-logo-icon">
+            <Activity size={22} color="#fff" />
           </div>
-
-          {/* Watermark below card */}
-          <div className="auth-watermark">
-            MedScribe AI — Clinical Intelligence
-          </div>
+          <span className="lp-logo-name">MedScribe AI</span>
         </div>
+
+        {/* heading */}
+        <h1 className="lp-heading">Good to see you again</h1>
+
+        {/* card */}
+        <div className="lp-card">
+          <form onSubmit={handleSubmit}>
+
+            {/* email */}
+            <div className="lp-field">
+              <label htmlFor="lp-email" className="lp-label">Your email</label>
+              <div className="lp-inp-wrap">
+                <span className="lp-inp-icon"><Mail size={16} /></span>
+                <input
+                  id="lp-email"
+                  type="email"
+                  placeholder="e.g. doctor@hospital.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="lp-inp"
+                  required
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+
+            {/* password */}
+            <div className="lp-field">
+              <label htmlFor="lp-pass" className="lp-label">Your password</label>
+              <div className="lp-inp-wrap">
+                <span className="lp-inp-icon"><Lock size={16} /></span>
+                <input
+                  id="lp-pass"
+                  type={showPass ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="lp-inp has-eye"
+                  required
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="lp-eye-btn"
+                  onClick={() => setShowPass((v) => !v)}
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* submit */}
+            <button type="submit" className="lp-btn" disabled={loading}>
+              {loading
+                ? <><span className="lp-spin" /> Signing in…</>
+                : "Sign in"
+              }
+            </button>
+
+          </form>
+
+          <p className="lp-card-footer">
+            Access is limited to authorized personnel.<br />
+            <strong>Contact your administrator</strong> to request access.
+          </p>
+        </div>
+
+
       </div>
     </>
   );
