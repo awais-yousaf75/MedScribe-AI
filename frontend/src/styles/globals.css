@@ -9945,3 +9945,212 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* ── AIExtraction: improved edit save/cancel buttons ── */
+
+.aix-card-text {
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+/* ── Transcript: paragraph spacing inside tp-transcript-box ── */
+
+.tp-transcript-box p {
+  margin-bottom: 8px;
+  line-height: 1.8;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LiveRecording — improved UI
+   ───────────────────────────────────────────────────────────────── */
+
+/* Recording badge in page header */
+.lr-recording-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  border: 1px solid #fca5a5;
+}
+
+/* Red / teal animated dot */
+.lr-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: lrDotPulse 1.2s ease-in-out infinite;
+}
+.lr-dot-red  { background: #dc2626; box-shadow: 0 0 0 2px #fca5a5; }
+.lr-dot-teal { background: var(--ms-teal); box-shadow: 0 0 0 2px #99f6e4; }
+
+@keyframes lrDotPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* Tabs (record / upload) */
+.lr-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--ms-border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: var(--ms-bg-subtle);
+}
+.lr-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ms-text-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.lr-tab:hover { background: var(--ms-bg-hover); color: var(--ms-text); }
+.lr-tab-active {
+  background: var(--ms-teal);
+  color: #fff;
+  font-weight: 600;
+}
+.lr-tab-active:hover { background: var(--ms-teal-hover, #0d9488); }
+
+/* ── Recording area ── */
+.lr-recording-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 24px;
+}
+
+/* Mic button wrapper */
+.lr-mic-wrap { position: relative; }
+
+/* Status block */
+.lr-status {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.lr-duration {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ms-text);
+  letter-spacing: -1px;
+  line-height: 1;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+.lr-status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #dc2626;
+}
+.lr-status-idle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ms-text);
+  margin: 0;
+}
+.lr-status-text  { font-size: 13px; font-weight: 600; }
+.lr-status-sub   { font-size: 12px; color: var(--ms-text-muted); margin: 0; }
+
+/* Stop icon inside mic button */
+.lr-stop-icon { color: #fff; width: 32px; height: 32px; }
+
+/* ── Upload section ── */
+.lr-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Hidden file input */
+.lr-file-input-hidden {
+  display: none;
+}
+
+/* ── Transcribing state ── */
+.lr-transcribing-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 20px;
+  text-align: center;
+}
+.lr-transcribing-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--ms-teal-bg, #f0fdfa);
+  border: 2px solid var(--ms-teal-light, #99f6e4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lr-transcribing-spinner {
+  color: var(--ms-teal);
+  animation: spin 1s linear infinite;
+}
+.lr-transcribing-body { max-width: 440px; }
+.lr-transcribing-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ms-text);
+  margin: 0 0 8px;
+}
+.lr-transcribing-sub {
+  font-size: 13px;
+  color: var(--ms-text-soft);
+  line-height: 1.7;
+  margin: 0;
+}
+.lr-transcribing-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+  max-width: 300px;
+}
+.lr-transcribing-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lr-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.lr-step-dot-done    { background: var(--ms-success); }
+.lr-step-dot-active  { background: var(--ms-teal); animation: lrDotPulse 1s ease-in-out infinite; }
+.lr-step-dot-pending { background: var(--ms-border); }
+.lr-step-label       { font-size: 13px; color: var(--ms-text-muted); }
+.lr-step-label-active { color: var(--ms-text); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════
+   (end of stylesheet)
+   ═══════════════════════════════════════════════════════════════ */

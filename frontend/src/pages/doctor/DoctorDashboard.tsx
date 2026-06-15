@@ -119,6 +119,8 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
     null,
   );
   const [extractedData, setExtractedData] = useState<any>(null);
+  const [extractionEditedText, setExtractionEditedText] = useState<string>("");
+  const [soapNotes, setSoapNotes] = useState<string>("");
   const [prescriptionData, setPrescriptionData] = useState<any>(null);
 
   // ── Fetches ───────────────────────────────────────────────
@@ -190,6 +192,8 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
     setTranscriptData(null);
     setRecordingData(null);
     setExtractedData(null);
+    setExtractionEditedText("");
+    setSoapNotes("");
     setPrescriptionData(null);
     setCurrentPatient(patient.full_name);
     setCurrentPatientId(patient.profile_id);
@@ -299,6 +303,7 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
                 setExtractedData(data);
                 setPrescriptionData(null);
               }}
+              onExtractionEdited={setExtractionEditedText}
             />
           }
         />
@@ -310,6 +315,7 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
               recordingData={recordingData}
               extractedData={extractedData}
               onLogout={onLogout}
+              onNotesFinalized={setSoapNotes}
             />
           }
         />
@@ -321,6 +327,8 @@ export function DoctorDashboard({ onLogout }: DoctorDashboardProps) {
               recordingData={recordingData}
               extractedData={extractedData}
               pregeneratedData={prescriptionData}
+              soapNotes={soapNotes}
+              extractionEditedText={extractionEditedText}
               patientInfo={{ full_name: currentPatient }}
               onLogout={onLogout}
             />

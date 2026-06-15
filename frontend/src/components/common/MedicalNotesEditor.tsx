@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import {
   FileText, Sparkles, Loader2, Brain, AlertCircle,
-  ClipboardList, RefreshCw, ArrowRight, ArrowLeft,
+  ClipboardList, RefreshCw, ArrowRight, ArrowLeft, Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,31 +11,46 @@ interface MedicalNotesEditorProps {
   recordingData: any;
   extractedData: any;
   onLogout: () => void;
+  onNotesFinalized?: (notes: string) => void;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const BASE_URL = API_URL.replace(/\/$/, "");
 
+const SOAP_PLACEHOLDER = `Subjective:
+Patient reports...
+
+Objective:
+Vitals: BP 120/80, HR 78, Temp 98.6°F
+Physical examination findings...
+
+Assessment:
+1. Primary diagnosis...
+2. Secondary findings...
+
+Plan:
+• Medications prescribed...
+• Follow-up in X weeks
+• Patient education provided...`;
+
 export default function MedicalNotesEditor({
   patientName,
   recordingData,
   extractedData,
-  onLogout,
+  onLogout: _onLogout,
+  onNotesFinalized,
 }: MedicalNotesEditorProps) {
   const navigate = useNavigate();
-  const [notes, setNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [notes, setNotes]               = useState('');
+  const [isLoading, setIsLoading]       = useState(true);
+  const [error, setError]               = useState<string | null>(null);
   const [processingTime, setProcessingTime] = useState<number | null>(null);
-  const [model, setModel] = useState<string>('');
+  const [model, setModel]               = useState<string>('');
+  const [isSaving, setIsSaving]         = useState(false);
 
-  // Call NLP engine on mount
   useEffect(() => {
     const transcript = recordingData?.transcript;
-    if (!transcript) {
-      setIsLoading(false);
-      return;
-    }
+    if (!transcript) { setIsLoading(false); return; }
     generateNotes(transcript);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -43,56 +58,34 @@ export default function MedicalNotesEditor({
   const generateNotes = async (transcript: string) => {
     setIsLoading(true);
     setError(null);
-
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Not authenticated");
-
       const res = await fetch(`${BASE_URL}/api/nlp/notes`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           transcript,
-          extracted_data: extractedData || null,
+          extracted_data:  extractedData || null,
           consultation_id: recordingData?.consultationId || null,
         }),
       });
-
       const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || data.details || "Notes generation failed");
-      }
-
-      setNotes(data.notes || "No notes generated");
+      if (!res.ok || !data.success) throw new Error(data.error || data.details || "Notes generation failed");
+      setNotes(data.notes || "");
       setProcessingTime(data.processing_time_seconds);
       setModel(data.model || "");
 
-      // Save SOAP notes to Supabase (fire-and-forget)
       const consultationId = recordingData?.consultationId;
       if (consultationId && token) {
         fetch(`${BASE_URL}/api/doctor/consultations/${consultationId}`, {
           method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ soap_notes: data.notes }),
-        })
-          .then((r) => r.json())
-          .then((r) => {
-            if (r.success) console.log("✅ SOAP notes saved to Supabase");
-            else console.warn("⚠️ Could not save notes:", r.error);
-          })
-          .catch((e) => console.warn("⚠️ Save notes error:", e));
+        }).catch(e => console.warn("⚠️ Save notes error:", e));
       }
-
       toast.success(`SOAP notes generated in ${data.processing_time_seconds}s`);
     } catch (err: any) {
-      console.error("Notes generation error:", err);
       setError(err.message || "Failed to generate notes");
       toast.error(err.message || "Notes generation failed");
     } finally {
@@ -100,10 +93,43 @@ export default function MedicalNotesEditor({
     }
   };
 
+  const handleFinalize = async () => {
+    setIsSaving(true);
+    try {
+      const consultationId = recordingData?.consultationId;
+      const token = localStorage.getItem("accessToken");
+      if (consultationId && token) {
+        await fetch(`${BASE_URL}/api/doctor/consultations/${consultationId}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ soap_notes: notes }),
+        });
+      }
+    } catch { /* fire and forget — navigate regardless */ }
+    onNotesFinalized?.(notes);
+    navigate('/doctor/prescription');
+    setIsSaving(false);
+  };
+
+  const wordCount = notes.trim().split(/\s+/).filter(Boolean).length;
+
   // ── LOADING STATE ──
   if (isLoading) {
     return (
       <div className="dl-page">
+        <div className="page-header">
+          <div className="page-header-top">
+            <div className="page-header-left">
+              <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+                <ClipboardList size={18} color="#fff" />
+              </div>
+              <div>
+                <div className="page-header-title">SOAP Notes</div>
+                <div className="page-header-sub">Generating clinical documentation…</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="page-content">
           <div className="aix-state-card">
             <div className="aix-state-icon aix-state-icon-loading">
@@ -112,15 +138,12 @@ export default function MedicalNotesEditor({
             <div className="aix-state-body">
               <div className="aix-state-title">Generating SOAP Notes…</div>
               <div className="aix-state-sub">
-                MedScribe AI is creating structured clinical documentation from
-                the consultation.
+                MedScribe AI is creating structured clinical documentation from the consultation.
               </div>
             </div>
             <div className="aix-state-spinner-row">
               <Loader2 className="aix-spinner" />
-              <span className="aix-state-spinner-text">
-                This may take 10–20 seconds…
-              </span>
+              <span className="aix-state-spinner-text">This may take 10–20 seconds…</span>
             </div>
           </div>
         </div>
@@ -153,22 +176,14 @@ export default function MedicalNotesEditor({
             <div className="aix-state-body">
               <div className="aix-state-title">No Active Consultation</div>
               <div className="aix-state-sub">
-                To generate SOAP notes, start a consultation from the Patients page first. After recording and AI extraction, notes will be generated automatically here.
+                Start a consultation from the Patients page first. After recording and AI extraction, notes will be generated here.
               </div>
             </div>
             <div className="aix-state-actions">
-              <button
-                type="button"
-                className="btn btn-secondary btn-md"
-                onClick={() => navigate('/doctor/dashboard')}
-              >
+              <button type="button" className="btn btn-secondary btn-md" onClick={() => navigate('/doctor/dashboard')}>
                 <ArrowLeft size={14} /> Back to Dashboard
               </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-md"
-                onClick={() => navigate('/doctor/patients')}
-              >
+              <button type="button" className="btn btn-primary btn-md" onClick={() => navigate('/doctor/patients')}>
                 Go to Patients
               </button>
             </div>
@@ -189,38 +204,27 @@ export default function MedicalNotesEditor({
                 <AlertCircle size={18} color="#fff" />
               </div>
               <div>
-                <div className="page-header-title">Generation Failed</div>
-                <div className="page-header-sub">
-                  MedScribe AI encountered an error
-                </div>
+                <div className="page-header-title">Notes Generation Failed</div>
+                <div className="page-header-sub">MedScribe AI encountered an error</div>
               </div>
             </div>
           </div>
         </div>
-
         <div className="page-content">
           <div className="aix-state-card">
             <div className="aix-state-icon aix-state-icon-error">
               <AlertCircle className="aix-state-icon-svg" />
             </div>
             <div className="aix-state-body">
-              <div className="aix-state-title">Notes Generation Failed</div>
+              <div className="aix-state-title">Generation Failed</div>
               <div className="aix-state-sub">{error}</div>
             </div>
             <div className="aix-state-actions">
-              <button
-                type="button"
-                className="btn btn-secondary btn-md"
-                onClick={() => navigate('/doctor/extraction')}
-              >
+              <button type="button" className="btn btn-secondary btn-md" onClick={() => navigate('/doctor/extraction')}>
                 <ArrowLeft size={14} /> Back to Extraction
               </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-md"
-                onClick={() => generateNotes(recordingData?.transcript)}
-              >
-                <RefreshCw size={14} /> Retry Generation
+              <button type="button" className="btn btn-primary btn-md" onClick={() => generateNotes(recordingData?.transcript)}>
+                <RefreshCw size={14} /> Retry
               </button>
             </div>
           </div>
@@ -240,9 +244,9 @@ export default function MedicalNotesEditor({
               <ClipboardList size={18} color="#fff" />
             </div>
             <div>
-              <div className="page-header-title">Clinical SOAP Documentation</div>
+              <div className="page-header-title">SOAP Notes Editor</div>
               <div className="page-header-sub">
-                Refining consultation records for {patientName || "Patient"}
+                Review and finalize clinical documentation for {patientName || "Patient"}
               </div>
             </div>
           </div>
@@ -250,9 +254,13 @@ export default function MedicalNotesEditor({
             <button
               type="button"
               className="btn btn-primary btn-sm"
-              onClick={() => navigate('/doctor/prescription')}
+              onClick={handleFinalize}
+              disabled={isSaving}
             >
-              Finalize Notes <ArrowRight size={14} />
+              {isSaving
+                ? <><Loader2 size={13} className="animate-spin" /> Saving…</>
+                : <><ArrowRight size={13} /> Finalize &amp; Prescribe</>
+              }
             </button>
           </div>
         </div>
@@ -262,7 +270,43 @@ export default function MedicalNotesEditor({
       <div className="page-content">
         <div className="sp-section">
 
-          {/* ── Editor Card ── */}
+          {/* SOAP section quick-reference */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {[
+              { key: "S", label: "Subjective",  color: "#0D9488" },
+              { key: "O", label: "Objective",   color: "#3B82F6" },
+              { key: "A", label: "Assessment",  color: "#8B5CF6" },
+              { key: "P", label: "Plan",        color: "#F59E0B" },
+            ].map(s => (
+              <span
+                key={s.key}
+                className="badge"
+                style={{
+                  background: s.color + "18",
+                  color: s.color,
+                  border: `1px solid ${s.color}40`,
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                <span style={{
+                  width: 18, height: 18, borderRadius: 4,
+                  background: s.color, color: "#fff",
+                  display: "inline-flex", alignItems: "center",
+                  justifyContent: "center", fontSize: 10,
+                  fontWeight: 800, marginRight: 4,
+                }}>
+                  {s.key}
+                </span>
+                {s.label}
+              </span>
+            ))}
+            <span className="badge badge-info" style={{ marginLeft: "auto" }}>
+              <Brain size={11} /> AI-generated — physician reviewed
+            </span>
+          </div>
+
+          {/* Editor card */}
           <div className="mn-editor-card">
             <div className="mn-editor-accent" />
 
@@ -274,65 +318,48 @@ export default function MedicalNotesEditor({
                 <div>
                   <div className="card-title">SOAP Notes Editor</div>
                   <div className="card-subtitle">
-                    Review, refine and finalize the generated documentation
+                    Edit the AI-generated notes below — your changes will be used when generating the prescription
                   </div>
                 </div>
               </div>
-              <span className="mn-editor-eyebrow">
-                <Brain size={11} /> AI Generated
-              </span>
+              {model && (
+                <span className="mn-editor-eyebrow">
+                  <Brain size={11} /> {model}
+                </span>
+              )}
             </div>
 
             <div className="mn-editor-body">
               <textarea
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 className="mn-textarea"
-                placeholder={`Subjective:
-Patient reports...
-
-Objective:
-Vitals: BP 120/80...
-
-Assessment:
-Preliminary diagnosis...
-
-Plan:
-Treatment initiated...`}
+                placeholder={SOAP_PLACEHOLDER}
+                spellCheck={false}
+                style={{ minHeight: 420 }}
               />
             </div>
 
             <div className="mn-editor-footer">
               <div className="mn-meta-left">
-                {model && (
-                  <span className="mn-meta-chip">
-                    <Brain size={13} />
-                    {model}
-                  </span>
-                )}
                 {processingTime !== null && (
                   <span className="mn-meta-chip">
-                    <Loader2 size={13} />
-                    Processed in {processingTime}s
+                    <Loader2 size={13} /> Generated in {processingTime}s
                   </span>
                 )}
               </div>
               <div className="mn-meta-right">
-                <span>{notes.split(' ').filter(Boolean).length} Words</span>
+                <span>{wordCount} words</span>
                 <span className="mn-meta-dot" />
-                <span>{notes.length} Chars</span>
+                <span>{notes.length} chars</span>
               </div>
             </div>
           </div>
 
-          {/* ── Bottom Navigation ── */}
+          {/* Bottom navigation */}
           <div className="mn-bottom-actions">
             <div className="mn-bottom-actions-right">
-              <button
-                type="button"
-                className="btn btn-secondary btn-md"
-                onClick={() => navigate('/doctor/extraction')}
-              >
+              <button type="button" className="btn btn-secondary btn-md" onClick={() => navigate('/doctor/extraction')}>
                 <ArrowLeft size={14} /> Back to Extraction
               </button>
             </div>
@@ -340,9 +367,13 @@ Treatment initiated...`}
               <button
                 type="button"
                 className="btn btn-primary btn-md"
-                onClick={() => navigate('/doctor/prescription')}
+                onClick={handleFinalize}
+                disabled={isSaving}
               >
-                Finalize Notes <ArrowRight size={14} />
+                {isSaving
+                  ? <><Loader2 size={14} className="animate-spin" /> Saving…</>
+                  : <><Save size={14} /> Save &amp; Continue to Prescription</>
+                }
               </button>
             </div>
           </div>

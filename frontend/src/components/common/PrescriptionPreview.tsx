@@ -54,6 +54,8 @@ interface PrescriptionPreviewProps {
   recordingData: any;
   extractedData: any;
   pregeneratedData?: any;
+  soapNotes?: string;
+  extractionEditedText?: string;
   onLogout: () => void;
   doctorInfo?: DoctorInfo;
   hospitalInfo?: HospitalInfo;
@@ -68,6 +70,8 @@ export default function PrescriptionPreview({
   recordingData,
   extractedData,
   pregeneratedData,
+  soapNotes,
+  extractionEditedText,
   onLogout: _onLogout,
   doctorInfo,
   hospitalInfo,
@@ -148,7 +152,22 @@ export default function PrescriptionPreview({
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("Not authenticated");
 
-      let currentExtracted = extractedData;
+      // Priority for source text:
+      // 1. SOAP notes (most downstream — doctor reviewed everything)
+      // 2. Edited AI extraction text (doctor changed medications/diagnosis in extraction step)
+      // 3. Original transcript (no edits made)
+      // When any manual edit exists, force a fresh extraction from that edited text
+      // so structured data (medications, diagnoses) reflects the doctor's changes.
+      const sourceText =
+        (soapNotes && soapNotes.trim())
+          ? soapNotes
+          : (extractionEditedText && extractionEditedText.trim())
+          ? extractionEditedText
+          : transcript;
+      const sourceIsEdited = !!(soapNotes?.trim() || extractionEditedText?.trim());
+
+      let currentExtracted = sourceIsEdited ? null : extractedData;
+
       if (!currentExtracted || Object.keys(currentExtracted).length === 0) {
         const extractRes = await fetch(`${BASE_URL}/api/nlp/extract`, {
           method: "POST",
@@ -156,7 +175,7 @@ export default function PrescriptionPreview({
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ transcript }),
+          body: JSON.stringify({ transcript: sourceText }),
         });
         const extractData = await extractRes.json();
         if (extractRes.ok && extractData.success) {
@@ -171,7 +190,7 @@ export default function PrescriptionPreview({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          transcript,
+          transcript: sourceText,
           extracted_data: currentExtracted || {},
           consultation_id: recordingData?.consultationId || null,
         }),
