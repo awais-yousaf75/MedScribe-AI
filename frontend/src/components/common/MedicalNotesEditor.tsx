@@ -33,7 +33,6 @@ export default function MedicalNotesEditor({
   useEffect(() => {
     const transcript = recordingData?.transcript;
     if (!transcript) {
-      setError("No transcript available. Go back and record a consultation first.");
       setIsLoading(false);
       return;
     }
@@ -122,6 +121,56 @@ export default function MedicalNotesEditor({
               <span className="aix-state-spinner-text">
                 This may take 10–20 seconds…
               </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── NO ACTIVE CONSULTATION ──
+  if (!recordingData) {
+    return (
+      <div className="dl-page">
+        <div className="page-header">
+          <div className="page-header-top">
+            <div className="page-header-left">
+              <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+                <ClipboardList size={18} color="#fff" />
+              </div>
+              <div>
+                <div className="page-header-title">SOAP Notes</div>
+                <div className="page-header-sub">No active consultation</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="page-content">
+          <div className="aix-state-card">
+            <div className="aix-state-icon aix-state-icon-loading">
+              <FileText className="aix-state-icon-svg" />
+            </div>
+            <div className="aix-state-body">
+              <div className="aix-state-title">No Active Consultation</div>
+              <div className="aix-state-sub">
+                To generate SOAP notes, start a consultation from the Patients page first. After recording and AI extraction, notes will be generated automatically here.
+              </div>
+            </div>
+            <div className="aix-state-actions">
+              <button
+                type="button"
+                className="btn btn-secondary btn-md"
+                onClick={() => navigate('/doctor/dashboard')}
+              >
+                <ArrowLeft size={14} /> Back to Dashboard
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-md"
+                onClick={() => navigate('/doctor/patients')}
+              >
+                Go to Patients
+              </button>
             </div>
           </div>
         </div>

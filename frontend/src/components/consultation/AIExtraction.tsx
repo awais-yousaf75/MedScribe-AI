@@ -53,9 +53,6 @@ export default function AIExtraction({
   useEffect(() => {
     const transcript = recordingData?.transcript;
     if (!transcript) {
-      setError(
-        "No transcript available. Go back and record a consultation first."
-      );
       setIsLoading(false);
       return;
     }
@@ -180,6 +177,56 @@ export default function AIExtraction({
 
   const handleSave = () => navigate("/doctor/notes");
   const handleGeneratePrescription = () => navigate("/doctor/prescription");
+
+  /* ── No active consultation ── */
+  if (!recordingData) {
+    return (
+      <div className="dl-page">
+        <div className="page-header">
+          <div className="page-header-top">
+            <div className="page-header-left">
+              <div className="icon-wrap icon-wrap-md icon-wrap-teal">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="page-header-title">AI Extraction</h1>
+                <p className="page-header-sub">No active consultation</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="page-content">
+          <div className="aix-state-card">
+            <div className="aix-state-icon aix-state-icon-loading">
+              <Brain className="aix-state-icon-svg" />
+            </div>
+            <div className="aix-state-body">
+              <h2 className="aix-state-title">No Active Consultation</h2>
+              <p className="aix-state-sub">
+                To use AI extraction, start a consultation from the Patients page first. Record a session, then AI will extract clinical insights automatically.
+              </p>
+            </div>
+            <div className="aix-state-actions">
+              <button
+                type="button"
+                className="btn btn-secondary btn-md"
+                onClick={() => navigate("/doctor/dashboard")}
+              >
+                Back to Dashboard
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-md"
+                onClick={() => navigate("/doctor/patients")}
+              >
+                Go to Patients
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ── Loading ── */
   if (isLoading) {

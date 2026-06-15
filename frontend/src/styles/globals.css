@@ -422,14 +422,21 @@
 }
 
 .icon-wrap-teal {
-  background: var(--ms-teal);
-  box-shadow: 0 8px 18px rgba(26, 124, 109, 0.18);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
+}
+.icon-wrap-teal svg {
+  color: var(--ms-teal) !important;
+  stroke: var(--ms-teal) !important;
 }
 
 .icon-wrap-navy {
-  background: var(--ms-navy);
-  border: 1px solid var(--ms-border-card);
-  box-shadow: 0 8px 18px rgba(11, 29, 58, 0.18);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
+}
+.icon-wrap-navy svg {
+  color: var(--ms-teal) !important;
+  stroke: var(--ms-teal) !important;
 }
 
 .icon-wrap-gold {
@@ -1306,13 +1313,14 @@
   width: 44px;
   height: 44px;
   border-radius: var(--ms-radius-lg);
-  background: var(--ms-teal);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--ms-text-lg);
   font-weight: var(--ms-weight-bold);
-  color: var(--ms-text-inverse);
+  color: var(--ms-teal);
   flex-shrink: 0;
 }
 
@@ -1990,8 +1998,8 @@
   width: 38px;
   height: 38px;
   border-radius: var(--ms-radius-md);
-  background: var(--ms-navy-deep);
-  border: 1px solid var(--ms-border-dark);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.20);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3140,7 +3148,8 @@
   width: 42px;
   height: 42px;
   border-radius: var(--ms-radius-lg);
-  background: var(--ms-teal-subtle);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   color: var(--ms-teal);
   display: flex;
   align-items: center;
@@ -4895,15 +4904,15 @@
   width: 48px;
   height: 48px;
   border-radius: var(--ms-radius-full);
-  background: var(--ms-teal);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--ms-text-md);
   font-weight: var(--ms-weight-bold);
-  color: var(--ms-text-inverse);
+  color: var(--ms-teal);
   flex-shrink: 0;
-  box-shadow: 0 6px 14px rgba(26, 124, 109, 0.2);
 }
 
 .tp-patient-info {
@@ -5171,15 +5180,15 @@
   width: 48px;
   height: 48px;
   border-radius: var(--ms-radius-full);
-  background: var(--ms-teal);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--ms-text-md);
   font-weight: var(--ms-weight-bold);
-  color: var(--ms-text-inverse);
+  color: var(--ms-teal);
   flex-shrink: 0;
-  box-shadow: 0 6px 14px rgba(26, 124, 109, 0.2);
 }
 
 .lr-patient-info {
@@ -5604,8 +5613,8 @@
   width: 36px;
   height: 36px;
   border-radius: var(--ms-radius-md);
-  background: var(--ms-navy-deep);
-  border: 1px solid var(--ms-border-dark);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8505,8 +8514,9 @@
   width: 36px;
   height: 36px;
   border-radius: var(--ms-radius-md);
-  background: var(--ms-teal);
-  color: var(--ms-text-inverse);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
+  color: var(--ms-teal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8517,7 +8527,7 @@
 }
 
 .ch-patient-item-active .ch-patient-avatar {
-  background: var(--ms-teal-dark);
+  background: rgba(26, 124, 109, 0.18);
 }
 
 .ch-patient-info {
@@ -8631,8 +8641,9 @@
   width: 48px;
   height: 48px;
   border-radius: var(--ms-radius-lg);
-  background: var(--ms-teal);
-  color: var(--ms-text-inverse);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
+  color: var(--ms-teal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8640,7 +8651,6 @@
   font-weight: var(--ms-weight-bold);
   flex-shrink: 0;
   letter-spacing: var(--ms-tracking-wide);
-  box-shadow: 0 4px 12px rgba(26, 124, 109, 0.3);
 }
 
 .ch-summary-info {
@@ -9508,8 +9518,8 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: var(--ms-teal);
-  color: var(--ms-text-inverse);
+  background: #D5EDE9;
+  color: var(--ms-teal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9590,8 +9600,8 @@
 
 .av-display {
   border-radius: var(--ms-radius-md);
-  background: var(--ms-navy-deep);
-  border: 1px solid var(--ms-border-dark);
+  background: #D5EDE9;
+  border: 1px solid rgba(26, 124, 109, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;

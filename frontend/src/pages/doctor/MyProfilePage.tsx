@@ -72,7 +72,7 @@ function SectionCard({
             style={{
               background:
                 iconColor === "var(--ms-teal)"
-                  ? "rgba(22,163,165,0.10)"
+                  ? "#D5EDE9"
                   : "rgba(26,26,46,0.06)",
             }}
           >

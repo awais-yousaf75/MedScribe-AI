@@ -2972,3 +2972,79 @@ RAW LLM OUTPUT:
 }
 ```
 ==================================================
+
+==================================================
+TRANSCRIPT LENGTH (original): 5379
+TRANSCRIPT LENGTH (sent to LLM): 4040
+RAW LLM OUTPUT:
+```json
+{
+  "patient_info": {
+    "chief_complaint": "chest pain",
+    "age_mentioned": "39",
+    "gender_mentioned": "male"
+  },
+  "symptoms": [
+    {
+      "name": "chest pain",
+      "duration": "8 hours",
+      "severity": "7-8/10",
+      "location": "left side of chest",
+      "onset": "last night"
+    },
+    {
+      "name": "lightheadedness",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "trouble breathing",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": "since the pain started"
+    },
+    {
+      "name": "racing heart",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "sweating",
+      "duration": null,
+      "severity": null,
+      "location": null,
+      "onset": null
+    },
+    {
+      "name": "swollen neck",
+      "duration": null,
+      "severity": null,
+      "location": "neck",
+      "onset": null
+    }
+  ],
+  "vital_signs": {
+    "blood_pressure": null,
+    "heart_rate": null,
+    "temperature": null,
+    "spo2": null,
+    "weight": null
+  },
+  "diagnoses": [],
+  "medications": [],
+  "investigations": [],
+  "allergies": ["None"],
+  "past_medical_history": ["None"],
+  "follow_up": {
+    "timing": null,
+    "instructions": null,
+    "red_flags": []
+  }
+}
+```
+==================================================

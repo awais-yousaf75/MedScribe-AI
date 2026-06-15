@@ -63,7 +63,7 @@ function SectionCard({
           <div
             className="icon-wrap icon-wrap-md"
             style={{
-              background: `${iconColor === "var(--ms-teal)" ? "rgba(22,163,165,0.10)" : "rgba(26,26,46,0.06)"}`,
+              background: `${iconColor === "var(--ms-teal)" ? "#D5EDE9" : "rgba(26,26,46,0.06)"}`,
             }}
           >
             <Icon size={17} color={iconColor} />
